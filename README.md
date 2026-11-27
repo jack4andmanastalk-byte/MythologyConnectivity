@@ -35,10 +35,15 @@ python3 src/run_all.py        # 検証 → 定数監査 → 全解析 → ネッ
 | `src/verify_network.py` | v17 HTML 埋め込みグラフ（297 ノード / 597 エッジ）の全件検証。構造・層構成・数値再現・全ノード統計 |
 | `src/verify_doc.py` | 手書き文書の数値が `results.json` / `network_checks.json` と一致するかを機械照合（不一致なら exit 1） |
 | `src/run_all.py` | 上記を順に実行し、結果・レポート・マニフェストを生成 |
-| `annotations/` | 評定データ（pass A / pass B / アンカー / L1 監査 / v17 legacy 変換） |
+| `annotations/` | 評定データ（pass A / pass B / 中立操作定義 pass C / アンカー / L1 監査 / v17 legacy 変換） |
 | `data/frozen/` | 凍結入力（297 ノード、v16 75D 行列、L1 75D 行列） |
+| `derived/` | 凍結 HTML 297 ノード出所・21 話乖離台帳（`html_embedded_v17_audit.json`） |
 | `outputs/` | 生成物（結果・レポート・行列・監査・ネットワーク検証・全件台帳・マニフェスト） |
-| `docs/v18_method_and_results.md` | 方法と結果の本文（日本語） |
+| `docs/v18_method_and_results.md` | 方法と結果の本文（日本語・§11 v18.1 追補含む） |
+| `docs/peer_review_summary_ja.md` | 査読用サマリ（日本語 2 ページ要約、`verify_doc.py` 照合済み） |
+| `docs/peer_review_summary_en.md` | 査読用サマリ（英語要約、`verify_doc.py` 照合済み） |
+| `docs/registry.md` | 事前登録台帳（全 7 枝・Holm 補正・結果一覧） |
+| `docs/adr/` | 設計判断記録（ADR 0001〜0003） |
 
 ## 検証コマンド
 

@@ -104,6 +104,26 @@ def main():
     agree_AB = S.agreement_report(full(lA), full(lB))
     agree_AL = S.agreement_report(full(lA), full(lL))
 
+    agree_extra = {}
+    pc_cfg = CFG.get("pass_c")
+    C_recs = []
+    if pc_cfg and (ROOT / pc_cfg["annotation_path"]).exists():
+        C_recs = load_jsonl(ROOT / pc_cfg["annotation_path"])
+        c_ids = pc_cfg["target_ids"]
+        lC = lvl(C_recs)
+        full13 = lambda d: {(t, k): d.get((t, k), 0) for t in c_ids for k in vocab}
+        ab13 = S.agreement_report(full13(lA), full13(lB))
+        ac13 = S.agreement_report(full13(lA), full13(lC))
+        bc13 = S.agreement_report(full13(lB), full13(lC))
+        agree_extra = dict(
+            passA_vs_passB_13=ab13,
+            passA_vs_passC_13=ac13,
+            passB_vs_passC_13=bc13,
+            passA_vs_passC_37_padded=S.agreement_report(full(lA), full(lC)),
+            delta_alpha_same13_to_passC=float(ab13["alpha"] - ac13["alpha"]),
+            delta_alpha_555baseline_to_passC=float(agree_AB["alpha"] - ac13["alpha"]),
+        )
+
     l1aud = {(r["target"], k): int(r["levels"].get(k, 0)) for r in L1A for k in CFG["layer1_audit"]["vocab"]}
     l1froz = pd.read_csv(ROOT / "data/frozen/l1_75d_legacy_matrix.csv").set_index("id")
     LM = CFG["layer2"]["legacy_level_map"]
@@ -241,6 +261,15 @@ def main():
         sens.append(dict(param="dot_thresh(cosine)", value=dt, explained=float(e[tm].mean())))
     res["sensitivity"] = sens
 
+    if C_recs:
+        c_map = {r["target"]: r for r in C_recs}
+        AC = [c_map.get(r["target"], r) for r in A]
+        Mv18_passC = matrix_from(AC + ANC, vocab, sub["id"])
+        Mv18_passC.to_csv(OUT / "matrix_l2_v18_passC_mix.csv")
+        run_c = E.run_with_null(sub, Mv18_passC.values, E.EngineConfig(**p_eng), tm, pm,
+                                n_perm=inj["n_perm"], seed=inj["seed"])
+        res["layer2"]["v18_passC_calibrated"] = summarize(run_c, True)
+
     # 埋め込みネットワークの全件検証（v17 パッケージがある場合のみ）
     net_ok = False
     net_status = "skipped"
@@ -275,7 +304,7 @@ def main():
                        [ROOT / "config/analysis.json"])},
     )
     res["agreement"] = dict(passA_vs_passB=agree_AB, passA_vs_legacy=agree_AL,
-                            l1_audit_vs_frozen=agree_L1)
+                            l1_audit_vs_frozen=agree_L1, **agree_extra)
     (OUT / "results.json").write_text(json.dumps(res, ensure_ascii=False, indent=2), encoding="utf-8")
     make_report(res)
     vd = subprocess.run([sys.executable, str(ROOT / "src/verify_doc.py")],
@@ -323,10 +352,26 @@ def make_report(res):
     a("## 2. アノテーションの信頼性\n")
     a("| 比較 | セル数 | Krippendorff α（順序） | 完全一致率 | ±1 以内 |")
     a("| :--- | ---: | ---: | ---: | ---: |")
-    for nm, x in [("LLM pass A vs pass B（L2・二重評定）", res["agreement"]["passA_vs_passB"]),
-                  ("LLM pass A vs v17 手書き（L2・37 話）", res["agreement"]["passA_vs_legacy"]),
-                  ("LLM 監査 vs v16 凍結値（L1 10 次元 × 12 話）", res["agreement"]["l1_audit_vs_frozen"])]:
+    ag_rows = [
+        ("LLM pass A vs pass B（L2・37 話 0 埋め基準）", res["agreement"]["passA_vs_passB"]),
+        ("LLM pass A vs v17 手書き（L2・37 話）", res["agreement"]["passA_vs_legacy"]),
+        ("LLM 監査 vs v16 凍結値（L1 10 次元 × 12 話）", res["agreement"]["l1_audit_vs_frozen"]),
+    ]
+    for label, key in [
+        ("LLM pass A vs pass B（L2・二重評定 13 話のみ）", "passA_vs_passB_13"),
+        ("LLM pass A vs pass C（L2・中立操作定義 13 話）", "passA_vs_passC_13"),
+        ("LLM pass B vs pass C（L2・中立操作定義 13 話）", "passB_vs_passC_13"),
+    ]:
+        if key in res["agreement"]:
+            ag_rows.append((label, res["agreement"][key]))
+    for nm, x in ag_rows:
         a(f"| {nm} | {x['n_cells']} | {x['alpha']:.3f} | {pct(x['exact_agreement'])} | {pct(x['within1_agreement'])} |")
+    if "delta_alpha_same13_to_passC" in res["agreement"]:
+        a(f"\n語彙変更による α 低下量（同一 13 話 195 セル基準）: "
+          f"{res['agreement']['delta_alpha_same13_to_passC']:.3f} "
+          f"（{res['agreement']['passA_vs_passB_13']['alpha']:.3f} → "
+          f"{res['agreement']['passA_vs_passC_13']['alpha']:.3f} / "
+          f"555 セル見かけ基準比: {res['agreement']['delta_alpha_555baseline_to_passC']:.3f}）。")
     a("\nα の目安: ≥0.800 良好 / 0.667–0.800 暫定許容 / <0.667 結論に使用不可（Krippendorff 2004）。\n")
 
     a("## 3. 第2層（王権・儀礼・レガリア 15D）\n")

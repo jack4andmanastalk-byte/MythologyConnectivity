@@ -1,0 +1,2093 @@
+{
+  "policy": "ADR 0003: annotate_with_derived_audit",
+  "source_html": "vendor/kojiki_mythology_v17_local/output_v17_experiment/eurasia_myth_atlas_v17_interactive.html",
+  "total_nodes": 297,
+  "evaluable_l1_nodes": 248,
+  "provenance_counts": {
+    "decomp.total_final": 37,
+    "pureL2_dom": 16,
+    "v16.L1": 244
+  },
+  "gap_threshold": 0.01,
+  "gap_count": 21,
+  "gap_nodes": [
+    {
+      "id": "K1-01",
+      "name": "上巻：天地初発と別天神・神世七代",
+      "provenance": "decomp.total_final",
+      "displayed_pct": 0.882,
+      "replay_l1_from_edges": 0.9048,
+      "gap_l1": 0.0228,
+      "v16_l1_pct": 0.9047,
+      "decomp_l1_only_pct": 0.636,
+      "decomp_l2_ext_gain_pct": 0.2457,
+      "decomp_l2_dom_gain_pct": 0.0,
+      "decomp_total_final_pct": 0.8817,
+      "display_note": "HTML表示値は3層線形加重合成（l1_only + l2_ext_gain + l2_dom_gain = total_final）であり、画面上のL1表示エッジのみから再計算される被説明率とは一致しない（ADR 0003 注記運用）。"
+    },
+    {
+      "id": "K1-05",
+      "name": "上巻：阿波岐原の禊祓と三貴子の三界分掌",
+      "provenance": "decomp.total_final",
+      "displayed_pct": 0.707,
+      "replay_l1_from_edges": 0.2332,
+      "gap_l1": -0.4738,
+      "v16_l1_pct": 0.6543,
+      "decomp_l1_only_pct": 0.46,
+      "decomp_l2_ext_gain_pct": 0.1409,
+      "decomp_l2_dom_gain_pct": 0.1058,
+      "decomp_total_final_pct": 0.7066,
+      "display_note": "HTML表示値は3層線形加重合成（l1_only + l2_ext_gain + l2_dom_gain = total_final）であり、画面上のL1表示エッジのみから再計算される被説明率とは一致しない（ADR 0003 注記運用）。"
+    },
+    {
+      "id": "K1-06",
+      "name": "上巻：須佐之男の涕泣と天之安河の誓約",
+      "provenance": "decomp.total_final",
+      "displayed_pct": 0.898,
+      "replay_l1_from_edges": 0.8775,
+      "gap_l1": -0.0205,
+      "v16_l1_pct": 0.8775,
+      "decomp_l1_only_pct": 0.6169,
+      "decomp_l2_ext_gain_pct": 0.2722,
+      "decomp_l2_dom_gain_pct": 0.0089,
+      "decomp_total_final_pct": 0.898,
+      "display_note": "HTML表示値は3層線形加重合成（l1_only + l2_ext_gain + l2_dom_gain = total_final）であり、画面上のL1表示エッジのみから再計算される被説明率とは一致しない（ADR 0003 注記運用）。"
+    },
+    {
+      "id": "K1-07",
+      "name": "上巻：須佐之男の狼藉と天岩戸隠れ・回復",
+      "provenance": "decomp.total_final",
+      "displayed_pct": 0.872,
+      "replay_l1_from_edges": 0.9086,
+      "gap_l1": 0.0366,
+      "v16_l1_pct": 0.9086,
+      "decomp_l1_only_pct": 0.6387,
+      "decomp_l2_ext_gain_pct": 0.2332,
+      "decomp_l2_dom_gain_pct": 0.0,
+      "decomp_total_final_pct": 0.8719,
+      "display_note": "HTML表示値は3層線形加重合成（l1_only + l2_ext_gain + l2_dom_gain = total_final）であり、画面上のL1表示エッジのみから再計算される被説明率とは一致しない（ADR 0003 注記運用）。"
+    },
+    {
+      "id": "K1-12",
+      "name": "上巻：根の堅州国の試練・呪的逃走と大国主改名",
+      "provenance": "decomp.total_final",
+      "displayed_pct": 0.684,
+      "replay_l1_from_edges": 0.5925,
+      "gap_l1": -0.0915,
+      "v16_l1_pct": 0.5925,
+      "decomp_l1_only_pct": 0.4165,
+      "decomp_l2_ext_gain_pct": 0.2671,
+      "decomp_l2_dom_gain_pct": 0.0,
+      "decomp_total_final_pct": 0.6836,
+      "display_note": "HTML表示値は3層線形加重合成（l1_only + l2_ext_gain + l2_dom_gain = total_final）であり、画面上のL1表示エッジのみから再計算される被説明率とは一致しない（ADR 0003 注記運用）。"
+    },
+    {
+      "id": "K1-14",
+      "name": "上巻：少名毘古那・久延毘古の国造りと常世",
+      "provenance": "decomp.total_final",
+      "displayed_pct": 0.875,
+      "replay_l1_from_edges": 0.8218,
+      "gap_l1": -0.0532,
+      "v16_l1_pct": 0.8218,
+      "decomp_l1_only_pct": 0.5777,
+      "decomp_l2_ext_gain_pct": 0.2968,
+      "decomp_l2_dom_gain_pct": 0.0,
+      "decomp_total_final_pct": 0.8745,
+      "display_note": "HTML表示値は3層線形加重合成（l1_only + l2_ext_gain + l2_dom_gain = total_final）であり、画面上のL1表示エッジのみから再計算される被説明率とは一致しない（ADR 0003 注記運用）。"
+    },
+    {
+      "id": "K1-17",
+      "name": "上巻：天孫降臨・猿田毘古と天宇受売",
+      "provenance": "decomp.total_final",
+      "displayed_pct": 0.63,
+      "replay_l1_from_edges": 0.5267,
+      "gap_l1": -0.1033,
+      "v16_l1_pct": 0.5267,
+      "decomp_l1_only_pct": 0.3703,
+      "decomp_l2_ext_gain_pct": 0.2601,
+      "decomp_l2_dom_gain_pct": 0.0,
+      "decomp_total_final_pct": 0.6304,
+      "display_note": "HTML表示値は3層線形加重合成（l1_only + l2_ext_gain + l2_dom_gain = total_final）であり、画面上のL1表示エッジのみから再計算される被説明率とは一致しない（ADR 0003 注記運用）。"
+    },
+    {
+      "id": "K1-21",
+      "name": "上巻：潮盈珠・潮干珠と兄の屈服（隼人の祖）",
+      "provenance": "decomp.total_final",
+      "displayed_pct": 0.753,
+      "replay_l1_from_edges": 0.6754,
+      "gap_l1": -0.0776,
+      "v16_l1_pct": 0.6754,
+      "decomp_l1_only_pct": 0.4748,
+      "decomp_l2_ext_gain_pct": 0.2729,
+      "decomp_l2_dom_gain_pct": 0.0053,
+      "decomp_total_final_pct": 0.753,
+      "display_note": "HTML表示値は3層線形加重合成（l1_only + l2_ext_gain + l2_dom_gain = total_final）であり、画面上のL1表示エッジのみから再計算される被説明率とは一致しない（ADR 0003 注記運用）。"
+    },
+    {
+      "id": "K2-01",
+      "name": "中巻：神武東征・熊野大熊と高倉下・八咫烏",
+      "provenance": "decomp.total_final",
+      "displayed_pct": 0.826,
+      "replay_l1_from_edges": 0.7802,
+      "gap_l1": -0.0458,
+      "v16_l1_pct": 0.7802,
+      "decomp_l1_only_pct": 0.5485,
+      "decomp_l2_ext_gain_pct": 0.2772,
+      "decomp_l2_dom_gain_pct": 0.0,
+      "decomp_total_final_pct": 0.8256,
+      "display_note": "HTML表示値は3層線形加重合成（l1_only + l2_ext_gain + l2_dom_gain = total_final）であり、画面上のL1表示エッジのみから再計算される被説明率とは一致しない（ADR 0003 注記運用）。"
+    },
+    {
+      "id": "K2-02",
+      "name": "中巻：神武求婚（丹塗矢）とタギシミミの反逆",
+      "provenance": "decomp.total_final",
+      "displayed_pct": 0.889,
+      "replay_l1_from_edges": 0.8449,
+      "gap_l1": -0.0441,
+      "v16_l1_pct": 0.8449,
+      "decomp_l1_only_pct": 0.594,
+      "decomp_l2_ext_gain_pct": 0.2953,
+      "decomp_l2_dom_gain_pct": 0.0,
+      "decomp_total_final_pct": 0.8892,
+      "display_note": "HTML表示値は3層線形加重合成（l1_only + l2_ext_gain + l2_dom_gain = total_final）であり、画面上のL1表示エッジのみから再計算される被説明率とは一致しない（ADR 0003 注記運用）。"
+    },
+    {
+      "id": "K2-04",
+      "name": "中巻：崇神天皇の夢告と三輪山（活玉依毘売・苧環）",
+      "provenance": "decomp.total_final",
+      "displayed_pct": 0.812,
+      "replay_l1_from_edges": 0.6389,
+      "gap_l1": -0.1731,
+      "v16_l1_pct": 0.8324,
+      "decomp_l1_only_pct": 0.5852,
+      "decomp_l2_ext_gain_pct": 0.192,
+      "decomp_l2_dom_gain_pct": 0.0345,
+      "decomp_total_final_pct": 0.8116,
+      "display_note": "HTML表示値は3層線形加重合成（l1_only + l2_ext_gain + l2_dom_gain = total_final）であり、画面上のL1表示エッジのみから再計算される被説明率とは一致しない（ADR 0003 注記運用）。"
+    },
+    {
+      "id": "K2-05",
+      "name": "中巻：垂仁朝・サホビコ叛乱と火中誕生",
+      "provenance": "decomp.total_final",
+      "displayed_pct": 0.758,
+      "replay_l1_from_edges": 0.6621,
+      "gap_l1": -0.0959,
+      "v16_l1_pct": 0.6621,
+      "decomp_l1_only_pct": 0.4654,
+      "decomp_l2_ext_gain_pct": 0.2921,
+      "decomp_l2_dom_gain_pct": 0.0,
+      "decomp_total_final_pct": 0.7576,
+      "display_note": "HTML表示値は3層線形加重合成（l1_only + l2_ext_gain + l2_dom_gain = total_final）であり、画面上のL1表示エッジのみから再計算される被説明率とは一致しない（ADR 0003 注記運用）。"
+    },
+    {
+      "id": "K2-06",
+      "name": "中巻：本牟智和気・肥長比売蛇体と多遅摩毛理常世",
+      "provenance": "decomp.total_final",
+      "displayed_pct": 0.848,
+      "replay_l1_from_edges": 0.5124,
+      "gap_l1": -0.3356,
+      "v16_l1_pct": 0.8092,
+      "decomp_l1_only_pct": 0.5689,
+      "decomp_l2_ext_gain_pct": 0.279,
+      "decomp_l2_dom_gain_pct": 0.0,
+      "decomp_total_final_pct": 0.8479,
+      "display_note": "HTML表示値は3層線形加重合成（l1_only + l2_ext_gain + l2_dom_gain = total_final）であり、画面上のL1表示エッジのみから再計算される被説明率とは一致しない（ADR 0003 注記運用）。"
+    },
+    {
+      "id": "K2-07",
+      "name": "中巻：倭建命・兄殺しと女装クマソ・イズモ平定",
+      "provenance": "decomp.total_final",
+      "displayed_pct": 0.797,
+      "replay_l1_from_edges": 0.5301,
+      "gap_l1": -0.2669,
+      "v16_l1_pct": 0.7294,
+      "decomp_l1_only_pct": 0.5128,
+      "decomp_l2_ext_gain_pct": 0.2843,
+      "decomp_l2_dom_gain_pct": 0.0,
+      "decomp_total_final_pct": 0.7971,
+      "display_note": "HTML表示値は3層線形加重合成（l1_only + l2_ext_gain + l2_dom_gain = total_final）であり、画面上のL1表示エッジのみから再計算される被説明率とは一致しない（ADR 0003 注記運用）。"
+    },
+    {
+      "id": "K2-08",
+      "name": "中巻：倭建命・東征・弟橘比売入水と白千鳥昇天",
+      "provenance": "decomp.total_final",
+      "displayed_pct": 0.708,
+      "replay_l1_from_edges": 0.6522,
+      "gap_l1": -0.0558,
+      "v16_l1_pct": 0.6522,
+      "decomp_l1_only_pct": 0.4585,
+      "decomp_l2_ext_gain_pct": 0.2234,
+      "decomp_l2_dom_gain_pct": 0.0265,
+      "decomp_total_final_pct": 0.7084,
+      "display_note": "HTML表示値は3層線形加重合成（l1_only + l2_ext_gain + l2_dom_gain = total_final）であり、画面上のL1表示エッジのみから再計算される被説明率とは一致しない（ADR 0003 注記運用）。"
+    },
+    {
+      "id": "K2-10",
+      "name": "中巻：応神天皇の三皇子分掌・大雀と渡来文化",
+      "provenance": "decomp.total_final",
+      "displayed_pct": 0.716,
+      "replay_l1_from_edges": 0.8511,
+      "gap_l1": 0.1351,
+      "v16_l1_pct": 0.8511,
+      "decomp_l1_only_pct": 0.5983,
+      "decomp_l2_ext_gain_pct": 0.1178,
+      "decomp_l2_dom_gain_pct": 0.0,
+      "decomp_total_final_pct": 0.7161,
+      "display_note": "HTML表示値は3層線形加重合成（l1_only + l2_ext_gain + l2_dom_gain = total_final）であり、画面上のL1表示エッジのみから再計算される被説明率とは一致しない（ADR 0003 注記運用）。"
+    },
+    {
+      "id": "K3-01",
+      "name": "下巻：仁徳天皇の聖帝と石之日売嫉妬・女鳥王逃走",
+      "provenance": "decomp.total_final",
+      "displayed_pct": 0.788,
+      "replay_l1_from_edges": 0.7132,
+      "gap_l1": -0.0748,
+      "v16_l1_pct": 0.7132,
+      "decomp_l1_only_pct": 0.5014,
+      "decomp_l2_ext_gain_pct": 0.2866,
+      "decomp_l2_dom_gain_pct": 0.0,
+      "decomp_total_final_pct": 0.788,
+      "display_note": "HTML表示値は3層線形加重合成（l1_only + l2_ext_gain + l2_dom_gain = total_final）であり、画面上のL1表示エッジのみから再計算される被説明率とは一致しない（ADR 0003 注記運用）。"
+    },
+    {
+      "id": "K3-02",
+      "name": "下巻：允恭朝の盟神探湯と軽太子・軽大郎女の悲劇",
+      "provenance": "decomp.total_final",
+      "displayed_pct": 0.833,
+      "replay_l1_from_edges": 0.793,
+      "gap_l1": -0.04,
+      "v16_l1_pct": 0.793,
+      "decomp_l1_only_pct": 0.5575,
+      "decomp_l2_ext_gain_pct": 0.2757,
+      "decomp_l2_dom_gain_pct": 0.0,
+      "decomp_total_final_pct": 0.8332,
+      "display_note": "HTML表示値は3層線形加重合成（l1_only + l2_ext_gain + l2_dom_gain = total_final）であり、画面上のL1表示エッジのみから再計算される被説明率とは一致しない（ADR 0003 注記運用）。"
+    },
+    {
+      "id": "K3-03",
+      "name": "下巻：安康天皇弑逆（目弱王の仇討ち）と大長谷王",
+      "provenance": "decomp.total_final",
+      "displayed_pct": 0.856,
+      "replay_l1_from_edges": 0.7959,
+      "gap_l1": -0.0601,
+      "v16_l1_pct": 0.7959,
+      "decomp_l1_only_pct": 0.5595,
+      "decomp_l2_ext_gain_pct": 0.2965,
+      "decomp_l2_dom_gain_pct": 0.0,
+      "decomp_total_final_pct": 0.856,
+      "display_note": "HTML表示値は3層線形加重合成（l1_only + l2_ext_gain + l2_dom_gain = total_final）であり、画面上のL1表示エッジのみから再計算される被説明率とは一致しない（ADR 0003 注記運用）。"
+    },
+    {
+      "id": "K3-04",
+      "name": "下巻：雄略天皇と葛城一言主大神・大猪・赤猪子",
+      "provenance": "decomp.total_final",
+      "displayed_pct": 0.814,
+      "replay_l1_from_edges": 0.7653,
+      "gap_l1": -0.0487,
+      "v16_l1_pct": 0.7653,
+      "decomp_l1_only_pct": 0.538,
+      "decomp_l2_ext_gain_pct": 0.276,
+      "decomp_l2_dom_gain_pct": 0.0,
+      "decomp_total_final_pct": 0.814,
+      "display_note": "HTML表示値は3層線形加重合成（l1_only + l2_ext_gain + l2_dom_gain = total_final）であり、画面上のL1表示エッジのみから再計算される被説明率とは一致しない（ADR 0003 注記運用）。"
+    },
+    {
+      "id": "K3-05",
+      "name": "下巻：意祁王・袁祁王の貴種流離と室寿ぎ・譲位",
+      "provenance": "decomp.total_final",
+      "displayed_pct": 0.822,
+      "replay_l1_from_edges": 0.7623,
+      "gap_l1": -0.0597,
+      "v16_l1_pct": 0.7623,
+      "decomp_l1_only_pct": 0.5359,
+      "decomp_l2_ext_gain_pct": 0.2864,
+      "decomp_l2_dom_gain_pct": 0.0,
+      "decomp_total_final_pct": 0.8223,
+      "display_note": "HTML表示値は3層線形加重合成（l1_only + l2_ext_gain + l2_dom_gain = total_final）であり、画面上のL1表示エッジのみから再計算される被説明率とは一致しない（ADR 0003 注記運用）。"
+    }
+  ],
+  "nodes_provenance": [
+    {
+      "id": "CN01",
+      "provenance": "v16.L1",
+      "explained_display": 0.944,
+      "explained_replay_l1": 0.9444
+    },
+    {
+      "id": "CN02",
+      "provenance": "v16.L1",
+      "explained_display": 0.677,
+      "explained_replay_l1": 0.6766
+    },
+    {
+      "id": "CN03",
+      "provenance": "v16.L1",
+      "explained_display": 0.543,
+      "explained_replay_l1": 0.5429
+    },
+    {
+      "id": "CN04",
+      "provenance": "v16.L1",
+      "explained_display": 0.754,
+      "explained_replay_l1": 0.7537
+    },
+    {
+      "id": "CN05",
+      "provenance": "v16.L1",
+      "explained_display": 0.0,
+      "explained_replay_l1": null
+    },
+    {
+      "id": "CN06",
+      "provenance": "v16.L1",
+      "explained_display": 0.0,
+      "explained_replay_l1": null
+    },
+    {
+      "id": "CN07",
+      "provenance": "v16.L1",
+      "explained_display": 0.155,
+      "explained_replay_l1": 0.1552
+    },
+    {
+      "id": "CN08",
+      "provenance": "v16.L1",
+      "explained_display": 0.0,
+      "explained_replay_l1": null
+    },
+    {
+      "id": "CN09",
+      "provenance": "v16.L1",
+      "explained_display": 0.667,
+      "explained_replay_l1": 0.6672
+    },
+    {
+      "id": "CN10",
+      "provenance": "v16.L1",
+      "explained_display": 0.747,
+      "explained_replay_l1": 0.7469
+    },
+    {
+      "id": "CN11",
+      "provenance": "v16.L1",
+      "explained_display": 0.0,
+      "explained_replay_l1": null
+    },
+    {
+      "id": "CN12",
+      "provenance": "v16.L1",
+      "explained_display": 0.934,
+      "explained_replay_l1": 0.9342
+    },
+    {
+      "id": "CN13",
+      "provenance": "v16.L1",
+      "explained_display": 0.628,
+      "explained_replay_l1": 0.6283
+    },
+    {
+      "id": "CN14",
+      "provenance": "v16.L1",
+      "explained_display": 0.0,
+      "explained_replay_l1": null
+    },
+    {
+      "id": "KR01",
+      "provenance": "v16.L1",
+      "explained_display": 0.44,
+      "explained_replay_l1": 0.4404
+    },
+    {
+      "id": "KR02",
+      "provenance": "v16.L1",
+      "explained_display": 0.831,
+      "explained_replay_l1": 0.8314
+    },
+    {
+      "id": "KR03",
+      "provenance": "v16.L1",
+      "explained_display": 0.34,
+      "explained_replay_l1": 0.34
+    },
+    {
+      "id": "KR04",
+      "provenance": "v16.L1",
+      "explained_display": 0.713,
+      "explained_replay_l1": 0.713
+    },
+    {
+      "id": "KR05",
+      "provenance": "v16.L1",
+      "explained_display": 0.49,
+      "explained_replay_l1": 0.4898
+    },
+    {
+      "id": "KR06",
+      "provenance": "v16.L1",
+      "explained_display": 0.878,
+      "explained_replay_l1": 0.8779
+    },
+    {
+      "id": "KR07",
+      "provenance": "v16.L1",
+      "explained_display": 0.586,
+      "explained_replay_l1": 0.5859
+    },
+    {
+      "id": "KR08",
+      "provenance": "v16.L1",
+      "explained_display": 0.625,
+      "explained_replay_l1": 0.6246
+    },
+    {
+      "id": "KR09",
+      "provenance": "v16.L1",
+      "explained_display": 0.848,
+      "explained_replay_l1": 0.8483
+    },
+    {
+      "id": "KR10",
+      "provenance": "v16.L1",
+      "explained_display": 0.768,
+      "explained_replay_l1": 0.7681
+    },
+    {
+      "id": "KR11",
+      "provenance": "v16.L1",
+      "explained_display": 0.308,
+      "explained_replay_l1": 0.3076
+    },
+    {
+      "id": "KR12",
+      "provenance": "v16.L1",
+      "explained_display": 0.765,
+      "explained_replay_l1": 0.7653
+    },
+    {
+      "id": "KR13",
+      "provenance": "v16.L1",
+      "explained_display": 0.92,
+      "explained_replay_l1": 0.9203
+    },
+    {
+      "id": "KR14",
+      "provenance": "v16.L1",
+      "explained_display": 0.914,
+      "explained_replay_l1": 0.914
+    },
+    {
+      "id": "SE01",
+      "provenance": "v16.L1",
+      "explained_display": 0.429,
+      "explained_replay_l1": 0.429
+    },
+    {
+      "id": "SE02",
+      "provenance": "v16.L1",
+      "explained_display": 0.656,
+      "explained_replay_l1": 0.6558
+    },
+    {
+      "id": "SE03",
+      "provenance": "v16.L1",
+      "explained_display": 0.853,
+      "explained_replay_l1": 0.8527
+    },
+    {
+      "id": "SE04",
+      "provenance": "v16.L1",
+      "explained_display": 0.667,
+      "explained_replay_l1": 0.6673
+    },
+    {
+      "id": "SE05",
+      "provenance": "v16.L1",
+      "explained_display": 0.756,
+      "explained_replay_l1": 0.756
+    },
+    {
+      "id": "SE06",
+      "provenance": "v16.L1",
+      "explained_display": 0.621,
+      "explained_replay_l1": 0.621
+    },
+    {
+      "id": "SE07",
+      "provenance": "v16.L1",
+      "explained_display": 0.947,
+      "explained_replay_l1": 0.9466
+    },
+    {
+      "id": "SE08",
+      "provenance": "v16.L1",
+      "explained_display": 0.949,
+      "explained_replay_l1": 0.9493
+    },
+    {
+      "id": "SE09",
+      "provenance": "v16.L1",
+      "explained_display": 0.569,
+      "explained_replay_l1": 0.5685
+    },
+    {
+      "id": "SE10",
+      "provenance": "v16.L1",
+      "explained_display": 0.867,
+      "explained_replay_l1": 0.8672
+    },
+    {
+      "id": "SE11",
+      "provenance": "v16.L1",
+      "explained_display": 0.875,
+      "explained_replay_l1": 0.8746
+    },
+    {
+      "id": "SE12",
+      "provenance": "v16.L1",
+      "explained_display": 0.397,
+      "explained_replay_l1": 0.3967
+    },
+    {
+      "id": "SE13",
+      "provenance": "v16.L1",
+      "explained_display": 0.95,
+      "explained_replay_l1": 0.95
+    },
+    {
+      "id": "SE14",
+      "provenance": "v16.L1",
+      "explained_display": 0.665,
+      "explained_replay_l1": 0.6647
+    },
+    {
+      "id": "SI01",
+      "provenance": "v16.L1",
+      "explained_display": 0.925,
+      "explained_replay_l1": 0.9253
+    },
+    {
+      "id": "SI02",
+      "provenance": "v16.L1",
+      "explained_display": 0.801,
+      "explained_replay_l1": 0.8007
+    },
+    {
+      "id": "SI03",
+      "provenance": "v16.L1",
+      "explained_display": 0.942,
+      "explained_replay_l1": 0.9418
+    },
+    {
+      "id": "SI04",
+      "provenance": "v16.L1",
+      "explained_display": 0.581,
+      "explained_replay_l1": 0.5815
+    },
+    {
+      "id": "SI05",
+      "provenance": "v16.L1",
+      "explained_display": 0.791,
+      "explained_replay_l1": 0.7911
+    },
+    {
+      "id": "SI06",
+      "provenance": "v16.L1",
+      "explained_display": 0.899,
+      "explained_replay_l1": 0.8991
+    },
+    {
+      "id": "SI07",
+      "provenance": "v16.L1",
+      "explained_display": 0.9,
+      "explained_replay_l1": 0.8997
+    },
+    {
+      "id": "SI08",
+      "provenance": "v16.L1",
+      "explained_display": 0.832,
+      "explained_replay_l1": 0.8321
+    },
+    {
+      "id": "SI09",
+      "provenance": "v16.L1",
+      "explained_display": 0.67,
+      "explained_replay_l1": 0.6698
+    },
+    {
+      "id": "SI10",
+      "provenance": "v16.L1",
+      "explained_display": 0.672,
+      "explained_replay_l1": 0.6721
+    },
+    {
+      "id": "SI11",
+      "provenance": "v16.L1",
+      "explained_display": 0.953,
+      "explained_replay_l1": 0.9526
+    },
+    {
+      "id": "SI12",
+      "provenance": "v16.L1",
+      "explained_display": 0.996,
+      "explained_replay_l1": 0.9956
+    },
+    {
+      "id": "SI13",
+      "provenance": "v16.L1",
+      "explained_display": 0.659,
+      "explained_replay_l1": 0.6594
+    },
+    {
+      "id": "SI14",
+      "provenance": "v16.L1",
+      "explained_display": 0.342,
+      "explained_replay_l1": 0.3425
+    },
+    {
+      "id": "IN01",
+      "provenance": "v16.L1",
+      "explained_display": 0.788,
+      "explained_replay_l1": 0.7885
+    },
+    {
+      "id": "IN02",
+      "provenance": "v16.L1",
+      "explained_display": 0.771,
+      "explained_replay_l1": 0.7714
+    },
+    {
+      "id": "IN03",
+      "provenance": "v16.L1",
+      "explained_display": 0.0,
+      "explained_replay_l1": null
+    },
+    {
+      "id": "IN04",
+      "provenance": "v16.L1",
+      "explained_display": 0.611,
+      "explained_replay_l1": 0.6112
+    },
+    {
+      "id": "IN05",
+      "provenance": "v16.L1",
+      "explained_display": 0.644,
+      "explained_replay_l1": 0.644
+    },
+    {
+      "id": "IN06",
+      "provenance": "v16.L1",
+      "explained_display": 0.0,
+      "explained_replay_l1": null
+    },
+    {
+      "id": "IN07",
+      "provenance": "v16.L1",
+      "explained_display": 0.37,
+      "explained_replay_l1": 0.3695
+    },
+    {
+      "id": "IN08",
+      "provenance": "v16.L1",
+      "explained_display": 0.586,
+      "explained_replay_l1": 0.5858
+    },
+    {
+      "id": "IN09",
+      "provenance": "v16.L1",
+      "explained_display": 0.0,
+      "explained_replay_l1": null
+    },
+    {
+      "id": "IN10",
+      "provenance": "v16.L1",
+      "explained_display": 0.772,
+      "explained_replay_l1": 0.772
+    },
+    {
+      "id": "IN11",
+      "provenance": "v16.L1",
+      "explained_display": 0.552,
+      "explained_replay_l1": 0.5517
+    },
+    {
+      "id": "IN12",
+      "provenance": "v16.L1",
+      "explained_display": 0.581,
+      "explained_replay_l1": 0.5815
+    },
+    {
+      "id": "IN13",
+      "provenance": "v16.L1",
+      "explained_display": 0.654,
+      "explained_replay_l1": 0.6543
+    },
+    {
+      "id": "IN14",
+      "provenance": "v16.L1",
+      "explained_display": 0.386,
+      "explained_replay_l1": 0.3857
+    },
+    {
+      "id": "GR01",
+      "provenance": "v16.L1",
+      "explained_display": 0.748,
+      "explained_replay_l1": 0.7478
+    },
+    {
+      "id": "GR02",
+      "provenance": "v16.L1",
+      "explained_display": 0.804,
+      "explained_replay_l1": 0.8038
+    },
+    {
+      "id": "GR03",
+      "provenance": "v16.L1",
+      "explained_display": 0.845,
+      "explained_replay_l1": 0.8449
+    },
+    {
+      "id": "GR04",
+      "provenance": "v16.L1",
+      "explained_display": 0.754,
+      "explained_replay_l1": 0.754
+    },
+    {
+      "id": "GR05",
+      "provenance": "v16.L1",
+      "explained_display": 0.731,
+      "explained_replay_l1": 0.7312
+    },
+    {
+      "id": "GR06",
+      "provenance": "v16.L1",
+      "explained_display": 0.87,
+      "explained_replay_l1": 0.8698
+    },
+    {
+      "id": "GR07",
+      "provenance": "v16.L1",
+      "explained_display": 0.432,
+      "explained_replay_l1": 0.4316
+    },
+    {
+      "id": "GR08",
+      "provenance": "v16.L1",
+      "explained_display": 0.581,
+      "explained_replay_l1": 0.5814
+    },
+    {
+      "id": "GR09",
+      "provenance": "v16.L1",
+      "explained_display": 0.752,
+      "explained_replay_l1": 0.7519
+    },
+    {
+      "id": "GR10",
+      "provenance": "v16.L1",
+      "explained_display": 0.299,
+      "explained_replay_l1": 0.2987
+    },
+    {
+      "id": "GR11",
+      "provenance": "v16.L1",
+      "explained_display": 0.57,
+      "explained_replay_l1": 0.5699
+    },
+    {
+      "id": "GR12",
+      "provenance": "v16.L1",
+      "explained_display": 0.504,
+      "explained_replay_l1": 0.5044
+    },
+    {
+      "id": "GR13",
+      "provenance": "v16.L1",
+      "explained_display": 0.413,
+      "explained_replay_l1": 0.413
+    },
+    {
+      "id": "GR14",
+      "provenance": "v16.L1",
+      "explained_display": 0.134,
+      "explained_replay_l1": 0.134
+    },
+    {
+      "id": "NO01",
+      "provenance": "v16.L1",
+      "explained_display": 0.794,
+      "explained_replay_l1": 0.7937
+    },
+    {
+      "id": "NO02",
+      "provenance": "v16.L1",
+      "explained_display": 0.807,
+      "explained_replay_l1": 0.8074
+    },
+    {
+      "id": "NO03",
+      "provenance": "v16.L1",
+      "explained_display": 0.737,
+      "explained_replay_l1": 0.7372
+    },
+    {
+      "id": "NO04",
+      "provenance": "v16.L1",
+      "explained_display": 0.501,
+      "explained_replay_l1": 0.5007
+    },
+    {
+      "id": "NO05",
+      "provenance": "v16.L1",
+      "explained_display": 0.726,
+      "explained_replay_l1": 0.7262
+    },
+    {
+      "id": "NO06",
+      "provenance": "v16.L1",
+      "explained_display": 0.739,
+      "explained_replay_l1": 0.7387
+    },
+    {
+      "id": "NO07",
+      "provenance": "v16.L1",
+      "explained_display": 0.0,
+      "explained_replay_l1": null
+    },
+    {
+      "id": "NO08",
+      "provenance": "v16.L1",
+      "explained_display": 0.653,
+      "explained_replay_l1": 0.6527
+    },
+    {
+      "id": "NO09",
+      "provenance": "v16.L1",
+      "explained_display": 0.609,
+      "explained_replay_l1": 0.6094
+    },
+    {
+      "id": "NO10",
+      "provenance": "v16.L1",
+      "explained_display": 0.84,
+      "explained_replay_l1": 0.8403
+    },
+    {
+      "id": "NO11",
+      "provenance": "v16.L1",
+      "explained_display": 0.699,
+      "explained_replay_l1": 0.6992
+    },
+    {
+      "id": "NO12",
+      "provenance": "v16.L1",
+      "explained_display": 1.0,
+      "explained_replay_l1": 1.0
+    },
+    {
+      "id": "NO13",
+      "provenance": "v16.L1",
+      "explained_display": 0.756,
+      "explained_replay_l1": 0.7565
+    },
+    {
+      "id": "NO14",
+      "provenance": "v16.L1",
+      "explained_display": 0.822,
+      "explained_replay_l1": 0.8223
+    },
+    {
+      "id": "AN01",
+      "provenance": "v16.L1",
+      "explained_display": 0.822,
+      "explained_replay_l1": 0.8216
+    },
+    {
+      "id": "AN02",
+      "provenance": "v16.L1",
+      "explained_display": 0.812,
+      "explained_replay_l1": 0.8124
+    },
+    {
+      "id": "AN03",
+      "provenance": "v16.L1",
+      "explained_display": 0.494,
+      "explained_replay_l1": 0.4943
+    },
+    {
+      "id": "AN04",
+      "provenance": "v16.L1",
+      "explained_display": 0.341,
+      "explained_replay_l1": 0.3408
+    },
+    {
+      "id": "AN05",
+      "provenance": "v16.L1",
+      "explained_display": 0.954,
+      "explained_replay_l1": 0.954
+    },
+    {
+      "id": "AN06",
+      "provenance": "v16.L1",
+      "explained_display": 0.0,
+      "explained_replay_l1": null
+    },
+    {
+      "id": "AN07",
+      "provenance": "v16.L1",
+      "explained_display": 0.344,
+      "explained_replay_l1": 0.3441
+    },
+    {
+      "id": "AN08",
+      "provenance": "v16.L1",
+      "explained_display": 0.779,
+      "explained_replay_l1": 0.7792
+    },
+    {
+      "id": "AN09",
+      "provenance": "v16.L1",
+      "explained_display": 0.206,
+      "explained_replay_l1": 0.2056
+    },
+    {
+      "id": "AN10",
+      "provenance": "v16.L1",
+      "explained_display": 0.558,
+      "explained_replay_l1": 0.558
+    },
+    {
+      "id": "AN11",
+      "provenance": "v16.L1",
+      "explained_display": 0.739,
+      "explained_replay_l1": 0.7387
+    },
+    {
+      "id": "AN12",
+      "provenance": "v16.L1",
+      "explained_display": 0.746,
+      "explained_replay_l1": 0.7459
+    },
+    {
+      "id": "AN13",
+      "provenance": "v16.L1",
+      "explained_display": 0.626,
+      "explained_replay_l1": 0.6263
+    },
+    {
+      "id": "AN14",
+      "provenance": "v16.L1",
+      "explained_display": 0.548,
+      "explained_replay_l1": 0.5476
+    },
+    {
+      "id": "EX01",
+      "provenance": "v16.L1",
+      "explained_display": 0.693,
+      "explained_replay_l1": 0.6934
+    },
+    {
+      "id": "EX02",
+      "provenance": "v16.L1",
+      "explained_display": 0.366,
+      "explained_replay_l1": 0.3662
+    },
+    {
+      "id": "EX03",
+      "provenance": "v16.L1",
+      "explained_display": 0.607,
+      "explained_replay_l1": 0.6071
+    },
+    {
+      "id": "EX04",
+      "provenance": "v16.L1",
+      "explained_display": 0.472,
+      "explained_replay_l1": 0.4723
+    },
+    {
+      "id": "EX05",
+      "provenance": "v16.L1",
+      "explained_display": 0.0,
+      "explained_replay_l1": null
+    },
+    {
+      "id": "EX06",
+      "provenance": "v16.L1",
+      "explained_display": 0.0,
+      "explained_replay_l1": null
+    },
+    {
+      "id": "EX07",
+      "provenance": "v16.L1",
+      "explained_display": 0.297,
+      "explained_replay_l1": 0.2974
+    },
+    {
+      "id": "EX08",
+      "provenance": "v16.L1",
+      "explained_display": 0.873,
+      "explained_replay_l1": 0.8734
+    },
+    {
+      "id": "EX09",
+      "provenance": "v16.L1",
+      "explained_display": 0.288,
+      "explained_replay_l1": 0.2879
+    },
+    {
+      "id": "EX10",
+      "provenance": "v16.L1",
+      "explained_display": 0.684,
+      "explained_replay_l1": 0.6837
+    },
+    {
+      "id": "EX11",
+      "provenance": "v16.L1",
+      "explained_display": 0.705,
+      "explained_replay_l1": 0.7053
+    },
+    {
+      "id": "EX12",
+      "provenance": "v16.L1",
+      "explained_display": 0.869,
+      "explained_replay_l1": 0.8692
+    },
+    {
+      "id": "EX13",
+      "provenance": "v16.L1",
+      "explained_display": 0.0,
+      "explained_replay_l1": null
+    },
+    {
+      "id": "EX14",
+      "provenance": "v16.L1",
+      "explained_display": 0.0,
+      "explained_replay_l1": null
+    },
+    {
+      "id": "EX15",
+      "provenance": "v16.L1",
+      "explained_display": 0.599,
+      "explained_replay_l1": 0.5988
+    },
+    {
+      "id": "EX16",
+      "provenance": "v16.L1",
+      "explained_display": 0.0,
+      "explained_replay_l1": null
+    },
+    {
+      "id": "EX17",
+      "provenance": "v16.L1",
+      "explained_display": 0.835,
+      "explained_replay_l1": 0.8354
+    },
+    {
+      "id": "EX18",
+      "provenance": "v16.L1",
+      "explained_display": 0.911,
+      "explained_replay_l1": 0.9108
+    },
+    {
+      "id": "EX19",
+      "provenance": "v16.L1",
+      "explained_display": 0.798,
+      "explained_replay_l1": 0.7984
+    },
+    {
+      "id": "EX20",
+      "provenance": "v16.L1",
+      "explained_display": 0.617,
+      "explained_replay_l1": 0.6172
+    },
+    {
+      "id": "MS01",
+      "provenance": "v16.L1",
+      "explained_display": 0.407,
+      "explained_replay_l1": 0.4072
+    },
+    {
+      "id": "MS02",
+      "provenance": "v16.L1",
+      "explained_display": 0.499,
+      "explained_replay_l1": 0.4989
+    },
+    {
+      "id": "MS03",
+      "provenance": "v16.L1",
+      "explained_display": 0.621,
+      "explained_replay_l1": 0.6212
+    },
+    {
+      "id": "MS04",
+      "provenance": "v16.L1",
+      "explained_display": 0.0,
+      "explained_replay_l1": null
+    },
+    {
+      "id": "MS05",
+      "provenance": "v16.L1",
+      "explained_display": 0.0,
+      "explained_replay_l1": null
+    },
+    {
+      "id": "MS06",
+      "provenance": "v16.L1",
+      "explained_display": 0.241,
+      "explained_replay_l1": 0.2407
+    },
+    {
+      "id": "MS07",
+      "provenance": "v16.L1",
+      "explained_display": 0.778,
+      "explained_replay_l1": 0.7782
+    },
+    {
+      "id": "MS08",
+      "provenance": "v16.L1",
+      "explained_display": 0.8,
+      "explained_replay_l1": 0.7996
+    },
+    {
+      "id": "MS09",
+      "provenance": "v16.L1",
+      "explained_display": 0.0,
+      "explained_replay_l1": null
+    },
+    {
+      "id": "MS10",
+      "provenance": "v16.L1",
+      "explained_display": 0.864,
+      "explained_replay_l1": 0.8641
+    },
+    {
+      "id": "MS11",
+      "provenance": "v16.L1",
+      "explained_display": 0.408,
+      "explained_replay_l1": 0.4078
+    },
+    {
+      "id": "MS12",
+      "provenance": "v16.L1",
+      "explained_display": 0.0,
+      "explained_replay_l1": null
+    },
+    {
+      "id": "MS13",
+      "provenance": "v16.L1",
+      "explained_display": 0.718,
+      "explained_replay_l1": 0.7181
+    },
+    {
+      "id": "MS14",
+      "provenance": "v16.L1",
+      "explained_display": 0.305,
+      "explained_replay_l1": 0.3046
+    },
+    {
+      "id": "MS_U01",
+      "provenance": "v16.L1",
+      "explained_display": 0.0,
+      "explained_replay_l1": null
+    },
+    {
+      "id": "MS_U02",
+      "provenance": "v16.L1",
+      "explained_display": 0.0,
+      "explained_replay_l1": null
+    },
+    {
+      "id": "MS_U03",
+      "provenance": "v16.L1",
+      "explained_display": 0.0,
+      "explained_replay_l1": null
+    },
+    {
+      "id": "MS_U04",
+      "provenance": "v16.L1",
+      "explained_display": 0.0,
+      "explained_replay_l1": null
+    },
+    {
+      "id": "MS_U05",
+      "provenance": "v16.L1",
+      "explained_display": 0.0,
+      "explained_replay_l1": null
+    },
+    {
+      "id": "MS_U06",
+      "provenance": "v16.L1",
+      "explained_display": 0.718,
+      "explained_replay_l1": 0.7178
+    },
+    {
+      "id": "MS_M01",
+      "provenance": "v16.L1",
+      "explained_display": 0.653,
+      "explained_replay_l1": 0.6527
+    },
+    {
+      "id": "MS_M02",
+      "provenance": "v16.L1",
+      "explained_display": 0.0,
+      "explained_replay_l1": null
+    },
+    {
+      "id": "MS_M03",
+      "provenance": "v16.L1",
+      "explained_display": 0.198,
+      "explained_replay_l1": 0.1981
+    },
+    {
+      "id": "MS_N01",
+      "provenance": "v16.L1",
+      "explained_display": 0.978,
+      "explained_replay_l1": 0.9784
+    },
+    {
+      "id": "MS_N02",
+      "provenance": "v16.L1",
+      "explained_display": 0.936,
+      "explained_replay_l1": 0.936
+    },
+    {
+      "id": "MS_N03",
+      "provenance": "v16.L1",
+      "explained_display": 0.867,
+      "explained_replay_l1": 0.8672
+    },
+    {
+      "id": "MS_N04",
+      "provenance": "v16.L1",
+      "explained_display": 0.634,
+      "explained_replay_l1": 0.6336
+    },
+    {
+      "id": "MS_N05",
+      "provenance": "v16.L1",
+      "explained_display": 0.901,
+      "explained_replay_l1": 0.9013
+    },
+    {
+      "id": "MS_N06",
+      "provenance": "v16.L1",
+      "explained_display": 0.439,
+      "explained_replay_l1": 0.4393
+    },
+    {
+      "id": "MS_N07",
+      "provenance": "v16.L1",
+      "explained_display": 0.754,
+      "explained_replay_l1": 0.7539
+    },
+    {
+      "id": "EG_P01",
+      "provenance": "v16.L1",
+      "explained_display": 0.0,
+      "explained_replay_l1": null
+    },
+    {
+      "id": "EG_P02",
+      "provenance": "v16.L1",
+      "explained_display": 0.782,
+      "explained_replay_l1": 0.7821
+    },
+    {
+      "id": "EG_P03",
+      "provenance": "v16.L1",
+      "explained_display": 0.377,
+      "explained_replay_l1": 0.3773
+    },
+    {
+      "id": "EG_P04",
+      "provenance": "v16.L1",
+      "explained_display": 0.0,
+      "explained_replay_l1": null
+    },
+    {
+      "id": "EG_P05",
+      "provenance": "v16.L1",
+      "explained_display": 0.0,
+      "explained_replay_l1": null
+    },
+    {
+      "id": "EG_P06",
+      "provenance": "v16.L1",
+      "explained_display": 0.866,
+      "explained_replay_l1": 0.866
+    },
+    {
+      "id": "EG_A01",
+      "provenance": "v16.L1",
+      "explained_display": 0.656,
+      "explained_replay_l1": 0.656
+    },
+    {
+      "id": "EG_A03",
+      "provenance": "v16.L1",
+      "explained_display": 0.692,
+      "explained_replay_l1": 0.6917
+    },
+    {
+      "id": "EG_A04",
+      "provenance": "v16.L1",
+      "explained_display": 0.348,
+      "explained_replay_l1": 0.3484
+    },
+    {
+      "id": "EG_A05",
+      "provenance": "v16.L1",
+      "explained_display": 0.0,
+      "explained_replay_l1": null
+    },
+    {
+      "id": "EG_A06",
+      "provenance": "v16.L1",
+      "explained_display": 0.419,
+      "explained_replay_l1": 0.4193
+    },
+    {
+      "id": "EG_A07",
+      "provenance": "v16.L1",
+      "explained_display": 0.785,
+      "explained_replay_l1": 0.7851
+    },
+    {
+      "id": "EG_A02",
+      "provenance": "v16.L1",
+      "explained_display": 0.141,
+      "explained_replay_l1": 0.1406
+    },
+    {
+      "id": "EG_A08",
+      "provenance": "v16.L1",
+      "explained_display": 0.51,
+      "explained_replay_l1": 0.5104
+    },
+    {
+      "id": "EG_A09",
+      "provenance": "v16.L1",
+      "explained_display": 0.954,
+      "explained_replay_l1": 0.954
+    },
+    {
+      "id": "IR01",
+      "provenance": "v16.L1",
+      "explained_display": 0.725,
+      "explained_replay_l1": 0.7251
+    },
+    {
+      "id": "IR02",
+      "provenance": "v16.L1",
+      "explained_display": 0.722,
+      "explained_replay_l1": 0.722
+    },
+    {
+      "id": "IR03",
+      "provenance": "v16.L1",
+      "explained_display": 0.859,
+      "explained_replay_l1": 0.8585
+    },
+    {
+      "id": "IR04",
+      "provenance": "v16.L1",
+      "explained_display": 0.922,
+      "explained_replay_l1": 0.9223
+    },
+    {
+      "id": "IN_V01",
+      "provenance": "v16.L1",
+      "explained_display": 0.856,
+      "explained_replay_l1": 0.8563
+    },
+    {
+      "id": "IN_V02",
+      "provenance": "v16.L1",
+      "explained_display": 0.53,
+      "explained_replay_l1": 0.53
+    },
+    {
+      "id": "IN_V03",
+      "provenance": "v16.L1",
+      "explained_display": 0.24,
+      "explained_replay_l1": 0.2403
+    },
+    {
+      "id": "IN_V04",
+      "provenance": "v16.L1",
+      "explained_display": 0.607,
+      "explained_replay_l1": 0.6072
+    },
+    {
+      "id": "IN_B01",
+      "provenance": "v16.L1",
+      "explained_display": 0.371,
+      "explained_replay_l1": 0.3712
+    },
+    {
+      "id": "IN_B02",
+      "provenance": "v16.L1",
+      "explained_display": 0.666,
+      "explained_replay_l1": 0.6663
+    },
+    {
+      "id": "IN_B03",
+      "provenance": "v16.L1",
+      "explained_display": 0.369,
+      "explained_replay_l1": 0.3691
+    },
+    {
+      "id": "IN_B04",
+      "provenance": "v16.L1",
+      "explained_display": 0.516,
+      "explained_replay_l1": 0.5165
+    },
+    {
+      "id": "IN_B05",
+      "provenance": "v16.L1",
+      "explained_display": 0.246,
+      "explained_replay_l1": 0.2455
+    },
+    {
+      "id": "IN_B06",
+      "provenance": "v16.L1",
+      "explained_display": 0.775,
+      "explained_replay_l1": 0.7751
+    },
+    {
+      "id": "IN_B07",
+      "provenance": "v16.L1",
+      "explained_display": 0.152,
+      "explained_replay_l1": 0.1524
+    },
+    {
+      "id": "IN_B08",
+      "provenance": "v16.L1",
+      "explained_display": 0.769,
+      "explained_replay_l1": 0.769
+    },
+    {
+      "id": "IN_H01",
+      "provenance": "v16.L1",
+      "explained_display": 0.829,
+      "explained_replay_l1": 0.8289
+    },
+    {
+      "id": "IN_H02",
+      "provenance": "v16.L1",
+      "explained_display": 0.727,
+      "explained_replay_l1": 0.7273
+    },
+    {
+      "id": "IN_H03",
+      "provenance": "v16.L1",
+      "explained_display": 0.752,
+      "explained_replay_l1": 0.752
+    },
+    {
+      "id": "IN_H04",
+      "provenance": "v16.L1",
+      "explained_display": 0.612,
+      "explained_replay_l1": 0.6115
+    },
+    {
+      "id": "IN_H05",
+      "provenance": "v16.L1",
+      "explained_display": 0.762,
+      "explained_replay_l1": 0.7617
+    },
+    {
+      "id": "ST_S01",
+      "provenance": "v16.L1",
+      "explained_display": 0.315,
+      "explained_replay_l1": 0.3149
+    },
+    {
+      "id": "ST_S02",
+      "provenance": "v16.L1",
+      "explained_display": 0.875,
+      "explained_replay_l1": 0.875
+    },
+    {
+      "id": "ST_S03",
+      "provenance": "v16.L1",
+      "explained_display": 0.784,
+      "explained_replay_l1": 0.7837
+    },
+    {
+      "id": "ST_S04",
+      "provenance": "v16.L1",
+      "explained_display": 0.848,
+      "explained_replay_l1": 0.8481
+    },
+    {
+      "id": "ST_S05",
+      "provenance": "v16.L1",
+      "explained_display": 0.518,
+      "explained_replay_l1": 0.5179
+    },
+    {
+      "id": "ST_S06",
+      "provenance": "v16.L1",
+      "explained_display": 0.794,
+      "explained_replay_l1": 0.7935
+    },
+    {
+      "id": "SI_N01",
+      "provenance": "v16.L1",
+      "explained_display": 0.356,
+      "explained_replay_l1": 0.3557
+    },
+    {
+      "id": "SI_N02",
+      "provenance": "v16.L1",
+      "explained_display": 0.425,
+      "explained_replay_l1": 0.4246
+    },
+    {
+      "id": "SI_N03",
+      "provenance": "v16.L1",
+      "explained_display": 0.9,
+      "explained_replay_l1": 0.9001
+    },
+    {
+      "id": "SI_N04",
+      "provenance": "v16.L1",
+      "explained_display": 0.728,
+      "explained_replay_l1": 0.7282
+    },
+    {
+      "id": "SI_N05",
+      "provenance": "v16.L1",
+      "explained_display": 0.242,
+      "explained_replay_l1": 0.2419
+    },
+    {
+      "id": "SI_N06",
+      "provenance": "v16.L1",
+      "explained_display": 0.615,
+      "explained_replay_l1": 0.6152
+    },
+    {
+      "id": "SI_N07",
+      "provenance": "v16.L1",
+      "explained_display": 0.465,
+      "explained_replay_l1": 0.4645
+    },
+    {
+      "id": "SI_N08",
+      "provenance": "v16.L1",
+      "explained_display": 0.216,
+      "explained_replay_l1": 0.2164
+    },
+    {
+      "id": "SE_O01",
+      "provenance": "v16.L1",
+      "explained_display": 0.0,
+      "explained_replay_l1": null
+    },
+    {
+      "id": "SE_O02",
+      "provenance": "v16.L1",
+      "explained_display": 0.0,
+      "explained_replay_l1": null
+    },
+    {
+      "id": "SE_O03",
+      "provenance": "v16.L1",
+      "explained_display": 0.532,
+      "explained_replay_l1": 0.5319
+    },
+    {
+      "id": "SE_O04",
+      "provenance": "v16.L1",
+      "explained_display": 0.33,
+      "explained_replay_l1": 0.3298
+    },
+    {
+      "id": "SE_O05",
+      "provenance": "v16.L1",
+      "explained_display": 0.747,
+      "explained_replay_l1": 0.7472
+    },
+    {
+      "id": "SE_O06",
+      "provenance": "v16.L1",
+      "explained_display": 0.895,
+      "explained_replay_l1": 0.8945
+    },
+    {
+      "id": "SE_O07",
+      "provenance": "v16.L1",
+      "explained_display": 0.628,
+      "explained_replay_l1": 0.6282
+    },
+    {
+      "id": "SE_O08",
+      "provenance": "v16.L1",
+      "explained_display": 0.923,
+      "explained_replay_l1": 0.9228
+    },
+    {
+      "id": "SE_O09",
+      "provenance": "v16.L1",
+      "explained_display": 0.806,
+      "explained_replay_l1": 0.8064
+    },
+    {
+      "id": "SE_O10",
+      "provenance": "v16.L1",
+      "explained_display": 0.802,
+      "explained_replay_l1": 0.8023
+    },
+    {
+      "id": "SE_O11",
+      "provenance": "v16.L1",
+      "explained_display": 0.63,
+      "explained_replay_l1": 0.6305
+    },
+    {
+      "id": "SE_O12",
+      "provenance": "v16.L1",
+      "explained_display": 0.619,
+      "explained_replay_l1": 0.6188
+    },
+    {
+      "id": "ST_S07",
+      "provenance": "v16.L1",
+      "explained_display": 0.873,
+      "explained_replay_l1": 0.8731
+    },
+    {
+      "id": "ST_S08",
+      "provenance": "v16.L1",
+      "explained_display": 0.637,
+      "explained_replay_l1": 0.637
+    },
+    {
+      "id": "ST_S09",
+      "provenance": "v16.L1",
+      "explained_display": 0.505,
+      "explained_replay_l1": 0.5049
+    },
+    {
+      "id": "ST_S10",
+      "provenance": "v16.L1",
+      "explained_display": 0.583,
+      "explained_replay_l1": 0.5828
+    },
+    {
+      "id": "NC_N01",
+      "provenance": "v16.L1",
+      "explained_display": 0.778,
+      "explained_replay_l1": 0.7781
+    },
+    {
+      "id": "NC_N02",
+      "provenance": "v16.L1",
+      "explained_display": 0.775,
+      "explained_replay_l1": 0.7749
+    },
+    {
+      "id": "NC_N03",
+      "provenance": "v16.L1",
+      "explained_display": 0.903,
+      "explained_replay_l1": 0.9031
+    },
+    {
+      "id": "NC_N04",
+      "provenance": "v16.L1",
+      "explained_display": 0.72,
+      "explained_replay_l1": 0.7203
+    },
+    {
+      "id": "CN_E01",
+      "provenance": "v16.L1",
+      "explained_display": 0.355,
+      "explained_replay_l1": 0.3548
+    },
+    {
+      "id": "CN_E02",
+      "provenance": "v16.L1",
+      "explained_display": 0.853,
+      "explained_replay_l1": 0.853
+    },
+    {
+      "id": "CN_E03",
+      "provenance": "v16.L1",
+      "explained_display": 0.55,
+      "explained_replay_l1": 0.5501
+    },
+    {
+      "id": "ST_E01",
+      "provenance": "v16.L1",
+      "explained_display": 0.818,
+      "explained_replay_l1": 0.8175
+    },
+    {
+      "id": "SI_E01",
+      "provenance": "v16.L1",
+      "explained_display": 0.0,
+      "explained_replay_l1": null
+    },
+    {
+      "id": "SI_E02",
+      "provenance": "v16.L1",
+      "explained_display": 0.805,
+      "explained_replay_l1": 0.8051
+    },
+    {
+      "id": "KR_E01",
+      "provenance": "v16.L1",
+      "explained_display": 0.786,
+      "explained_replay_l1": 0.7864
+    },
+    {
+      "id": "KR_E02",
+      "provenance": "v16.L1",
+      "explained_display": 0.75,
+      "explained_replay_l1": 0.7502
+    },
+    {
+      "id": "IN_E01",
+      "provenance": "v16.L1",
+      "explained_display": 0.765,
+      "explained_replay_l1": 0.765
+    },
+    {
+      "id": "IN_E02",
+      "provenance": "v16.L1",
+      "explained_display": 0.723,
+      "explained_replay_l1": 0.7233
+    },
+    {
+      "id": "IN_E03",
+      "provenance": "v16.L1",
+      "explained_display": 0.889,
+      "explained_replay_l1": 0.8891
+    },
+    {
+      "id": "CN_E04",
+      "provenance": "v16.L1",
+      "explained_display": 0.862,
+      "explained_replay_l1": 0.8614
+    },
+    {
+      "id": "K1-01",
+      "provenance": "decomp.total_final",
+      "explained_display": 0.882,
+      "explained_replay_l1": 0.9048
+    },
+    {
+      "id": "K1-02",
+      "provenance": "decomp.total_final",
+      "explained_display": 0.921,
+      "explained_replay_l1": 0.92
+    },
+    {
+      "id": "K1-03",
+      "provenance": "decomp.total_final",
+      "explained_display": 0.868,
+      "explained_replay_l1": 0.8679
+    },
+    {
+      "id": "K1-04",
+      "provenance": "decomp.total_final",
+      "explained_display": 0.837,
+      "explained_replay_l1": 0.8401
+    },
+    {
+      "id": "K1-05",
+      "provenance": "decomp.total_final",
+      "explained_display": 0.707,
+      "explained_replay_l1": 0.2332
+    },
+    {
+      "id": "K1-06",
+      "provenance": "decomp.total_final",
+      "explained_display": 0.898,
+      "explained_replay_l1": 0.8775
+    },
+    {
+      "id": "K1-07",
+      "provenance": "decomp.total_final",
+      "explained_display": 0.872,
+      "explained_replay_l1": 0.9086
+    },
+    {
+      "id": "K1-08",
+      "provenance": "decomp.total_final",
+      "explained_display": 0.876,
+      "explained_replay_l1": 0.8759
+    },
+    {
+      "id": "K1-09",
+      "provenance": "decomp.total_final",
+      "explained_display": 0.886,
+      "explained_replay_l1": 0.887
+    },
+    {
+      "id": "K1-10",
+      "provenance": "decomp.total_final",
+      "explained_display": 0.958,
+      "explained_replay_l1": 0.9576
+    },
+    {
+      "id": "K1-11",
+      "provenance": "decomp.total_final",
+      "explained_display": 0.7,
+      "explained_replay_l1": 0.7
+    },
+    {
+      "id": "K1-12",
+      "provenance": "decomp.total_final",
+      "explained_display": 0.684,
+      "explained_replay_l1": 0.5925
+    },
+    {
+      "id": "K1-13",
+      "provenance": "decomp.total_final",
+      "explained_display": 0.986,
+      "explained_replay_l1": 0.9796
+    },
+    {
+      "id": "K1-14",
+      "provenance": "decomp.total_final",
+      "explained_display": 0.875,
+      "explained_replay_l1": 0.8218
+    },
+    {
+      "id": "K1-15",
+      "provenance": "decomp.total_final",
+      "explained_display": 0.664,
+      "explained_replay_l1": 0.6556
+    },
+    {
+      "id": "K1-16",
+      "provenance": "decomp.total_final",
+      "explained_display": 0.886,
+      "explained_replay_l1": 0.8925
+    },
+    {
+      "id": "K1-17",
+      "provenance": "decomp.total_final",
+      "explained_display": 0.63,
+      "explained_replay_l1": 0.5267
+    },
+    {
+      "id": "K1-18",
+      "provenance": "decomp.total_final",
+      "explained_display": 1.0,
+      "explained_replay_l1": 1.0
+    },
+    {
+      "id": "K1-19",
+      "provenance": "decomp.total_final",
+      "explained_display": 0.82,
+      "explained_replay_l1": 0.82
+    },
+    {
+      "id": "K1-20",
+      "provenance": "decomp.total_final",
+      "explained_display": 0.907,
+      "explained_replay_l1": 0.9097
+    },
+    {
+      "id": "K1-21",
+      "provenance": "decomp.total_final",
+      "explained_display": 0.753,
+      "explained_replay_l1": 0.6754
+    },
+    {
+      "id": "K1-22",
+      "provenance": "decomp.total_final",
+      "explained_display": 0.878,
+      "explained_replay_l1": 0.8779
+    },
+    {
+      "id": "K2-01",
+      "provenance": "decomp.total_final",
+      "explained_display": 0.826,
+      "explained_replay_l1": 0.7802
+    },
+    {
+      "id": "K2-02",
+      "provenance": "decomp.total_final",
+      "explained_display": 0.889,
+      "explained_replay_l1": 0.8449
+    },
+    {
+      "id": "K2-04",
+      "provenance": "decomp.total_final",
+      "explained_display": 0.812,
+      "explained_replay_l1": 0.6389
+    },
+    {
+      "id": "K2-05",
+      "provenance": "decomp.total_final",
+      "explained_display": 0.758,
+      "explained_replay_l1": 0.6621
+    },
+    {
+      "id": "K2-06",
+      "provenance": "decomp.total_final",
+      "explained_display": 0.848,
+      "explained_replay_l1": 0.5124
+    },
+    {
+      "id": "K2-07",
+      "provenance": "decomp.total_final",
+      "explained_display": 0.797,
+      "explained_replay_l1": 0.5301
+    },
+    {
+      "id": "K2-08",
+      "provenance": "decomp.total_final",
+      "explained_display": 0.708,
+      "explained_replay_l1": 0.6522
+    },
+    {
+      "id": "K2-09",
+      "provenance": "decomp.total_final",
+      "explained_display": 0.498,
+      "explained_replay_l1": null
+    },
+    {
+      "id": "K2-10",
+      "provenance": "decomp.total_final",
+      "explained_display": 0.716,
+      "explained_replay_l1": 0.8511
+    },
+    {
+      "id": "K2-11",
+      "provenance": "decomp.total_final",
+      "explained_display": 0.951,
+      "explained_replay_l1": 0.9559
+    },
+    {
+      "id": "K3-01",
+      "provenance": "decomp.total_final",
+      "explained_display": 0.788,
+      "explained_replay_l1": 0.7132
+    },
+    {
+      "id": "K3-02",
+      "provenance": "decomp.total_final",
+      "explained_display": 0.833,
+      "explained_replay_l1": 0.793
+    },
+    {
+      "id": "K3-03",
+      "provenance": "decomp.total_final",
+      "explained_display": 0.856,
+      "explained_replay_l1": 0.7959
+    },
+    {
+      "id": "K3-04",
+      "provenance": "decomp.total_final",
+      "explained_display": 0.814,
+      "explained_replay_l1": 0.7653
+    },
+    {
+      "id": "K3-05",
+      "provenance": "decomp.total_final",
+      "explained_display": 0.822,
+      "explained_replay_l1": 0.7623
+    },
+    {
+      "id": "LP01",
+      "provenance": "pureL2_dom",
+      "explained_display": 0.287,
+      "explained_replay_l1": null
+    },
+    {
+      "id": "LP02",
+      "provenance": "pureL2_dom",
+      "explained_display": 0.899,
+      "explained_replay_l1": null
+    },
+    {
+      "id": "LP03",
+      "provenance": "pureL2_dom",
+      "explained_display": 0.979,
+      "explained_replay_l1": null
+    },
+    {
+      "id": "LP04",
+      "provenance": "pureL2_dom",
+      "explained_display": 0.956,
+      "explained_replay_l1": null
+    },
+    {
+      "id": "LP05",
+      "provenance": "pureL2_dom",
+      "explained_display": 0.759,
+      "explained_replay_l1": null
+    },
+    {
+      "id": "LP06",
+      "provenance": "pureL2_dom",
+      "explained_display": 0.927,
+      "explained_replay_l1": null
+    },
+    {
+      "id": "LP07",
+      "provenance": "pureL2_dom",
+      "explained_display": 0.961,
+      "explained_replay_l1": null
+    },
+    {
+      "id": "LP08",
+      "provenance": "pureL2_dom",
+      "explained_display": 0.829,
+      "explained_replay_l1": null
+    },
+    {
+      "id": "LP09",
+      "provenance": "pureL2_dom",
+      "explained_display": 0.776,
+      "explained_replay_l1": null
+    },
+    {
+      "id": "LP10",
+      "provenance": "pureL2_dom",
+      "explained_display": 0.835,
+      "explained_replay_l1": null
+    },
+    {
+      "id": "LP11",
+      "provenance": "pureL2_dom",
+      "explained_display": 0.975,
+      "explained_replay_l1": null
+    },
+    {
+      "id": "LP12",
+      "provenance": "pureL2_dom",
+      "explained_display": 0.872,
+      "explained_replay_l1": null
+    },
+    {
+      "id": "LP13",
+      "provenance": "pureL2_dom",
+      "explained_display": 0.0,
+      "explained_replay_l1": null
+    },
+    {
+      "id": "LP14",
+      "provenance": "pureL2_dom",
+      "explained_display": 0.998,
+      "explained_replay_l1": null
+    },
+    {
+      "id": "LP15",
+      "provenance": "pureL2_dom",
+      "explained_display": 0.637,
+      "explained_replay_l1": null
+    },
+    {
+      "id": "LP16",
+      "provenance": "pureL2_dom",
+      "explained_display": 0.78,
+      "explained_replay_l1": null
+    }
+  ]
+}

@@ -716,6 +716,23 @@ def section_f(d, G, extra):
     add("F", "F9", "表示値と L1 再計算値が 0.01 超ずれるノード（全件）",
         f"{int((na.gap_l1.abs() > 0.01).sum())} 件", "info",
         "F2 の台帳で個別に確認できる")
+    dp = CFG.get("display_policy", {})
+    audit_path = ROOT / dp.get("derived_audit_path", "derived/html_embedded_v17_audit.json")
+    if audit_path.exists():
+        da = json.loads(audit_path.read_text(encoding="utf-8"))
+        thr = float(dp["gap_threshold"])
+        cur_gaps = na[na.gap_l1.abs() > thr]
+        cur_map = {r.id: float(r.gap_l1) for r in cur_gaps.itertuples()}
+        da_map = {r["id"]: float(r["gap_l1"]) for r in da["gap_nodes"]}
+        ids_match = set(cur_map) == set(da_map)
+        vals_match = ids_match and all(abs(cur_map[k] - da_map[k]) <= TOL["dot_rounding"] for k in cur_map)
+        prov_cur = {str(k): int(v) for k, v in na["provenance"].value_counts().to_dict().items()}
+        prov_match = prov_cur == da["provenance_counts"]
+        n_match = len(cur_map) if (ids_match and vals_match and prov_match) else 0
+        add("F", "F10", "表示混成 21 話と全ノード出所の derived 台帳照合（ADR 0003）",
+            f"{n_match} / {int(dp['expected_gap_nodes'])} 話一致（出所一致={prov_match}）",
+            "ok" if (ids_match and vals_match and prov_match) else "ng",
+            dp.get("derived_audit_path", ""))
     return ea, na
 
 

@@ -1,17 +1,18 @@
 # -*- coding: utf-8 -*-
 """
-verify_doc.py -- 手書き文書（docs/v18_method_and_results.md）に書かれた数値が
-outputs/results.json の実測値と一致することを機械照合する。
+verify_doc.py -- 手書き文書（docs/v18_method_and_results.md、ADR 0002/0003、
+registry.md、査読用サマリ日英版）に書かれた数値が実測 JSON と一致することを機械照合する。
 
 文書中の表記（小数点以下の桁数・記号）に合わせて値を整形し、文字列として存在するかを見る。
 不一致があれば exit 1。
 """
 from __future__ import annotations
-import json, sys
+import json, math, sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 DOC = ROOT / "docs/v18_method_and_results.md"
+CFG = json.loads((ROOT / "config/analysis.json").read_text(encoding="utf-8"))
 R = json.loads((ROOT / "outputs/results.json").read_text(encoding="utf-8"))
 TEXT = DOC.read_text(encoding="utf-8").replace("\u2212", "-")   # 全角マイナスを正規化して比較
 
@@ -127,13 +128,143 @@ adr_checks = [
 ]
 miss_adr = [(n, s_) for n, s_ in adr_checks if s_ not in T2]
 
+# --- v18.1 追補（§11）・ADR 0003・registry・日英査読サマリとの照合 ---
+AUD = json.loads((ROOT / CFG["display_policy"]["derived_audit_path"]).read_text(encoding="utf-8"))
+PC = L2["v18_passC_calibrated"]
+max_gap_row = max(AUD["gap_nodes"], key=lambda r: abs(r["gap_l1"]))
+REG_P = ROOT / "docs/registry.md"
+REG_T = REG_P.read_text(encoding="utf-8").replace("\u2212", "-") if REG_P.exists() else ""
+n_hyp = 0
+for ln in REG_T.splitlines():
+    if ln.startswith("|"):
+        cols = [c.strip() for c in ln.strip().strip("|").split("|")]
+        if len(cols) > 3 and cols[0].isdigit() and cols[3] == "仮説検定":
+            n_hyp += 1
+holm1 = CFG["inference"]["alpha"] / n_hyp if n_hyp else CFG["inference"]["alpha"]
+min_perm = math.ceil(1.0 / holm1) - 1
+
+v181_items = [
+    ("v18.1 評価可能ノード", str(AUD["evaluable_l1_nodes"])),
+    ("v18.1 表示乖離話数", str(AUD["gap_count"])),
+    ("v18.1 v16.L1 出所数", str(AUD["provenance_counts"]["v16.L1"])),
+    ("v18.1 decomp 出所数", str(AUD["provenance_counts"]["decomp.total_final"])),
+    ("v18.1 pureL2 出所数", str(AUD["provenance_counts"]["pureL2_dom"])),
+    ("v18.1 K1-05 表示", f3(max_gap_row["displayed_pct"])),
+    ("v18.1 K1-05 再計算", f"{max_gap_row['replay_l1_from_edges']:.4f}"),
+    ("v18.1 K1-05 乖離", f"{max_gap_row['gap_l1']:.4f}"),
+    ("v18.1 α A-B(13)", f3(AG["passA_vs_passB_13"]["alpha"])),
+    ("v18.1 α A-C(13)", f3(AG["passA_vs_passC_13"]["alpha"])),
+    ("v18.1 α B-C(13)", f3(AG["passB_vs_passC_13"]["alpha"])),
+    ("v18.1 完全一致 A-C", pc(AG["passA_vs_passC_13"]["exact_agreement"])),
+    ("v18.1 完全一致 B-C", pc(AG["passB_vs_passC_13"]["exact_agreement"])),
+    ("v18.1 Δα 低下量", f3(AG["delta_alpha_same13_to_passC"])),
+    ("v18.1 passC 実測", f3(PC["observed"])),
+    ("v18.1 passC 帰無", f"{f3(PC['null_mean'])} ± {f3(PC['null_sd'])}"),
+    ("v18.1 passC p", f3(PC["p_value"])),
+    ("v18.1 passC d", sg(PC["effect_d"])),
+    ("v18.1 passC 説明率", pc(PC["explained"])),
+    ("v18.1 passC エッジ数", str(PC["n_edges"])),
+    ("v18.1 Holm 第1しきい値", f"{holm1:.4f}"),
+    ("v18.1 必要最小置換", str(min_perm)),
+]
+
+ADR3_P = ROOT / "docs/adr/0003-display-mix-policy.md"
+T3 = ADR3_P.read_text(encoding="utf-8").replace("\u2212", "-") if ADR3_P.exists() else ""
+adr3_checks = [
+    ("ノード数", str(AUD["total_nodes"])),
+    ("エッジ数", a1_parts[1]),
+    ("評価可能ノード", str(AUD["evaluable_l1_nodes"])),
+    ("乖離話数", str(AUD["gap_count"])),
+    ("K1-05 表示", f3(max_gap_row["displayed_pct"])),
+    ("K1-05 再計算", f3(max_gap_row["replay_l1_from_edges"])),
+    ("v16.L1 件数", str(AUD["provenance_counts"]["v16.L1"])),
+    ("decomp 件数", str(AUD["provenance_counts"]["decomp.total_final"])),
+    ("pureL2 件数", str(AUD["provenance_counts"]["pureL2_dom"])),
+]
+
+reg_checks = [
+    ("Holm 第1しきい値", f"{holm1:.4f}"),
+    ("必要最小置換", str(min_perm)),
+    ("NET-DISPLAY-21 一致数", f"{AUD['gap_count']} / {AUD['gap_count']}"),
+    ("L2-PASSC-INDEP α", f3(AG["passA_vs_passC_13"]["alpha"])),
+    ("L2-PASSC-INDEP Δα", f3(AG["delta_alpha_same13_to_passC"])),
+    ("L2-PASSC-SENS 実測", f3(PC["observed"])),
+    ("L2-PASSC-SENS p", f3(PC["p_value"])),
+    ("L2-PASSC-SENS d", sg(PC["effect_d"])),
+]
+
+summary_checks = [
+    ("L2 主系 実測", f3(CV["observed"])),
+    ("L2 主系 帰無", f"{f3(CV['null_mean'])} ± {f3(CV['null_sd'])}"),
+    ("L2 主系 p", f3(CV["p_value"])),
+    ("L2 主系 d", sg(CV["effect_d"])),
+    ("L2 legacy 校正 実測", f3(LC["observed"])),
+    ("L2 legacy 校正 p", f3(LC["p_value"])),
+    ("L2 cosine p", f3(CR["p_value"])),
+    ("L2 cosine d", f2(CR["effect_d"])),
+    ("L2 passC 実測", f3(PC["observed"])),
+    ("L2 passC 帰無", f"{f3(PC['null_mean'])} ± {f3(PC['null_sd'])}"),
+    ("L2 passC p", f3(PC["p_value"])),
+    ("L2 passC d", sg(PC["effect_d"])),
+    ("L1 cosine p", f3(L1["l1_legacy_cosine"]["p_value"])),
+    ("L1 cosine d", f"{L1['l1_legacy_cosine']['effect_d']:.2f}"),
+    ("L1 校正 実測", f3(L1["l1_legacy_calibrated"]["observed"])),
+    ("L1 校正 d", f"{L1['l1_legacy_calibrated']['effect_d']:.2f}"),
+    ("α A-B(555)", f3(AG["passA_vs_passB"]["alpha"])),
+    ("α A-legacy", f3(AG["passA_vs_legacy"]["alpha"])),
+    ("α L1監査", f3(AG["l1_audit_vs_frozen"]["alpha"])),
+    ("α A-B(13)", f3(AG["passA_vs_passB_13"]["alpha"])),
+    ("α A-C(13)", f3(AG["passA_vs_passC_13"]["alpha"])),
+    ("α B-C(13)", f3(AG["passB_vs_passC_13"]["alpha"])),
+    ("Δα 低下量", f3(AG["delta_alpha_same13_to_passC"])),
+    ("ネットワーク ノード", str(AUD["total_nodes"])),
+    ("ネットワーク エッジ", a1_parts[1]),
+    ("90D エッジ", c1_cnt),
+    ("評価可能ノード", str(AUD["evaluable_l1_nodes"])),
+    ("乖離話数", str(AUD["gap_count"])),
+    ("K1-05 表示", f3(max_gap_row["displayed_pct"])),
+    ("K1-05 再計算", f"{max_gap_row['replay_l1_from_edges']:.4f}"),
+    ("単一モチーフ被説明率", pc(DG["mean_explained_single_dim"])),
+    ("複数モチーフ被説明率", pc(DG["mean_explained_multi_dim"])),
+    ("Q1 b=0.10 R=1", f"{bv[0.1]['R=1']:.3f}"),
+    ("Q1 b=0.10 R=10", f"{bv[0.1]['R=10']:.3f}"),
+    ("Q2 144 族錯誤率", f"{sel[144]['fwer']:.4f}"),
+    ("Q2 144 最小p中央値", f"{sel[144]['median_min_p']:.4f}"),
+    ("Holm 第1しきい値", f"{holm1:.4f}"),
+    ("必要最小置換", str(min_perm)),
+]
+
+JA_P = ROOT / "docs/peer_review_summary_ja.md"
+EN_P = ROOT / "docs/peer_review_summary_en.md"
+T_JA = JA_P.read_text(encoding="utf-8").replace("\u2212", "-") if JA_P.exists() else ""
+T_EN = EN_P.read_text(encoding="utf-8").replace("\u2212", "-") if EN_P.exists() else ""
+
+miss_extra = []
+for doc_label, txt, items in [
+    ("v18§11", TEXT, v181_items),
+    ("ADR0003", T3, adr3_checks),
+    ("registry", REG_T, reg_checks),
+    ("サマリJA", T_JA, summary_checks),
+    ("サマリEN", T_EN, summary_checks),
+]:
+    if not txt:
+        miss_extra.append((f"{doc_label} ファイル存在", doc_label))
+    else:
+        for n, s_ in items:
+            if s_ not in txt:
+                miss_extra.append((f"{doc_label} {n}", s_))
+
 miss = [(n, s, "") for n, s, _ in checks if s and s not in TEXT]
-print(f"照合項目 {len(checks) + len(net_checks) + len(adr_checks)} 件 / "
-      f"不一致 {len(miss) + len(miss_net) + len(miss_adr)} 件")
+total_checks = (len(checks) + len(net_checks) + len(adr_checks) + len(v181_items)
+                + len(adr3_checks) + len(reg_checks) + len(summary_checks) * 2)
+total_miss = len(miss) + len(miss_net) + len(miss_adr) + len(miss_extra)
+print(f"照合項目 {total_checks} 件 / 不一致 {total_miss} 件")
 for n, s_ in miss_adr:
     print(f"  [NG] ADR0002 {n}: '{s_}' が見つからない")
 for n, s_ in miss_net:
     print(f"  [NG] {n}: 文書に '{s_}' が見つからない")
+for n, s_ in miss_extra:
+    print(f"  [NG] {n}: 文書に '{s_}' が見つからない")
 for n, s in miss:
     print(f"  [NG] {n}: 文書に '{s}' が見つからない")
-sys.exit(1 if (miss or miss_net or miss_adr) else 0)
+sys.exit(1 if total_miss else 0)
