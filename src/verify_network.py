@@ -17,7 +17,7 @@ verify_network.py -- インタラクティブ HTML に埋め込まれたグラ�
 出力: outputs/network_verification.md, outputs/network_checks.json
 """
 from __future__ import annotations
-import json, sys, itertools, collections
+import ast, json, sys, itertools, collections
 from pathlib import Path
 
 import numpy as np
@@ -105,19 +105,62 @@ def load_all():
     return d
 
 
+def _extract_v17_constants(py_path: Path) -> dict:
+    """v17 スクリプトを実行（matplotlib 等を import）せず AST から定数のみ安全抽出する。"""
+    tree = ast.parse(py_path.read_text(encoding="utf-8"))
+    targets = {
+        "DOMESTIC_REG",
+        "R_MOTIFS",
+        "LP_EXTERNAL_NODES",
+        "LP_DOMESTIC_NODES",
+        "L2_WORLD_UPDATES",
+        "L2_KOJIKI_UPDATES",
+    }
+    env: dict = {}
+
+    def safe_eval(node):
+        if isinstance(node, ast.Name) and node.id in env:
+            return env[node.id]
+        if isinstance(node, ast.Constant):
+            return node.value
+        if isinstance(node, ast.UnaryOp) and isinstance(node.op, ast.USub):
+            return -safe_eval(node.operand)
+        if isinstance(node, ast.List):
+            return [safe_eval(e) for e in node.elts]
+        if isinstance(node, ast.Tuple):
+            return tuple(safe_eval(e) for e in node.elts)
+        if isinstance(node, ast.Dict):
+            return {safe_eval(k): safe_eval(v) for k, v in zip(node.keys, node.values)}
+        raise ValueError(f"Unsupported AST node in {py_path.name}: {ast.dump(node)}")
+
+    for node in tree.body:
+        if (
+            isinstance(node, ast.Assign)
+            and len(node.targets) == 1
+            and isinstance(node.targets[0], ast.Name)
+            and node.targets[0].id in targets
+        ):
+            env[node.targets[0].id] = safe_eval(node.value)
+    missing = targets - set(env)
+    if missing:
+        raise RuntimeError(f"AST 抽出に失敗した定数: {sorted(missing)}")
+    return env
+
+
 def build_l2_matrix(ids):
     """v17 の第2層 15D ベクトル（正規化済み）を ids 順に再構成する。"""
-    sys.path.insert(0, str(PKG))
-    import run_myth_v17_ritual_polity_layer as v17
-    feats = list(v17.L2_FEATS)
-    lp = {x[0]: x[6] for x in (v17.LP_EXTERNAL_NODES + v17.LP_DOMESTIC_NODES)}
+    env = _extract_v17_constants(PKG / "run_myth_v17_ritual_polity_layer.py")
+    feats = [c for c, _ in env["R_MOTIFS"]]
+    lp = {x[0]: x[6] for x in (env["LP_EXTERNAL_NODES"] + env["LP_DOMESTIC_NODES"])}
+    w_upd = env["L2_WORLD_UPDATES"]
+    k_upd = env["L2_KOJIKI_UPDATES"]
     M = np.zeros((len(ids), len(feats)))
     for r, nid in enumerate(ids):
         rd = {}
-        if nid in v17.L2_WORLD_UPDATES:
-            rd = v17.L2_WORLD_UPDATES[nid]
-        elif nid in v17.L2_KOJIKI_UPDATES:
-            rd = v17.L2_KOJIKI_UPDATES[nid]
+        if nid in w_upd:
+            rd = w_upd[nid]
+        elif nid in k_upd:
+            rd = k_upd[nid]
         elif nid in lp:
             rd = lp[nid]
         v = np.array([rd.get(f, 0.0) for f in feats], float)

@@ -76,23 +76,32 @@ import re as _re
 NJ = json.loads((ROOT / "outputs/network_checks.json").read_text(encoding="utf-8"))
 G = {c["id"]: c for c in NJ["checks"]}
 num = lambda cid, pat, grp=1: _re.search(pat, str(G[cid]["value"])).group(grp)
+a1_parts = G["A1"]["value"].split(" / ")
+c1_cnt = num("C1", r"(\d+) 本")
+c5_common = num("C5", r"共通 (\d+)")
+c5_only90 = num("C5", r"90D のみ (\d+)")
+c5_onlymp = num("C5", r"表示のみ (\d+)")
+e_cos_d = float(num("E-cosine-all", r"d=([0-9.]+)"))
+e_cal_d = float(num("E-calibrated-all", r"d=([0-9.]+)"))
+e_jac_cnt = num("E-jac", r"共通 (\d+)")
+b15_refs = num("B15", r"(\d+) 参照")
 net_checks = [
-    ("ネットワーク ノード数", f"{G['A1']['value'].split(' / ')[0]} ノード"),
-    ("ネットワーク エッジ数", f"{G['A1']['value'].split(' / ')[1]} エッジ"),
-    ("層構成の再現本数", f"{num('C1', r'(\d+) 本')} 本"),
-    ("90D との共通", f"共通 {num('C5', r'共通 (\d+)')}"),
-    ("90D のみ", f"90D のみ {num('C5', r'90D のみ (\d+)')}"),
-    ("表示のみ", f"表示のみ {num('C5', r'表示のみ (\d+)')}"),
+    ("ネットワーク ノード数", f"{a1_parts[0]} ノード"),
+    ("ネットワーク エッジ数", f"{a1_parts[1]} エッジ"),
+    ("層構成の再現本数", f"{c1_cnt} 本"),
+    ("90D との共通", f"共通 {c5_common}"),
+    ("90D のみ", f"90D のみ {c5_only90}"),
+    ("表示のみ", f"表示のみ {c5_onlymp}"),
     ("L1 重み再現", num("D1", r"([0-9.]+e-0?5)")),
     ("L1 被説明率再現率", num("D2", r"0.01 以内 ([0-9.]+)")),
     ("古事記乖離の最大値", f"{NJ['kojiki_gap'][0]['displayed']:.3f}"),
     ("古事記乖離の再計算値", f"{NJ['kojiki_gap'][0]['replay']:.3f}"),
-    ("乖離ノード数", f"21 / 248"),
-    ("全ノード検定 d(コサイン)", f"{float(num('E-cosine-all', r'd=([0-9.]+)')):.1f}"),
-    ("全ノード検定 d(校正済み)", f"{float(num('E-calibrated-all', r'd=([0-9.]+)')):.1f}"),
-    ("独立実装との共通辺", num("E-jac", r"共通 (\d+)")),
+    ("乖離ノード数", "21 / 248"),
+    ("全ノード検定 d(コサイン)", f"{e_cos_d:.1f}"),
+    ("全ノード検定 d(校正済み)", f"{e_cal_d:.1f}"),
+    ("独立実装との共通辺", e_jac_cnt),
     ("Jaccard", num("E-jac", r"Jaccard ([0-9.]+)")),
-    ("モチーフ参照数", num("B15", r"(\d+) 参照")),
+    ("モチーフ参照数", b15_refs),
 ]
 miss_net = [(n, s_) for n, s_ in net_checks if not s_ or s_ not in TEXT]
 net_checks = [(n, s_) for n, s_ in net_checks if s_ and s_ in TEXT]

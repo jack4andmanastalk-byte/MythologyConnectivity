@@ -251,8 +251,6 @@ def main():
         net_status = "outputs/network_verification.md / network_checks.json"
     except SystemExit:
         net_status = "skipped"
-    except Exception as exc:                                   # パッケージ不在など
-        net_status = f"skipped: {type(exc).__name__}: {exc}"
 
     # 判定
     prim = res["layer2"]["v18_calibrated"]
@@ -286,11 +284,18 @@ def main():
     res["meta"]["doc_check"] = vd.stdout.strip().splitlines()[0] if vd.stdout.strip() else ""
     (OUT / "results.json").write_text(json.dumps(res, ensure_ascii=False, indent=2), encoding="utf-8")
     print(("文書照合 OK: " if doc_ok else "文書照合 NG: ") + res["meta"]["doc_check"])
+    if not doc_ok:
+        if vd.stdout.strip():
+            print(vd.stdout.strip())
+        if vd.stderr.strip():
+            print(vd.stderr.strip(), file=sys.stderr)
     man = [f"{sha256(p)}  {p.name}" for p in sorted(OUT.glob("*"))
            if p.is_file() and p.name != "manifest.sha256" and not p.name.startswith(".")]
     (OUT / "manifest.sha256").write_text("\n".join(man) + "\n", encoding="utf-8")
     print(json.dumps(res["decision"], ensure_ascii=False, indent=2))
     print("done:", OUT)
+    if not doc_ok:
+        raise SystemExit(1)
 
 
 def pct(x):

@@ -17,6 +17,10 @@ jobs:
       - name: pre-registration order
         run: python src/check_prereg.py
 
+      # 1b) 登録簿の Holm しきい値と n_perm 要件
+      - name: check registry thresholds
+        run: make registry
+
       # 2) スキーマ・証拠・重複
       - name: validate annotations
         run: make validate
@@ -28,6 +32,10 @@ jobs:
       # 4) 運用シミュレーション（ADR 0002）と全解析（ネットワーク全件検証を含む）
       - name: run pipeline
         run: make run
+
+      # 4b) 本文の数値と機械出力の照合
+      - name: verify docs
+        run: make doc
 
       # 5) 同一環境で 2 回実行して生成物が一致すること
       - name: determinism
