@@ -1,0 +1,39 @@
+name: verify
+on:
+  push:
+  pull_request:
+
+jobs:
+  gates:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pip install numpy pandas
+
+      # 1) 事前登録が結果より先にコミットされているか
+      - name: pre-registration order
+        run: python src/check_prereg.py
+
+      # 2) スキーマ・証拠・重複
+      - name: validate annotations
+        run: make validate
+
+      # 3) コード内の解析定数ゼロ
+      - name: hard-code audit
+        run: make audit
+
+      # 4) 全解析（ネットワーク全件検証を含む）と文書照合
+      - name: run pipeline
+        run: make run
+
+      # 5) 同一環境で 2 回実行して生成物が一致すること
+      - name: determinism
+        run: make determ
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: outputs
+          path: outputs/
