@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>古事記×ユーラシア神話 グラフネットワーク確認アトラス（v18データ再構築）</title>
+<style>
+  :root {
+    --bg: #0e1420; --panel: #17202f; --panel2: #1d2939; --line: #2b3a52;
+    --text: #e8eef7; --muted: #9db0c7; --accent: #ffb454; --accent2: #56b4e9;
+    --danger: #ff6b6b; --ok: #7fd18a; --chip: #243247;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; height: 100%; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: "Hiragino Sans", "Noto Sans CJK JP", "Yu Gothic UI", Meiryo, sans-serif;
+    font-size: 13px; display: flex; flex-direction: column; overflow: hidden;
+  }
+  header {
+    display: flex; align-items: center; gap: 12px; padding: 8px 14px;
+    background: linear-gradient(180deg, #16213a, #121a29); border-bottom: 1px solid var(--line);
+    flex-wrap: wrap;
+  }
+  header h1 { font-size: 15px; margin: 0; font-weight: 700; letter-spacing: .02em; }
+  header .sub { color: var(--muted); font-size: 11px; }
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; margin-left: auto; }
+  .chip {
+    background: var(--chip); border: 1px solid var(--line); border-radius: 999px;
+    padding: 2px 10px; font-size: 11px; color: var(--muted); white-space: nowrap;
+  }
+  .chip b { color: var(--text); font-weight: 600; }
+  .chip.warn b { color: var(--accent); }
+  button {
+    background: var(--panel2); color: var(--text); border: 1px solid var(--line);
+    border-radius: 6px; padding: 4px 10px; cursor: pointer; font-size: 12px;
+    font-family: inherit;
+  }
+  button:hover { border-color: var(--accent2); }
+  button.primary { background: #24446b; border-color: #3b6ea5; }
+  #toolbar {
+    display: flex; align-items: center; gap: 10px; padding: 6px 14px;
+    background: var(--panel); border-bottom: 1px solid var(--line); flex-wrap: wrap;
+  }
+  #toolbar .group { display: flex; align-items: center; gap: 5px; }
+  #toolbar label { color: var(--muted); font-size: 11px; user-select: none; }
+  #toolbar input[type="checkbox"] { accent-color: var(--accent2); }
+  #toolbar input[type="range"] { width: 90px; accent-color: var(--accent); }
+  #toolbar input[type="text"] {
+    background: var(--panel2); color: var(--text); border: 1px solid var(--line);
+    border-radius: 6px; padding: 4px 8px; width: 190px; font-size: 12px;
+    font-family: inherit;
+  }
+  .tab {
+    padding: 4px 12px; border-radius: 6px; border: 1px solid var(--line);
+    background: transparent; color: var(--muted); cursor: pointer; font-size: 12px;
+    font-family: inherit;
+  }
+  .tab.active { background: #24446b; color: var(--text); border-color: #3b6ea5; }
+  details.regionbox { position: relative; }
+  details.regionbox summary {
+    list-style: none; cursor: pointer; background: var(--panel2);
+    border: 1px solid var(--line); border-radius: 6px; padding: 4px 10px;
+    color: var(--muted); font-size: 12px; user-select: none;
+  }
+  details.regionbox summary::-webkit-details-marker { display: none; }
+  .regionmenu {
+    position: absolute; z-index: 40; top: 110%; left: 0; width: 320px; max-height: 320px;
+    overflow: auto; background: var(--panel2); border: 1px solid var(--line);
+    border-radius: 8px; padding: 8px; box-shadow: 0 8px 24px rgba(0,0,0,.5);
+  }
+  .regionmenu .row { display: flex; align-items: center; gap: 6px; padding: 2px 2px; }
+  .regionmenu .sw { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+  .regionmenu .row label { flex: 1; color: var(--text); font-size: 11px; }
+  #stageWrap { flex: 1; display: flex; min-height: 0; }
+  #stageBox { flex: 1; position: relative; min-width: 0; background:
+    radial-gradient(1200px 700px at 65% 20%, #14203a 0%, #0e1420 70%); }
+  #stage { width: 100%; height: 100%; display: block; cursor: grab; }
+  #stage.dragging { cursor: grabbing; }
+  #detail {
+    width: 360px; flex: none; background: var(--panel); border-left: 1px solid var(--line);
+    overflow-y: auto; padding: 12px;
+  }
+  #detail h2 { font-size: 13px; margin: 0 0 2px; line-height: 1.5; }
+  #detail .idline { color: var(--accent); font-weight: 700; font-size: 12px; }
+  #detail .placeholder { color: var(--muted); padding: 20px 6px; line-height: 2; }
+  .dsec { margin-top: 12px; border-top: 1px solid var(--line); padding-top: 8px; }
+  .dsec h3 { font-size: 11px; color: var(--accent2); margin: 0 0 6px; letter-spacing: .05em; }
+  .kv { display: grid; grid-template-columns: 8.5em 1fr; gap: 2px 8px; font-size: 11px; }
+  .kv .k { color: var(--muted); }
+  .kv .v { color: var(--text); word-break: break-all; }
+  .pill {
+    display: inline-block; border-radius: 999px; padding: 1px 8px; font-size: 10px;
+    border: 1px solid var(--line); background: var(--chip); margin: 1px 2px 1px 0;
+    color: var(--muted);
+  }
+  .pill.gap { border-color: var(--danger); color: var(--danger); }
+  .pill.ok { border-color: var(--ok); color: var(--ok); }
+  .ev { background: var(--panel2); border-left: 3px solid var(--accent2);
+    padding: 5px 8px; margin: 4px 0; font-size: 11px; line-height: 1.7; border-radius: 0 6px 6px 0; }
+  .ev .who { color: var(--muted); font-size: 10px; }
+  .edgerow {
+    display: flex; gap: 6px; align-items: baseline; padding: 2px 4px; border-radius: 4px;
+    cursor: pointer; font-size: 11px;
+  }
+  .edgerow:hover { background: var(--panel2); }
+  .edgerow .w { color: var(--accent); min-width: 3.2em; text-align: right; }
+  .edgerow .nm { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .panelview { display: none; flex: 1; min-height: 0; overflow: auto; padding: 12px 16px; }
+  .panelview.active { display: block; }
+  #stageWrap.hidden { display: none; }
+  table.data { border-collapse: collapse; width: 100%; font-size: 11px; }
+  table.data th, table.data td {
+    border-bottom: 1px solid var(--line); padding: 4px 6px; text-align: left;
+    white-space: nowrap;
+  }
+  table.data th { position: sticky; top: 0; background: var(--panel2); cursor: pointer;
+    z-index: 2; color: var(--accent2); font-weight: 600; }
+  table.data tr { cursor: pointer; }
+  table.data tr:hover td { background: #22304a; }
+  table.data tr.sel td { background: #2c4264; }
+  table.data td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .mwrap { overflow: auto; max-height: 100%; }
+  table.matrix { border-collapse: collapse; font-size: 10px; }
+  table.matrix th, table.matrix td { border: 1px solid var(--line); padding: 3px 5px;
+    text-align: center; }
+  table.matrix th.rowh { text-align: left; position: sticky; left: 0; background: var(--panel2);
+    z-index: 1; max-width: 260px; overflow: hidden; text-overflow: ellipsis; }
+  table.matrix thead th { position: sticky; top: 0; background: var(--panel2); z-index: 2; }
+  table.matrix thead th.corner { left: 0; z-index: 3; }
+  table.matrix td.cell { cursor: pointer; min-width: 30px; font-variant-numeric: tabular-nums; }
+  table.matrix tr:hover td { outline: 1px solid var(--accent2); }
+  #tooltip {
+    position: fixed; z-index: 90; pointer-events: none; display: none;
+    background: rgba(13, 20, 33, .95); border: 1px solid var(--line); border-radius: 8px;
+    padding: 7px 10px; font-size: 11px; max-width: 340px; line-height: 1.7;
+    box-shadow: 0 6px 18px rgba(0,0,0,.45);
+  }
+  #tooltip .t-title { color: var(--accent); font-weight: 700; }
+  #overlay {
+    position: fixed; inset: 0; z-index: 100; background: rgba(5, 9, 16, .72);
+    display: none; align-items: center; justify-content: center;
+  }
+  #overlay.open { display: flex; }
+  #notesCard {
+    width: min(860px, 92vw); max-height: 86vh; overflow: auto; background: var(--panel);
+    border: 1px solid var(--line); border-radius: 12px; padding: 18px 22px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.6); line-height: 1.9; font-size: 12px;
+  }
+  #notesCard h2 { margin: 0 0 4px; font-size: 15px; }
+  #notesCard h3 { font-size: 12px; color: var(--accent2); margin: 14px 0 4px; }
+  #notesCard ul { margin: 4px 0; padding-left: 1.4em; }
+  #notesCard code { background: var(--panel2); border-radius: 4px; padding: 1px 6px; font-size: 11px; }
+  .legend { display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+    color: var(--muted); font-size: 11px; }
+  .legend svg { display: inline-block; vertical-align: middle; }
+  #statusbar {
+    padding: 4px 14px; background: var(--panel); border-top: 1px solid var(--line);
+    color: var(--muted); font-size: 11px; display: flex; gap: 14px; flex-wrap: wrap;
+  }
+  .node-shape { cursor: pointer; }
+  .edge-path { fill: none; }
+  .dimmed { opacity: .12; }
+  .hidden-item { display: none; }
+  .lane-label { fill: var(--muted); font-size: 11px; }
+  .lane-line { stroke: var(--line); stroke-width: 1; }
+  .axis-label { fill: var(--muted); font-size: 11px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>古事記×ユーラシア神話 グラフネットワーク確認アトラス</h1>
+    <div class="sub">v18 リポジトリ凍結データから再構築（<code>src/build_interactive_html.py</code>）／人間確認用ビュー</div>
+  </div>
+  <div class="chips" id="statChips"></div>
+  <button id="btnNotes" class="primary">データと注記</button>
+</header>
+
+<div id="toolbar">
+  <div class="group" id="tabs">
+    <button class="tab active" data-tab="map">地図</button>
+    <button class="tab" data-tab="timeline">時系列レーン</button>
+    <button class="tab" data-tab="force">グラフ</button>
+    <button class="tab" data-tab="matrix">L2行列</button>
+    <button class="tab" data-tab="ledger">台帳</button>
+  </div>
+  <div class="group">
+    <label><input type="checkbox" id="layerPrimary" checked> L1主解析（校正z）</label>
+    <input type="range" id="minZ" min="0" max="100" value="0" step="1">
+    <label id="minZLabel">z≥0.0</label>
+  </div>
+  <div class="group">
+    <label><input type="checkbox" id="layerReference"> L1参考（v17互換cos）</label>
+    <input type="range" id="minCos" min="0" max="100" value="0" step="1">
+    <label id="minCosLabel">cos≥0.00</label>
+  </div>
+  <div class="group">
+    <label>ステップ</label>
+    <label><input type="checkbox" class="stepChk" value="1" checked>1</label>
+    <label><input type="checkbox" class="stepChk" value="2" checked>2</label>
+    <label><input type="checkbox" class="stepChk" value="3" checked>3</label>
+  </div>
+  <div class="group">
+    <label><input type="checkbox" id="kindEurasia" checked> ユーラシア</label>
+    <label><input type="checkbox" id="kindKojiki" checked> 古事記</label>
+    <label><input type="checkbox" id="kindAnchor" checked> アンカー</label>
+    <label><input type="checkbox" id="gapOnly"> 乖離台帳のみ</label>
+  </div>
+  <details class="regionbox" id="regionBox">
+    <summary id="regionSummary">地域フィルタ</summary>
+    <div class="regionmenu" id="regionMenu"></div>
+  </details>
+  <div class="group">
+    <input type="text" id="searchBox" placeholder="名称・ID 検索（Enter で最初に選択）">
+    <button id="btnReset">表示リセット</button>
+  </div>
+  <div class="legend group">
+    <svg width="26" height="16"><circle cx="8" cy="8" r="5.5" fill="#8fb8ff"></circle></svg>ユーラシア
+    <svg width="26" height="16"><rect x="3" y="3" width="10" height="10" transform="rotate(45 8 8)" fill="#ffd28a"></rect></svg>古事記
+    <svg width="26" height="16"><polygon points="8,2 14,14 2,14" fill="#a6f0c6"></polygon></svg>アンカー
+    <svg width="30" height="16"><circle cx="12" cy="8" r="5.5" fill="none" stroke="#ff6b6b" stroke-width="2"></circle></svg>乖離
+  </div>
+</div>
+
+<div id="stageWrap">
+  <div id="stageBox">
+    <svg id="stage" viewBox="0 0 1400 800" preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <marker id="arrowPrimary" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M0,0 L8,4 L0,8 z" fill="#e8955a"></path>
+        </marker>
+        <marker id="arrowReference" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M0,0 L8,4 L0,8 z" fill="#5f87c9"></path>
+        </marker>
+      </defs>
+      <g id="viewport">
+        <g id="gGrid"></g>
+        <g id="gEdges"></g>
+        <g id="gNodes"></g>
+      </g>
+    </svg>
+  </div>
+  <aside id="detail">
+    <div class="placeholder" id="detailPlaceholder">
+      ノードをクリックすると、<br>・表示監査（ADR 0003）<br>・凍結 v16 統計<br>・L1 モチーフ（75次元）<br>・L2 評定（R01-R15・証拠つき）<br>・接続エッジ<br>を確認できます。
+    </div>
+    <div id="detailBody" style="display:none"></div>
+  </aside>
+</div>
+
+<div class="panelview" id="viewMatrix">
+  <h2 style="margin:0 0 4px;font-size:14px;">第 2 層 評定行列（L2_R01-R15）</h2>
+  <div class="sub" style="color:var(--muted);font-size:11px;margin-bottom:8px;">
+    行 = 古事記ノード / アンカーノード、列 = L2 語彙次元。セル色は水準（0不在〜3中心的）。
+    各セルの A / B / C / L は評定パス（A・B = 独立評定、C = 中立語彙操作、L = v17 legacy 写像）。
+    セルクリックで該当ノードの証拠を右パネルに表示。マスに評定がない次元は空欄。
+  </div>
+  <div class="mwrap"><div id="matrixHost"></div></div>
+</div>
+
+<div class="panelview" id="viewLedger">
+  <h2 style="margin:0 0 4px;font-size:14px;">全ノード台帳（297 件）</h2>
+  <div class="sub" style="color:var(--muted);font-size:11px;margin-bottom:8px;">
+    見出しクリックでソート。行クリックで右パネルに詳細表示。
+    「表示被説明率」は凍結 HTML の表示値、「L1再生」は表示 L1 辺からの再計算（derived 台帳）。
+    「乖離」は ADR 0003 の閾値 0.01 を超える差。主解析/参考の in/out は本 HTML の再構築エッジによる次数。
+  </div>
+  <div class="mwrap"><div id="ledgerHost"></div></div>
+</div>
+
+<div id="statusbar">
+  <span id="statusText">準備完了</span>
+  <span>再生成: <code>make interactive</code>（または <code>python3 src/build_interactive_html.py</code>）</span>
+</div>
+
+<div id="tooltip"></div>
+
+<div id="overlay">
+  <div id="notesCard">
+    <h2>データと注記</h2>
+    <div id="notesBody"></div>
+    <div style="margin-top:14px;text-align:right;">
+      <button id="btnCloseNotes" class="primary">閉じる</button>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+const DATA = __DATA_JSON__;
+
+/* ---------------- 基本ユーティリティ ---------------- */
+const $ = (sel) => document.querySelector(sel);
+const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({
+  "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+}[c]));
+const fmtPct = (v, nd = 1) => (v === null || v === undefined) ? "—" : (v * 100).toFixed(nd) + "%";
+const fmtNum = (v, nd = 2) => (v === null || v === undefined) ? "—" : Number(v).toFixed(nd);
+const fmtInt = (v) => (v === null || v === undefined) ? "—" : String(Math.round(v));
+
+const NODES = DATA.nodes;
+const NODE_BY_ID = {};
+NODES.forEach((n) => { NODE_BY_ID[n.id] = n; });
+const REGIONS = DATA.meta.region_order;
+const PALETTE = [
+  "#e6876c", "#e0b34d", "#9fc56b", "#57c98a", "#4fc3b1", "#4fb0e0",
+  "#6f92e8", "#9a86e0", "#c57fd6", "#e07fb2", "#e88d9c", "#b9a06a",
+  "#7fbf7f", "#63b8c9", "#8aa8d8", "#c9975f", "#a9c26a", "#d67f7f", "#8fd0c8"
+];
+const REGION_COLOR = {};
+REGIONS.forEach((reg, i) => { REGION_COLOR[reg] = PALETTE[i % PALETTE.length]; });
+
+const KIND_LABEL = { eurasia: "ユーラシア", kojiki: "古事記", anchor: "アンカー" };
+const PROV_LABEL = {
+  "v16.L1": "v16.L1（第1層表示）",
+  "decomp.total_final": "decomp.total_final（3層合成表示）",
+  "pureL2_dom": "pureL2_dom（第2層支配表示）"
+};
+const LEVEL_LABEL = { "0": "不在", "1": "痕跡・言及のみ", "2": "明確に存在", "3": "中心的・定義的" };
+
+/* ---------------- 状態 ---------------- */
+const state = {
+  tab: "map",
+  layers: { primary: true, reference: false },
+  minZ: 0, minCos: 0,
+  steps: new Set(["1", "2", "3"]),
+  kinds: new Set(["eurasia", "kojiki", "anchor"]),
+  regions: new Set(REGIONS),
+  gapOnly: false,
+  search: "",
+  sel: null,
+  view: { tx: 0, ty: 0, k: 1 }
+};
+
+/* ---------------- レイアウト ---------------- */
+const WORLD_W = 1400, WORLD_H = 800, MARGIN = 70;
+function extent(vals) {
+  let lo = Infinity, hi = -Infinity;
+  vals.forEach((v) => { if (v < lo) lo = v; if (v > hi) hi = v; });
+  if (!isFinite(lo)) { lo = 0; hi = 1; }
+  if (hi === lo) { hi = lo + 1; }
+  return [lo, hi];
+}
+const [lonMin, lonMax] = extent(NODES.map((n) => n.lon));
+const [latMin, latMax] = extent(NODES.map((n) => n.lat));
+const [tMin, tMax] = extent(NODES.map((n) => n.t_eff));
+const LANE_H = 38;
+const LANE_INDEX = {};
+REGIONS.forEach((reg, i) => { LANE_INDEX[reg] = i; });
+
+function projMap(n) {
+  return [
+    MARGIN + (n.lon - lonMin) / (lonMax - lonMin) * (WORLD_W - 2 * MARGIN),
+    MARGIN + (latMax - n.lat) / (latMax - latMin) * (WORLD_H - 2 * MARGIN)
+  ];
+}
+function projTimeline(n) {
+  return [
+    MARGIN + (n.t_eff - tMin) / (tMax - tMin) * (WORLD_W - 2 * MARGIN),
+    40 + LANE_INDEX[n.region] * LANE_H + LANE_H / 2
+  ];
+}
+function projForce(n) {
+  return [n.fx ?? 0, n.fy ?? 0];
+}
+function layoutXY(n) {
+  if (state.tab === "timeline") return projTimeline(n);
+  if (state.tab === "force") return projForce(n);
+  return projMap(n);
+}
+function initForcePositions() {
+  NODES.forEach((n) => {
+    if (n.fx === undefined) {
+      const [x, y] = projMap(n);
+      n.fx = WORLD_W / 2 + (x - WORLD_W / 2) * 0.9;
+      n.fy = WORLD_H / 2 + (y - WORLD_H / 2) * 0.9;
+      n.vx = 0; n.vy = 0;
+    }
+  });
+}
+
+/* ---------------- フィルタ ---------------- */
+function nodeVisible(n) {
+  if (!state.kinds.has(n.kind)) return false;
+  if (!state.regions.has(n.region)) return false;
+  if (state.gapOnly && !n.gap) return false;
+  if (state.search) {
+    const q = state.search.toLowerCase();
+    if (!(n.id.toLowerCase().includes(q) || n.name.toLowerCase().includes(q) ||
+          n.region.toLowerCase().includes(q))) return false;
+  }
+  return true;
+}
+function edgeVisible(e, layer) {
+  if (!state.layers[layer]) return false;
+  if (!state.steps.has(String(e.step))) return false;
+  if (layer === "primary" && e.z < state.minZ) return false;
+  if (layer === "reference" && e.cos < state.minCos) return false;
+  const s = NODE_BY_ID[e.s], t = NODE_BY_ID[e.t];
+  return s && t && nodeVisible(s) && nodeVisible(t);
+}
+
+/* ---------------- SVG 描画 ---------------- */
+const svg = $("#stage");
+const gGrid = $("#gGrid");
+const gEdges = $("#gEdges");
+const gNodes = $("#gNodes");
+const tooltip = $("#tooltip");
+
+function shapeSVG(n, x, y, color, selected) {
+  const ring = [];
+  if (n.provenance === "decomp.total_final") {
+    ring.push(`<circle cx="${x}" cy="${y}" r="11" fill="none" stroke="${color}" stroke-width="1.4" stroke-dasharray="4 3" opacity="0.9"/>`);
+  } else if (n.provenance === "pureL2_dom") {
+    ring.push(`<circle cx="${x}" cy="${y}" r="11" fill="none" stroke="${color}" stroke-width="1.4" stroke-dasharray="1.5 3" opacity="0.9"/>`);
+  }
+  if (n.gap) {
+    ring.push(`<circle cx="${x}" cy="${y}" r="14" fill="none" stroke="#ff6b6b" stroke-width="1.6" opacity="0.85"/>`);
+  }
+  let core;
+  if (n.kind === "kojiki") {
+    core = `<rect x="${x - 6}" y="${y - 6}" width="12" height="12" transform="rotate(45 ${x} ${y})" fill="${color}" stroke="#0e1420" stroke-width="1"/>`;
+  } else if (n.kind === "anchor") {
+    core = `<polygon points="${x},${y - 8} ${x + 7},${y + 6} ${x - 7},${y + 6}" fill="${color}" stroke="#0e1420" stroke-width="1"/>`;
+  } else {
+    core = `<circle cx="${x}" cy="${y}" r="6" fill="${color}" stroke="#0e1420" stroke-width="1"/>`;
+  }
+  const selRing = selected ? `<circle cx="${x}" cy="${y}" r="16" fill="none" stroke="#ffffff" stroke-width="2.4" opacity="0.95"/>` : "";
+  return selRing + ring.join("") + core;
+}
+
+function renderGrid() {
+  if (state.tab === "timeline") {
+    let html = "";
+    REGIONS.forEach((reg, i) => {
+      const y = 40 + i * LANE_H + LANE_H / 2;
+      html += `<line class="lane-line" x1="${MARGIN / 2}" y1="${y}" x2="${WORLD_W - MARGIN / 2}" y2="${y}" opacity="0.35"/>`;
+      html += `<text class="lane-label" x="6" y="${y + 4}">${esc(reg)}</text>`;
+    });
+    for (let t = Math.ceil(tMin / 500) * 500; t <= tMax; t += 500) {
+      const x = MARGIN + (t - tMin) / (tMax - tMin) * (WORLD_W - 2 * MARGIN);
+      html += `<line class="lane-line" x1="${x}" y1="20" x2="${x}" y2="${WORLD_H - 10}" opacity="0.25"/>`;
+      html += `<text class="axis-label" x="${x}" y="14" text-anchor="middle">t=${t}</text>`;
+    }
+    gGrid.innerHTML = html;
+  } else {
+    gGrid.innerHTML = "";
+  }
+}
+
+function neighborSet() {
+  if (!state.sel) return null;
+  const set = new Set([state.sel]);
+  const edges = [];
+  if (state.layers.primary) edges.push(...DATA.edges.primary);
+  if (state.layers.reference) edges.push(...DATA.edges.reference);
+  edges.forEach((e) => {
+    if (e.s === state.sel) set.add(e.t);
+    if (e.t === state.sel) set.add(e.s);
+  });
+  return set;
+}
+
+function render() {
+  renderGrid();
+  const near = neighborSet();
+  let edgeHtml = "";
+  const drawLayer = (edges, layer, marker, color, opa) => {
+    edges.forEach((e) => {
+      if (!edgeVisible(e, layer)) return;
+      const s = NODE_BY_ID[e.s], t = NODE_BY_ID[e.t];
+      const [x1, y1] = layoutXY(s), [x2, y2] = layoutXY(t);
+      const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
+      const dx = x2 - x1, dy = y2 - y1;
+      const cx = mx - dy * 0.12, cy = my + dx * 0.12;
+      let cls = "edge-path";
+      if (near && !(near.has(e.s) && near.has(e.t))) cls += " dimmed";
+      edgeHtml += `<path class="${cls}" d="M${x1},${y1} Q${cx},${cy} ${x2},${y2}" stroke="${color}" stroke-width="1.4" opacity="${opa}" marker-end="url(#${marker})"><title>${esc(e.s)} → ${esc(e.t)} / ${layer === "primary" ? "z" : "cos"}=${fmtNum(layer === "primary" ? e.z : e.cos, 3)} / step ${e.step} / Δt ${e.dt}年 / ${fmtInt(e.km)}km</title></path>`;
+    });
+  };
+  drawLayer(DATA.edges.primary, "primary", "arrowPrimary", "#e8955a", 0.5);
+  drawLayer(DATA.edges.reference, "reference", "arrowReference", "#5f87c9", 0.42);
+
+  let nodeHtml = "";
+  NODES.forEach((n) => {
+    if (!nodeVisible(n)) return;
+    const [x, y] = layoutXY(n);
+    const color = REGION_COLOR[n.region] || "#999";
+    let cls = "node-shape";
+    if (near && !near.has(n.id)) cls += " dimmed";
+    nodeHtml += `<g class="${cls}" data-id="${esc(n.id)}">${shapeSVG(n, x, y, color, n.id === state.sel)}</g>`;
+  });
+  gEdges.innerHTML = edgeHtml;
+  gNodes.innerHTML = nodeHtml;
+
+  $$("#gNodes .node-shape").forEach((g) => {
+    g.addEventListener("click", (ev) => {
+      ev.stopPropagation();
+      selectNode(g.getAttribute("data-id"));
+    });
+    g.addEventListener("mousemove", (ev) => showTooltip(ev, g.getAttribute("data-id")));
+    g.addEventListener("mouseleave", hideTooltip);
+  });
+  updateStatus();
+}
+
+function showTooltip(ev, id) {
+  const n = NODE_BY_ID[id];
+  if (!n) return;
+  tooltip.innerHTML = `<div class="t-title">${esc(n.id)}　${esc(n.name)}</div>
+    ${esc(n.region)} / ${esc(KIND_LABEL[n.kind] || n.kind)} / t=${n.t_eff}
+    <br>出所: ${esc(n.provenance || "—")} / 表示被説明率 ${fmtPct(n.exp_display)}`;
+  tooltip.style.display = "block";
+  const pad = 14;
+  let x = ev.clientX + pad, y = ev.clientY + pad;
+  const rect = tooltip.getBoundingClientRect();
+  if (x + rect.width > window.innerWidth) x = ev.clientX - rect.width - pad;
+  if (y + rect.height > window.innerHeight) y = ev.clientY - rect.height - pad;
+  tooltip.style.left = x + "px";
+  tooltip.style.top = y + "px";
+}
+function hideTooltip() { tooltip.style.display = "none"; }
+
+/* ---------------- パン＆ズーム ---------------- */
+function applyView() {
+  const v = state.view;
+  $("#viewport").setAttribute("transform", `translate(${v.tx},${v.ty}) scale(${v.k})`);
+}
+function svgPoint(ev) {
+  const pt = svg.createSVGPoint();
+  pt.x = ev.clientX; pt.y = ev.clientY;
+  return pt.matrixTransform(svg.getScreenCTM().inverse());
+}
+let dragState = null;
+svg.addEventListener("mousedown", (ev) => {
+  dragState = { x: ev.clientX, y: ev.clientY, tx: state.view.tx, ty: state.view.ty };
+  svg.classList.add("dragging");
+});
+window.addEventListener("mousemove", (ev) => {
+  if (!dragState) return;
+  const rect = svg.getBoundingClientRect();
+  const scale = WORLD_W / rect.width;
+  state.view.tx = dragState.tx + (ev.clientX - dragState.x) * scale;
+  state.view.ty = dragState.ty + (ev.clientY - dragState.y) * scale;
+  applyView();
+});
+window.addEventListener("mouseup", () => {
+  dragState = null;
+  svg.classList.remove("dragging");
+});
+svg.addEventListener("wheel", (ev) => {
+  ev.preventDefault();
+  const p = svgPoint(ev);
+  const v = state.view;
+  const factor = ev.deltaY < 0 ? 1.12 : 1 / 1.12;
+  const nk = Math.min(12, Math.max(0.2, v.k * factor));
+  v.tx = p.x - (p.x - v.tx) * (nk / v.k);
+  v.ty = p.y - (p.y - v.ty) * (nk / v.k);
+  v.k = nk;
+  applyView();
+}, { passive: false });
+svg.addEventListener("click", (ev) => {
+  if (ev.target === svg || ev.target.id === "viewport") {
+    state.sel = null;
+    render();
+    renderDetail();
+  }
+});
+
+/* ---------------- 力导向シミュレーション ---------------- */
+let forceTimer = null;
+function startForce() {
+  initForcePositions();
+  if (forceTimer) cancelAnimationFrame(forceTimer);
+  const edges = [];
+  if (state.layers.primary) DATA.edges.primary.forEach((e) => edges.push([e.s, e.t, 140]));
+  if (state.layers.reference) DATA.edges.reference.forEach((e) => edges.push([e.s, e.t, 150]));
+  const visible = NODES.filter(nodeVisible);
+  const idset = new Set(visible.map((n) => n.id));
+  const fedges = edges.filter(([s, t]) => idset.has(s) && idset.has(t));
+  let alpha = 1;
+  const step = () => {
+    alpha *= 0.985;
+    for (let i = 0; i < visible.length; i++) {
+      const a = visible[i];
+      for (let j = i + 1; j < visible.length; j++) {
+        const b = visible[j];
+        let dx = b.fx - a.fx, dy = b.fy - a.fy;
+        let d2 = dx * dx + dy * dy;
+        if (d2 < 1) { dx = (Math.random() - 0.5); dy = (Math.random() - 0.5); d2 = 1; }
+        const rep = 2400 / d2;
+        const d = Math.sqrt(d2);
+        a.fx -= dx / d * rep * alpha; a.fy -= dy / d * rep * alpha;
+        b.fx += dx / d * rep * alpha; b.fy += dy / d * rep * alpha;
+      }
+    }
+    fedges.forEach(([s, t, rest]) => {
+      const a = NODE_BY_ID[s], b = NODE_BY_ID[t];
+      const dx = b.fx - a.fx, dy = b.fy - a.fy;
+      const d = Math.sqrt(dx * dx + dy * dy) || 1;
+      const f = (d - rest) * 0.004 * alpha;
+      a.fx += dx / d * f; a.fy += dy / d * f;
+      b.fx -= dx / d * f; b.fy -= dy / d * f;
+    });
+    visible.forEach((n) => {
+      n.fx += (WORLD_W / 2 - n.fx) * 0.0012 * alpha;
+      n.fy += (WORLD_H / 2 - n.fy) * 0.0012 * alpha;
+    });
+    render();
+    if (alpha > 0.02) forceTimer = requestAnimationFrame(step);
+  };
+  step();
+}
+function stopForce() {
+  if (forceTimer) { cancelAnimationFrame(forceTimer); forceTimer = null; }
+}
+
+/* ---------------- 詳細パネル ---------------- */
+function edgeRow(e, dir, layer) {
+  const other = NODE_BY_ID[dir === "in" ? e.s : e.t];
+  return `<div class="edgerow" data-goto="${esc(other.id)}">
+    <span class="w">${fmtNum(e.z, 3)}</span>
+    <span class="nm">${esc(other.id)} ${esc(other.name)}</span>
+    <span class="pill">${layer === "primary" ? "主解析z" : "参考cos"}</span>
+    <span class="pill">step ${e.step}</span>
+    <span class="pill">Δt ${e.dt}</span>
+    <span class="pill">${fmtInt(e.km)}km</span>
+  </div>`;
+}
+
+function renderDetail() {
+  const host = $("#detailBody");
+  const ph = $("#detailPlaceholder");
+  if (!state.sel) {
+    host.style.display = "none";
+    ph.style.display = "block";
+    return;
+  }
+  const n = NODE_BY_ID[state.sel];
+  if (!n) { host.style.display = "none"; ph.style.display = "block"; return; }
+  ph.style.display = "none";
+  host.style.display = "block";
+
+  let html = `<div class="idline">${esc(n.id)}</div><h2>${esc(n.name)}</h2>
+    <div style="margin:4px 0;">
+      <span class="pill">${esc(KIND_LABEL[n.kind] || n.kind)}</span>
+      <span class="pill">${esc(n.region)}</span>
+      <span class="pill">t=${n.t_eff}</span>
+      <span class="pill">lat ${fmtNum(n.lat, 1)}, lon ${fmtNum(n.lon, 1)}</span>
+      ${n.gap ? '<span class="pill gap">乖離台帳</span>' : '<span class="pill ok">乖離なし</span>'}
+    </div>`;
+
+  html += `<div class="dsec"><h3>表示監査（ADR 0003）</h3><div class="kv">
+    <span class="k">表示出所</span><span class="v">${esc(PROV_LABEL[n.provenance] || n.provenance || "—")}</span>
+    <span class="k">表示被説明率</span><span class="v">${fmtPct(n.exp_display)}</span>
+    <span class="k">L1表示辺から再生</span><span class="v">${fmtPct(n.exp_replay)}</span>`;
+  if (n.gap) {
+    html += `<span class="k">乖離 gap_l1</span><span class="v" style="color:var(--danger)">${fmtNum(n.gap.gap_l1, 4)}</span>
+      <span class="k">v16 L1 値</span><span class="v">${fmtPct(n.gap.v16_l1_pct)}</span>
+      <span class="k">3層分解 l1_only</span><span class="v">${fmtPct(n.gap.decomp_l1_only_pct)}</span>
+      <span class="k">l2_ext 増分</span><span class="v">${fmtPct(n.gap.decomp_l2_ext_gain_pct)}</span>
+      <span class="k">l2_dom 増分</span><span class="v">${fmtPct(n.gap.decomp_l2_dom_gain_pct)}</span>
+      <span class="k">total_final</span><span class="v">${fmtPct(n.gap.decomp_total_final_pct)}</span>
+      </div><div class="ev">${esc(n.gap.display_note)}</div>`;
+  } else {
+    html += `</div>`;
+  }
+  html += `</div>`;
+
+  if (n.v16) {
+    html += `<div class="dsec"><h3>凍結 v16 ノード統計</h3><div class="kv">
+      <span class="k">explained_frac</span><span class="v">${fmtNum(n.v16.explained_frac, 4)}</span>
+      <span class="k">best_p</span><span class="v">${fmtNum(n.v16.best_p, 4)}</span>
+      <span class="k">best_z</span><span class="v">${fmtNum(n.v16.best_z, 3)}</span>
+      <span class="k">in_deg / out_deg</span><span class="v">${fmtNum(n.v16.in_deg, 0)} / ${fmtNum(n.v16.out_deg, 0)}（v16凍結）</span>
+      <span class="k">cat_tag</span><span class="v">${esc(n.v16.cat_tag)}${n.v16.is_extra ? "（追加ノード）" : ""}</span>
+      <span class="k">inherited</span><span class="v">${esc(n.v16.inherited_motifs || "—")}</span>
+      <span class="k">residual</span><span class="v">${esc(n.v16.residual_motifs || "—")}</span>
+      </div></div>`;
+  }
+
+  html += `<div class="dsec"><h3>再構築エッジ次数（本 HTML）</h3><div class="kv">
+    <span class="k">L1主解析</span><span class="v">${n.primary ? `被説明 ${fmtPct(n.primary.explained)} / 親 ${n.primary.n_parents} / top z ${fmtNum(n.primary.top_z, 2)}` : "（75次元行列なし）"}</span>
+    <span class="k">L1参考</span><span class="v">${n.reference ? `被説明 ${fmtPct(n.reference.explained)} / 親 ${n.reference.n_parents}` : "（75次元行列なし）"}</span>
+    </div></div>`;
+
+  if (n.motifs.length) {
+    html += `<div class="dsec"><h3>L1 モチーフ（75次元・非ゼロ ${n.motifs.length} 件）</h3><div>`;
+    n.motifs.forEach(([f, v]) => {
+      html += `<span class="pill">${esc(f)} ${fmtNum(v, 2)}</span>`;
+    });
+    html += `</div></div>`;
+  }
+
+  if (n.l2.length) {
+    html += `<div class="dsec"><h3>第 2 層 評定（L2_R01-R15）</h3>`;
+    n.l2.forEach((e) => {
+      const lv = Object.entries(e.levels).map(([k, v]) => `${k}=${v}`).join(" / ");
+      html += `<div class="ev"><div class="who">パス ${esc(e.pass)} / ${esc(e.annotator)} / ${esc(e.coded_at)} / ${esc(e.file)}</div>
+        <b>${esc(lv)}</b>`;
+      Object.entries(e.evidence).forEach(([k, v]) => {
+        html += `<div>◆ ${esc(k)}: ${esc(v)}</div>`;
+      });
+      if (e.notes) html += `<div style="color:var(--muted)">（注）${esc(e.notes)}</div>`;
+      html += `</div>`;
+    });
+    html += `</div>`;
+  }
+
+  if (n.l1audit.length) {
+    html += `<div class="dsec"><h3>L1 信頼性 再評定（独立監査）</h3>`;
+    n.l1audit.forEach((e) => {
+      const lv = Object.entries(e.levels).map(([k, v]) => `${k}=${v}`).join(" / ");
+      html += `<div class="ev"><div class="who">パス ${esc(e.pass)} / ${esc(e.annotator)} / ${esc(e.file)}</div>
+        <b>${esc(lv)}</b>`;
+      Object.entries(e.evidence).forEach(([k, v]) => {
+        html += `<div>◆ ${esc(k)}: ${esc(v)}</div>`;
+      });
+      if (e.notes) html += `<div style="color:var(--muted)">（注）${esc(e.notes)}</div>`;
+      html += `</div>`;
+    });
+    html += `</div>`;
+  }
+
+  const ins = DATA.edges.primary.filter((e) => e.t === n.id).map((e) => [e, "primary"])
+    .concat(DATA.edges.reference.filter((e) => e.t === n.id).map((e) => [e, "reference"]));
+  const outs = DATA.edges.primary.filter((e) => e.s === n.id).map((e) => [e, "primary"])
+    .concat(DATA.edges.reference.filter((e) => e.s === n.id).map((e) => [e, "reference"]));
+  html += `<div class="dsec"><h3>接続エッジ（主解析＋参考・sim 順）</h3>`;
+  if (ins.length) {
+    html += `<div style="color:var(--muted);font-size:10px;margin:2px 0;">親（入辺 ${ins.length}）</div>`;
+    ins.sort((a, b) => b[0].z - a[0].z).forEach(([e, layer]) => { html += edgeRow(e, "in", layer); });
+  }
+  if (outs.length) {
+    html += `<div style="color:var(--muted);font-size:10px;margin:6px 0 2px;">子（出辺 ${outs.length}）</div>`;
+    outs.sort((a, b) => b[0].z - a[0].z).forEach(([e, layer]) => { html += edgeRow(e, "out", layer); });
+  }
+  if (!ins.length && !outs.length) {
+    html += `<div style="color:var(--muted)">再構築エッジでは孤立（第 2 層接続のみの可能性）。純 L2 接続辺はリポジトリ未追跡のため本 HTML には現れない。</div>`;
+  }
+  html += `</div>`;
+
+  host.innerHTML = html;
+  host.querySelectorAll("[data-goto]").forEach((el) => {
+    el.addEventListener("click", () => selectNode(el.getAttribute("data-goto")));
+  });
+}
+
+function selectNode(id) {
+  state.sel = id;
+  render();
+  renderDetail();
+  const row = document.querySelector(`#ledgerHost tr[data-id="${CSS.escape(id)}"]`);
+  if (row) row.classList.add("sel");
+}
+
+/* ---------------- L2 行列 ---------------- */
+function renderMatrix() {
+  const vocab = [];
+  for (let i = 1; i <= 15; i++) vocab.push("R" + String(i).padStart(2, "0"));
+  const rows = NODES.filter((n) => n.l2.length);
+  let html = `<table class="matrix"><thead><tr><th class="corner">ノード</th>`;
+  vocab.forEach((v) => { html += `<th>${v}</th>`; });
+  html += `</tr></thead><tbody>`;
+  rows.forEach((n) => {
+    html += `<tr><th class="rowh" title="${esc(n.name)}">${esc(n.id)} ${esc(n.name)}</th>`;
+    vocab.forEach((dim) => {
+      const marks = [];
+      let maxLv = -1;
+      n.l2.forEach((e) => {
+        if (e.levels[dim] !== undefined) {
+          marks.push(`${e.pass[0].toUpperCase()}${e.levels[dim]}`);
+          maxLv = Math.max(maxLv, e.levels[dim]);
+        }
+      });
+      const colors = ["#22304a", "#3c5a76", "#4f8f6f", "#8fc46a", "#d9e86a"];
+      const bg = maxLv < 0 ? "#16202f" : colors[maxLv + 1];
+      const tip = marks.join(" ");
+      html += `<td class="cell" style="background:${bg};color:${maxLv >= 2 ? "#12202f" : "var(--text)"}" data-id="${esc(n.id)}" title="${esc(tip)}">${esc(tip)}</td>`;
+    });
+    html += `</tr>`;
+  });
+  html += `</tbody></table>`;
+  $("#matrixHost").innerHTML = html;
+  $$("#matrixHost td.cell").forEach((td) => {
+    td.addEventListener("click", () => selectNode(td.getAttribute("data-id")));
+    td.addEventListener("mousemove", (ev) => {
+      const n = NODE_BY_ID[td.getAttribute("data-id")];
+      const dim = td.cellIndex;
+      const dimName = vocab[dim - 1];
+      const evid = [];
+      n.l2.forEach((e) => {
+        if (e.levels[dimName] !== undefined) {
+          evid.push(`パス${e.pass} 水準${e.levels[dimName]}（${LEVEL_LABEL[String(e.levels[dimName])]}）: ${e.evidence[dimName] || "（証拠欄なし）"}`);
+        }
+      });
+      tooltip.innerHTML = `<div class="t-title">${esc(n.id)} / ${esc(dimName)}</div>${evid.map(esc).join("<br>")}`;
+      tooltip.style.display = "block";
+      tooltip.style.left = (ev.clientX + 14) + "px";
+      tooltip.style.top = (ev.clientY + 14) + "px";
+    });
+    td.addEventListener("mouseleave", hideTooltip);
+  });
+}
+
+/* ---------------- 台帳テーブル ---------------- */
+const LEDGER_COLS = [
+  ["id", "ID", "str"], ["name", "名称", "str"], ["region", "地域", "str"],
+  ["kind", "種", "str"], ["t_eff", "t_eff", "num"],
+  ["provenance", "表示出所", "str"],
+  ["exp_display", "表示被説明率", "num"], ["exp_replay", "L1再生", "num"],
+  ["gap_l1", "乖離", "num"],
+  ["v16_expl", "v16被説明", "num"], ["v16_in", "v16 in", "num"], ["v16_out", "v16 out", "num"],
+  ["p_in", "主解析 in", "num"], ["p_out", "主解析 out", "num"],
+  ["r_in", "参考 in", "num"], ["r_out", "参考 out", "num"]
+];
+let ledgerSort = { key: "id", dir: 1 };
+function ledgerValue(n, key) {
+  switch (key) {
+    case "gap_l1": return n.gap ? n.gap.gap_l1 : null;
+    case "v16_expl": return n.v16 ? n.v16.explained_frac : null;
+    case "v16_in": return n.v16 ? n.v16.in_deg : null;
+    case "v16_out": return n.v16 ? n.v16.out_deg : null;
+    case "p_in": return degIn(n.id, "primary");
+    case "p_out": return degOut(n.id, "primary");
+    case "r_in": return degIn(n.id, "reference");
+    case "r_out": return degOut(n.id, "reference");
+    default: return n[key];
+  }
+}
+const degCache = { primary: {}, reference: {} };
+["primary", "reference"].forEach((layer) => {
+  DATA.edges[layer].forEach((e) => {
+    degCache[layer][e.t] = (degCache[layer][e.t] || 0) + 1;
+    degCache[layer][e.s] = degCache[layer][e.s] || 0;
+  });
+});
+function degIn(id, layer) { return degCache[layer][id] || 0; }
+function degOut(id, layer) {
+  let c = 0;
+  DATA.edges[layer].forEach((e) => { if (e.s === id) c++; });
+  return c;
+}
+function renderLedger() {
+  const rows = NODES.slice().sort((a, b) => {
+    const va = ledgerValue(a, ledgerSort.key), vb = ledgerValue(b, ledgerSort.key);
+    if (va === null || va === undefined) return 1;
+    if (vb === null || vb === undefined) return -1;
+    if (typeof va === "number" && typeof vb === "number") return (va - vb) * ledgerSort.dir;
+    return String(va).localeCompare(String(vb), "ja") * ledgerSort.dir;
+  });
+  let html = `<table class="data"><thead><tr>`;
+  LEDGER_COLS.forEach(([key, label]) => {
+    html += `<th data-key="${key}">${esc(label)}${ledgerSort.key === key ? (ledgerSort.dir > 0 ? " ▲" : " ▼") : ""}</th>`;
+  });
+  html += `</tr></thead><tbody>`;
+  rows.forEach((n) => {
+    html += `<tr data-id="${esc(n.id)}" class="${n.id === state.sel ? "sel" : ""}">`;
+    LEDGER_COLS.forEach(([key, , type]) => {
+      const v = ledgerValue(n, key);
+      const shown = v === null || v === undefined ? "—" :
+        (type === "num" ? (Number.isInteger(v) ? String(v) : Number(v).toFixed(4)) : String(v));
+      html += `<td class="${type === "num" ? "num" : ""}">${esc(shown)}</td>`;
+    });
+    html += `</tr>`;
+  });
+  html += `</tbody></table>`;
+  $("#ledgerHost").innerHTML = html;
+  $$("#ledgerHost th").forEach((th) => {
+    th.addEventListener("click", () => {
+      const key = th.getAttribute("data-key");
+      if (ledgerSort.key === key) ledgerSort.dir *= -1;
+      else ledgerSort = { key, dir: 1 };
+      renderLedger();
+    });
+  });
+  $$("#ledgerHost tbody tr").forEach((tr) => {
+    tr.addEventListener("click", () => selectNode(tr.getAttribute("data-id")));
+  });
+}
+
+/* ---------------- ヘッダー統計・注記 ---------------- */
+function renderChips() {
+  const m = DATA.meta.counts;
+  const lp = DATA.meta.layers.primary, lr = DATA.meta.layers.reference;
+  $("#statChips").innerHTML = `
+    <span class="chip">ノード <b>${m.nodes}</b></span>
+    <span class="chip">地域 <b>${m.regions}</b></span>
+    <span class="chip">L1主解析 辺 <b>${lp.edges}</b></span>
+    <span class="chip">L1参考 辺 <b>${lr.edges}</b></span>
+    <span class="chip warn">乖離台帳 <b>${m.gap_nodes}</b> 話</span>
+    <span class="chip">L2評定 <b>${m.l2_annotation_records}</b> 件</span>
+    <span class="chip">L1再評定 <b>${m.l1_audit_records}</b> 件</span>`;
+}
+
+function renderNotes() {
+  const m = DATA.meta;
+  const c = m.counts;
+  const pureL2Missing = (m.expected_embedded.edges || 0) - c.frozen_v16_in_deg_sum;
+  const srcRows = m.sources.map((s) => `<li><code>${esc(s.path)}</code> — ${esc(s.role)}</li>`).join("");
+  $("#notesBody").innerHTML = `
+    <h3>この HTML の目的</h3>
+    <div>リポジトリの最新の凍結データから、古事記神話とユーラシア神話の対応グラフネットワーク
+    （ノード・エッジ・層・出所・乖離）を人間が確認するための自己完結ビューです。
+    エッジは v18 決定論的剥離エンジン（<code>src/engine.py</code>）で凍結 75 次元行列から再構築しています。</div>
+    <h3>データ出所（すべて Git 追跡済み）</h3>
+    <ul>${srcRows}</ul>
+    <h3>再構築したエッジ</h3>
+    <ul>
+      <li>L1主解析（<code>engine.primary</code> 校正済み類似度 z）: <b>${m.layers.primary.edges}</b> 本、
+        重み範囲 ${fmtNum(m.layers.primary.weight_min, 2)}〜${fmtNum(m.layers.primary.weight_max, 2)}、
+        有向被説明率はノードごとに確認可能。</li>
+      <li>L1参考（<code>engine.reference_v17_compatible</code> コサイン）: <b>${m.layers.reference.edges}</b> 本、
+        凍結 v16 の in_deg 合計 ${c.frozen_v16_in_deg_sum} 本と比較すると
+        ${m.layers.reference.in_deg_mismatch_vs_v16} ノードで入次数が一致しません。
+        v17 の手書き変換ペア（TRANS_PAIRS）はリポジトリに追跡されていないため、参考再構築は v16 本来の辺集合と同一ではありません。</li>
+    </ul>
+    <h3>既知の制約（確認時の注意）</h3>
+    <ul>
+      <li>v17 埋め込みグラフ（期待値 ${m.expected_embedded.nodes} ノード / ${m.expected_embedded.edges} エッジ）のうち、
+        純 L2 接続辺（${pureL2Missing} 本相当 = ${m.expected_embedded.edges} − v16凍結 ${c.frozen_v16_in_deg_sum}）は
+        リポジトリに追跡されていないため本 HTML には現れません。アンカーノード（LP01-LP16）の第 2 層接続も同様です。</li>
+      <li>ADR 0003 に従い、凍結 HTML の表示値は改変せず台帳表示します。表示被説明率と表示 L1 辺からの再計算が
+        閾値 ${m.display_policy.gap_threshold} を超えて異なる ${c.gap_nodes} 話（期待 ${c.gap_expected}）は赤いリングと「乖離」列で識別できます。</li>
+      <li>第 2 層 R01-R15 の語彙ラベルは v17 パッケージ側の定義であり、リポジトリには次元 ID と水準のみ追跡されています
+        （${esc(m.display_policy.note || "")}）。</li>
+    </ul>
+    <h3>推奨する確認手順</h3>
+    <ul>
+      <li>時系列レーンで 19 地域の年代配置とエッジの流れを概観 → 地図で地理配置を確認。</li>
+      <li>ノードをクリックし、表示出所・凍結 v16 統計・モチーフ・L2 評定（証拠つき）・接続エッジを個別確認。</li>
+      <li>台帳タブで 297 件を列ソートし、乖離・次数・被説明率の全件を機械的に突き合わせる。</li>
+      <li>L2行列タブで古事記 37 話・アンカー 16 件の評定水準と証拠をマトリクスで確認する。</li>
+    </ul>
+    <h3>再生成</h3>
+    <div><code>make interactive</code> または <code>python3 src/build_interactive_html.py</code>（要 numpy / pandas）。
+    生成物 <code>docs/interactive/graph_network_atlas.html</code> は決定論的で、同入力なら常に同一です。</div>`;
+}
+
+/* ---------------- タブ・入力の結線 ---------------- */
+function setTab(tab) {
+  state.tab = tab;
+  $$("#tabs .tab").forEach((b) => b.classList.toggle("active", b.getAttribute("data-tab") === tab));
+  const stageTabs = ["map", "timeline", "force"];
+  $("#stageWrap").classList.toggle("hidden", !stageTabs.includes(tab));
+  $("#viewMatrix").classList.toggle("active", tab === "matrix");
+  $("#viewLedger").classList.toggle("active", tab === "ledger");
+  stopForce();
+  if (tab === "force") startForce();
+  else render();
+  if (tab === "matrix") renderMatrix();
+  if (tab === "ledger") renderLedger();
+}
+$$("#tabs .tab").forEach((b) => {
+  b.addEventListener("click", () => setTab(b.getAttribute("data-tab")));
+});
+
+$("#layerPrimary").addEventListener("change", (e) => {
+  state.layers.primary = e.target.checked; render();
+});
+$("#layerReference").addEventListener("change", (e) => {
+  state.layers.reference = e.target.checked; render();
+});
+$("#minZ").addEventListener("input", (e) => {
+  state.minZ = Number(e.target.value) / 10;
+  $("#minZLabel").textContent = "z≥" + state.minZ.toFixed(1);
+  render();
+});
+$("#minCos").addEventListener("input", (e) => {
+  state.minCos = Number(e.target.value) / 100;
+  $("#minCosLabel").textContent = "cos≥" + state.minCos.toFixed(2);
+  render();
+});
+$$(".stepChk").forEach((chk) => {
+  chk.addEventListener("change", () => {
+    state.steps = new Set($$(".stepChk").filter((c) => c.checked).map((c) => c.value));
+    render();
+  });
+});
+$("#kindEurasia").addEventListener("change", (e) => toggleKind("eurasia", e.target.checked));
+$("#kindKojiki").addEventListener("change", (e) => toggleKind("kojiki", e.target.checked));
+$("#kindAnchor").addEventListener("change", (e) => toggleKind("anchor", e.target.checked));
+function toggleKind(kind, on) {
+  if (on) state.kinds.add(kind); else state.kinds.delete(kind);
+  render();
+}
+$("#gapOnly").addEventListener("change", (e) => {
+  state.gapOnly = e.target.checked; render();
+});
+$("#searchBox").addEventListener("input", (e) => {
+  state.search = e.target.value.trim();
+  render();
+});
+$("#searchBox").addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && state.search) {
+    const hit = NODES.find(nodeVisible);
+    if (hit) selectNode(hit.id);
+  }
+});
+$("#btnReset").addEventListener("click", () => {
+  state.view = { tx: 0, ty: 0, k: 1 };
+  applyView();
+  state.search = "";
+  $("#searchBox").value = "";
+  state.gapOnly = false;
+  $("#gapOnly").checked = false;
+  state.minZ = 0; state.minCos = 0;
+  $("#minZ").value = 0; $("#minCos").value = 0;
+  $("#minZLabel").textContent = "z≥0.0";
+  $("#minCosLabel").textContent = "cos≥0.00";
+  render();
+});
+
+/* 地域フィルタ */
+function renderRegionMenu() {
+  const host = $("#regionMenu");
+  let html = `<div class="row" style="gap:8px;">
+    <button id="regAll">全選択</button><button id="regNone">全解除</button></div>`;
+  REGIONS.forEach((reg) => {
+    const cnt = NODES.filter((n) => n.region === reg).length;
+    html += `<div class="row">
+      <span class="sw" style="background:${REGION_COLOR[reg]}"></span>
+      <label><input type="checkbox" class="regChk" value="${esc(reg)}" checked> ${esc(reg)}（${cnt}）</label>
+    </div>`;
+  });
+  host.innerHTML = html;
+  $("#regAll").addEventListener("click", () => {
+    state.regions = new Set(REGIONS);
+    $$(".regChk").forEach((c) => { c.checked = true; });
+    updateRegionSummary(); render();
+  });
+  $("#regNone").addEventListener("click", () => {
+    state.regions = new Set();
+    $$(".regChk").forEach((c) => { c.checked = false; });
+    updateRegionSummary(); render();
+  });
+  $$(".regChk").forEach((chk) => {
+    chk.addEventListener("change", () => {
+      if (chk.checked) state.regions.add(chk.value);
+      else state.regions.delete(chk.value);
+      updateRegionSummary(); render();
+    });
+  });
+}
+function updateRegionSummary() {
+  const n = state.regions.size;
+  $("#regionSummary").textContent = n === REGIONS.length ? "地域フィルタ" : `地域 ${n}/${REGIONS.length}`;
+}
+
+/* 注記オーバーレイ */
+$("#btnNotes").addEventListener("click", () => {
+  renderNotes();
+  $("#overlay").classList.add("open");
+});
+$("#btnCloseNotes").addEventListener("click", () => $("#overlay").classList.remove("open"));
+$("#overlay").addEventListener("click", (ev) => {
+  if (ev.target === $("#overlay")) $("#overlay").classList.remove("open");
+});
+
+function updateStatus() {
+  const shown = NODES.filter(nodeVisible).length;
+  const l1 = DATA.edges.primary.filter((e) => edgeVisible(e, "primary")).length;
+  const l2 = DATA.edges.reference.filter((e) => edgeVisible(e, "reference")).length;
+  $("#statusText").textContent =
+    `表示中: ノード ${shown}/${NODES.length} / L1主解析 ${l1} 辺 / L1参考 ${l2} 辺` +
+    (state.sel ? ` / 選択: ${state.sel}` : "");
+}
+
+/* ---------------- 初期化 ---------------- */
+renderChips();
+renderRegionMenu();
+applyView();
+setTab("map");
+</script>
+</body>
+</html>

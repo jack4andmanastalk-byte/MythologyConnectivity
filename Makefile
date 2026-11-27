@@ -1,6 +1,6 @@
 PY ?= python3
 
-.PHONY: all prereg registry validate audit test sim run network doc determ work-status clean
+.PHONY: all prereg registry validate audit test sim run network doc determ interactive work-status clean
 
 all: prereg registry validate audit test sim run doc    ## 事前登録 → 登録簿 → 検証 → 監査 → 回帰テスト → 運用シミュレーション → 全解析 → 文書照合
 
@@ -36,6 +36,9 @@ work-status:                       ## 並列作業キューのclaim状況を表�
 
 determ:                            ## 2 回実行して生成物が一致することの確認
 	$(PY) src/check_determinism.py
+
+interactive:                       ## 凍結データからグラフネットワーク確認用 HTML を再生成
+	$(PY) src/build_interactive_html.py
 
 clean:
 	rm -rf outputs/*.csv outputs/*.json outputs/*.md outputs/*.sha256 src/__pycache__

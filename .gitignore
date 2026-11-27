@@ -11,9 +11,16 @@ __pycache__/
 .ipynb_checkpoints/
 .pytest_cache/
 
+# ローカル仮想環境（検証・再生成の実行環境。コミットしない）
+.venv/
+
 # 大型バイナリ（HTML / 図版 / zip）は置かない。必要な JSON は derived/ に抽出して持つ
 *.html
 *.zip
 *.bundle
 derived/*.png
 vendor/
+
+# 例外: 人間確認用インタラクティブ HTML は docs/interactive/ のみ追跡する
+# （src/build_interactive_html.py で凍結データから決定論的に再生成可能）
+!docs/interactive/*.html

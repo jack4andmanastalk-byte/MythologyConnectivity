@@ -38,6 +38,10 @@ python3 src/run_all.py        # 検証 → 定数監査 → 全解析 → ネッ
 | `src/work_scheduler.py` | 共有ワークスペース内の並列チャット向け atomic claim・lease・heartbeat・complete/release |
 | `config/work_queue.json` | 優先度・依存関係・必要パスつき作業キュー |
 | `src/run_all.py` | 上記を順に実行し、結果・レポート・マニフェストを生成 |
+| `src/build_interactive_html.py` | 凍結データからグラフネットワーク確認用インタラクティブ HTML を再生成（`make interactive`） |
+| `src/interactive_atlas.template.html.tmpl` | 上記 HTML のテンプレート（UI・操作ロジック本体） |
+| `docs/interactive/graph_network_atlas.html` | グラフネットワーク人間確認用インタラクティブ HTML（生成物・追跡対象の例外） |
+| `docs/interactive_graph_html_ja.md` | 同 HTML の目的・データ出所・既知の制約・再生成手順 |
 | `annotations/` | 評定データ（pass A / pass B / 中立操作定義 pass C / アンカー / L1 監査 / v17 legacy 変換） |
 | `data/frozen/` | 凍結入力（297 ノード、v16 75D 行列、L1 75D 行列） |
 | `derived/` | 凍結 HTML 297 ノード出所・21 話乖離台帳（`html_embedded_v17_audit.json`） |
@@ -63,6 +67,21 @@ make work-status                  # 作業キューの担当・lease・依存状
 ```
 
 `run_all.py` は `validate` と `audit_no_hardcode` を先に実行し、どちらかが失敗したら解析を中止します。v17原本や Python 依存がない場合、ネットワーク検証は黙って `skipped` にせず `outputs/network_verification_status.json` を `unavailable` として記録し、未検証範囲を `outputs/report.md`・`outputs/results.json`・CI job summary に残して他の解析を続けます。`make run` / CI の成功と、ネットワーク全件検証の成功は別の状態です。`make network` は `unavailable` を終了コード2で返します。
+
+## インタラクティブ HTML（グラフネットワークの人間確認）
+
+`docs/interactive/graph_network_atlas.html` は、リポジトリの凍結データだけから
+グラフネットワーク（297 ノード・第 1 層エッジ・層構成・出所・乖離台帳）を
+人間が確認するための自己完結ビューです（地図／時系列レーン／グラフ／L2 行列／全件台帳）。
+
+```bash
+make interactive   # docs/interactive/graph_network_atlas.html を再生成（要 numpy / pandas）
+```
+
+エッジは `src/engine.py` と `config/analysis.json` の設定で凍結 75 次元行列から再構築します
+（主解析=校正済み類似度、参考=v17 互換コサイン）。v17 埋め込みグラフの純 L2 接続辺は
+リポジトリに追跡されていないため含みません。詳細と既知の制約は
+`docs/interactive_graph_html_ja.md` と HTML 内の「データと注記」を参照してください。
 
 ## 並列チャットの担当取得
 
