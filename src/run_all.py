@@ -11,13 +11,8 @@ from __future__ import annotations
 import json, hashlib, platform, sys, time
 from pathlib import Path
 
-import numpy as np
-import pandas as pd
-
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
-import engine as E          # noqa: E402
-import stats as S           # noqa: E402
 
 CFG = json.loads((ROOT / "config/analysis.json").read_text(encoding="utf-8"))
 OUT = ROOT / "outputs"
@@ -59,7 +54,57 @@ def summarize(run, metric_is_z):
 
 
 def main():
+    global np, pd, E, S
     t0 = time.time()
+    net_status_path = OUT / "network_verification_status.json"
+    net_status_path.write_text(json.dumps({
+        "schema": "network-verification-status/1",
+        "status": "running",
+        "reason": "pipeline started; network verification has not run yet",
+        "package_root": None,
+        "expected": {"nodes": CFG["network"]["expected"]["nodes"],
+                     "edges": CFG["network"]["expected"]["edges"]},
+        "checks": None,
+        "unverified_scope": ["network verification has not run yet"],
+        "artifacts": [],
+    }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    try:
+        import numpy as np
+        import pandas as pd
+        import engine as E          # noqa: E402
+        import stats as S           # noqa: E402
+    except ModuleNotFoundError as exc:
+        dependency_status = {
+            "schema": "network-verification-status/1",
+            "status": "unavailable",
+            "reason": f"pipeline dependencies are missing: {exc}",
+            "package_root": None,
+            "expected": {"nodes": CFG["network"]["expected"]["nodes"],
+                         "edges": CFG["network"]["expected"]["edges"]},
+            "checks": None,
+            "unverified_scope": ["全解析が依存不足で未実行", "v17 ネットワーク全件検証も未実行"],
+            "artifacts": [],
+        }
+        net_status_path.write_text(json.dumps(dependency_status, ensure_ascii=False, indent=2) + "\n",
+                                   encoding="utf-8")
+        print("[UNAVAILABLE] " + dependency_status["reason"])
+        raise SystemExit(2)
+    except Exception as exc:
+        import_status = {
+            "schema": "network-verification-status/1",
+            "status": "failed",
+            "reason": f"pipeline runtime import failed: {type(exc).__name__}: {exc}",
+            "package_root": None,
+            "expected": {"nodes": CFG["network"]["expected"]["nodes"],
+                         "edges": CFG["network"]["expected"]["edges"]},
+            "checks": None,
+            "unverified_scope": ["全解析の初期化が失敗", "v17 ネットワーク全件検証も未実行"],
+            "artifacts": [],
+        }
+        net_status_path.write_text(json.dumps(import_status, ensure_ascii=False, indent=2) + "\n",
+                                   encoding="utf-8")
+        print("[FAILED] " + import_status["reason"])
+        raise SystemExit(1)
     import subprocess
     v = subprocess.run([sys.executable, str(ROOT / "src/validate.py")],
                        capture_output=True, text=True)
@@ -270,16 +315,50 @@ def main():
                                 n_perm=inj["n_perm"], seed=inj["seed"])
         res["layer2"]["v18_passC_calibrated"] = summarize(run_c, True)
 
-    # 埋め込みネットワークの全件検証（v17 パッケージがある場合のみ）
-    net_ok = False
-    net_status = "skipped"
+    # 埋め込みネットワークの全件検証。資材が無い場合も「skipped」で隠さず理由を保存する。
     try:
         import verify_network as VN
-        VN.main()
-        net_ok = True
-        net_status = "outputs/network_verification.md / network_checks.json"
-    except SystemExit:
-        net_status = "skipped"
+        network_exit = VN.main()
+        if net_status_path.exists():
+            net_status = json.loads(net_status_path.read_text(encoding="utf-8"))
+        else:
+            net_status = {
+                "schema": "network-verification-status/1",
+                "status": "failed",
+                "reason": f"verify_network returned {network_exit} without a status file",
+                "unverified_scope": ["network verification status was not recorded"],
+                "artifacts": [],
+            }
+        expected_exit_state = {0: "passed", 1: "failed", 2: "unavailable"}.get(network_exit)
+        if expected_exit_state is None or net_status.get("status") != expected_exit_state:
+            net_status = {
+                "schema": "network-verification-status/1",
+                "status": "failed",
+                "reason": (f"verify_network exit/status mismatch: exit={network_exit}, "
+                           f"status={net_status.get('status', 'missing')}"),
+                "unverified_scope": ["network verification result could not be trusted"],
+                "artifacts": [],
+            }
+            net_status_path.write_text(json.dumps(net_status, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        if net_status.get("status") == "unavailable":
+            print("[UNVERIFIED] ネットワーク全件検証: " + str(net_status.get("reason", "理由不明")))
+            print("  未検証範囲: " + " / ".join(net_status.get("unverified_scope", [])))
+        elif net_status.get("status") != "passed":
+            print("[NETWORK " + str(net_status.get("status", "unknown")).upper() + "] "
+                  + str(net_status.get("reason", "理由不明")))
+    except Exception as exc:
+        for artifact in ("network_verification.md", "network_checks.json",
+                         "network_edge_audit.csv", "network_node_audit.csv"):
+            (OUT / artifact).unlink(missing_ok=True)
+        net_status = {
+            "schema": "network-verification-status/1",
+            "status": "failed",
+            "reason": f"{type(exc).__name__}: {exc}",
+            "unverified_scope": ["network verification could not start or complete"],
+            "artifacts": [],
+        }
+        net_status_path.write_text(json.dumps(net_status, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        print("[NETWORK FAILED] " + net_status["reason"])
 
     # 判定
     prim = res["layer2"]["v18_calibrated"]
@@ -310,7 +389,9 @@ def main():
     vd = subprocess.run([sys.executable, str(ROOT / "src/verify_doc.py")],
                         capture_output=True, text=True)
     doc_ok = (vd.returncode == 0)
-    res["meta"]["doc_check"] = vd.stdout.strip().splitlines()[0] if vd.stdout.strip() else ""
+    vd_lines = vd.stdout.strip().splitlines()
+    res["meta"]["doc_check"] = next((line for line in vd_lines if line.startswith("照合項目")),
+                                     vd_lines[0] if vd_lines else "")
     (OUT / "results.json").write_text(json.dumps(res, ensure_ascii=False, indent=2), encoding="utf-8")
     print(("文書照合 OK: " if doc_ok else "文書照合 NG: ") + res["meta"]["doc_check"])
     if not doc_ok:
@@ -323,7 +404,7 @@ def main():
     (OUT / "manifest.sha256").write_text("\n".join(man) + "\n", encoding="utf-8")
     print(json.dumps(res["decision"], ensure_ascii=False, indent=2))
     print("done:", OUT)
-    if not doc_ok:
+    if not doc_ok or net_status.get("status") == "failed":
         raise SystemExit(1)
 
 
@@ -339,6 +420,19 @@ def make_report(res):
     a(f"生成: {m['generated_at']} / 実行 {m['runtime_sec']} 秒 / Python {m['python']} / "
       f"numpy {m['numpy']} / pandas {m['pandas']}\n")
     a("`src/run_all.py` が `outputs/results.json` から機械生成。手入力の数値は含まない。\n")
+
+    net = m.get("network_verification", {})
+    net_state = net.get("status", "unknown") if isinstance(net, dict) else "unknown"
+    state_ja = {"passed": "全検査を実行", "failed": "検証失敗", "unavailable": "未検証（資材不足）"}.get(net_state, net_state)
+    a("## ネットワーク全件検証の状態\n")
+    a(f"- 状態: **{state_ja}**")
+    if isinstance(net, dict) and net.get("reason"):
+        a(f"- 理由: {net['reason']}")
+    if isinstance(net, dict) and net.get("failed_checks"):
+        a("- NG検査ID: " + ", ".join(net["failed_checks"]))
+    if isinstance(net, dict) and net.get("unverified_scope"):
+        a("- 未検証範囲: " + " / ".join(net["unverified_scope"]))
+    a("")
 
     d = res["decision"]
     a("## 1. 事前登録された判定\n")

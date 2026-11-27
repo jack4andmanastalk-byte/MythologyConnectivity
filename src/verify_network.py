@@ -17,25 +17,35 @@ verify_network.py -- インタラクティブ HTML に埋め込まれたグラ�
 出力: outputs/network_verification.md, outputs/network_checks.json
 """
 from __future__ import annotations
-import ast, json, sys, itertools, collections
+import ast, json, sys, itertools, collections, os, tempfile
 from pathlib import Path
-
-import numpy as np
-import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
-import engine as E                     # noqa: E402
+DEPENDENCY_ERROR = None
+RUNTIME_IMPORT_ERROR = None
+try:
+    import numpy as np
+    import pandas as pd
+    import engine as E                 # noqa: E402
+except ModuleNotFoundError as exc:
+    # Still load the CLI so a missing runtime dependency is recorded as unverified,
+    # never as a successful run or an unhandled import traceback.
+    np = pd = E = None
+    DEPENDENCY_ERROR = f"missing Python module {exc.name!r}: {exc}"
+except Exception as exc:
+    np = pd = E = None
+    RUNTIME_IMPORT_ERROR = f"{type(exc).__name__}: {exc}"
 
 CFG = json.loads((ROOT / "config/analysis.json").read_text(encoding="utf-8"))
 NET = CFG["network"]
 def resolve_pkg():
     """v17 パッケージの位置を解決する（絶対パス → リポジトリ内 vendor/ → 旧既定値）。"""
-    cands = [Path(NET["package_root"])]
-    if not Path(NET["package_root"]).is_absolute():
-        cands = [ROOT / NET["package_root"]]
-    cands += [ROOT / "vendor/kojiki_mythology_v17_local",
-              Path("/home/user/work/kojiki_mythology_v17_local")]
+    configured = Path(NET["package_root"])
+    cands = [configured if configured.is_absolute() else ROOT / configured,
+             ROOT / "vendor/kojiki_mythology_v17_local",
+             Path("/home/user/work/kojiki_mythology_v17_local")]
+    cands = list(dict.fromkeys(cands))
     for c in cands:
         if (c / NET["html_v17"]).exists():
             return c
@@ -44,16 +54,62 @@ def resolve_pkg():
         + ", ".join(str(c) for c in cands))
 
 
-PKG = resolve_pkg()
-D17 = PKG / NET["data_dir_v17"]
-D16 = PKG / NET["data_dir_v16"]
+PKG: Path | None = None
+D17: Path | None = None
+D16: Path | None = None
 TOL = NET["tolerances"]
 EXP = NET["expected"]
 PR = NET["pass_rate"]
 OUT = ROOT / "outputs"
+STATUS_PATH = OUT / "network_verification_status.json"
+UNVERIFIED_SCOPE = [
+    "検証器の A-F 全セクション（HTML/CSV 同一性、構造、層構成、数値再現、統計、表示台帳）",
+    "297 ノードと 597 エッジの全件監査台帳",
+    "v17/v16 HTML と同梱 CSV・集計 JSON の照合",
+    "全エッジ・全ノードの独立再計算および順列検定",
+]
+NETWORK_ARTIFACTS = [
+    "network_verification.md", "network_checks.json",
+    "network_edge_audit.csv", "network_node_audit.csv",
+]
 OUT.mkdir(exist_ok=True)
 
 CHECKS: list[dict] = []
+
+
+def _write_status(payload: dict) -> None:
+    fd, temp_name = tempfile.mkstemp(prefix=".network_verification_status.", suffix=".tmp", dir=OUT)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as stream:
+            json.dump(payload, stream, ensure_ascii=False, indent=2)
+            stream.write("\n")
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(temp_name, STATUS_PATH)
+    except Exception:
+        try:
+            os.unlink(temp_name)
+        except FileNotFoundError:
+            pass
+        raise
+
+
+def _clear_network_artifacts() -> None:
+    for name in NETWORK_ARTIFACTS:
+        (OUT / name).unlink(missing_ok=True)
+
+
+def _unavailable_status(reason: str, package_root: Path | None = None) -> dict:
+    return {
+        "schema": "network-verification-status/1",
+        "status": "unavailable",
+        "reason": reason,
+        "package_root": str(package_root) if package_root is not None else None,
+        "expected": {"nodes": EXP["nodes"], "edges": EXP["edges"]},
+        "checks": None,
+        "unverified_scope": UNVERIFIED_SCOPE,
+        "artifacts": [],
+    }
 
 
 def add(sec, cid, item, value, status, note=""):
@@ -832,6 +888,108 @@ def write_report(checks, extra, stats, facts):
 
 
 def main():
+    """Run the audit and persist an explicit passed/failed/unavailable status."""
+    global PKG, D17, D16
+    OUT.mkdir(exist_ok=True)
+    _write_status({
+        "schema": "network-verification-status/1",
+        "status": "running",
+        "reason": "network verification is in progress",
+        "package_root": None,
+        "expected": {"nodes": EXP["nodes"], "edges": EXP["edges"]},
+        "checks": None,
+        "unverified_scope": UNVERIFIED_SCOPE,
+        "artifacts": [],
+    })
+    _clear_network_artifacts()
+    CHECKS.clear()
+    try:
+        PKG = resolve_pkg()
+    except SystemExit as exc:
+        payload = _unavailable_status(str(exc))
+        _write_status(payload)
+        print(f"[UNVERIFIED] {payload['reason']}")
+        print("未検証範囲: " + " / ".join(payload["unverified_scope"]))
+        return 2
+
+    if DEPENDENCY_ERROR:
+        payload = _unavailable_status(DEPENDENCY_ERROR, PKG)
+        _write_status(payload)
+        print(f"[UNVERIFIED] {payload['reason']}")
+        print("未検証範囲: " + " / ".join(payload["unverified_scope"]))
+        return 2
+
+    if RUNTIME_IMPORT_ERROR:
+        payload = {
+            "schema": "network-verification-status/1",
+            "status": "failed",
+            "reason": f"network verifier runtime import failed: {RUNTIME_IMPORT_ERROR}",
+            "package_root": str(PKG),
+            "expected": {"nodes": EXP["nodes"], "edges": EXP["edges"]},
+            "checks": None,
+            "failed_checks": [],
+            "unverified_scope": UNVERIFIED_SCOPE,
+            "artifacts": [],
+        }
+        _write_status(payload)
+        print(f"[FAILED] {payload['reason']}")
+        return 1
+
+    D17 = PKG / NET["data_dir_v17"]
+    D16 = PKG / NET["data_dir_v16"]
+    try:
+        _run_available_checks()
+        if not CHECKS:
+            raise RuntimeError("network verifier produced no checks")
+        expected_sections = set("ABCDEF")
+        found_sections = {check.get("sec") for check in CHECKS}
+        if not expected_sections.issubset(found_sections):
+            missing = ", ".join(sorted(expected_sections - found_sections))
+            raise RuntimeError(f"network verifier omitted sections: {missing}")
+        invalid_statuses = sorted({check.get("status") for check in CHECKS}
+                                  - {"ok", "warn", "ng", "info"})
+        if invalid_statuses:
+            raise RuntimeError(f"network verifier returned invalid check statuses: {invalid_statuses}")
+        missing_artifacts = [f"outputs/{name}" for name in NETWORK_ARTIFACTS if not (OUT / name).is_file()]
+        if missing_artifacts:
+            raise RuntimeError("network verifier omitted artifacts: " + ", ".join(missing_artifacts))
+    except Exception as exc:
+        _clear_network_artifacts()
+        payload = {
+            "schema": "network-verification-status/1",
+            "status": "failed",
+            "reason": f"{type(exc).__name__}: {exc}",
+            "package_root": str(PKG),
+            "expected": {"nodes": EXP["nodes"], "edges": EXP["edges"]},
+            "checks": None,
+            "failed_checks": [],
+            "unverified_scope": UNVERIFIED_SCOPE,
+            "artifacts": [],
+        }
+        _write_status(payload)
+        print(f"[FAILED] network verification could not complete: {payload['reason']}")
+        return 1
+
+    counts = collections.Counter(c["status"] for c in CHECKS)
+    status = "failed" if counts["ng"] else "passed"
+    payload = {
+        "schema": "network-verification-status/1",
+        "status": status,
+        "reason": "" if status == "passed" else f"{counts['ng']} NG finding(s) in the completed audit",
+        "package_root": str(PKG),
+        "expected": {"nodes": EXP["nodes"], "edges": EXP["edges"]},
+        "checks": {"total": len(CHECKS), "ok": counts["ok"], "warn": counts["warn"],
+                   "ng": counts["ng"], "info": counts["info"]},
+        "failed_checks": [check["id"] for check in CHECKS if check["status"] == "ng"],
+        "unverified_scope": [],
+        "artifacts": [f"outputs/{name}" for name in NETWORK_ARTIFACTS],
+    }
+    _write_status(payload)
+    print(f"network_verification={status} checks={len(CHECKS)} ng={counts['ng']}")
+    return 0 if status == "passed" else 1
+
+
+def _run_available_checks():
     d = load_all()
     G = section_a(d)
     G["lanes"] = d["h17"]["lanes"]
@@ -886,6 +1044,8 @@ def main():
         if c["status"] in ("ng", "warn"):
             print(f"  [{c['status']}] {c['id']} {c['item']} :: {c['value']}")
 
+    return collections.Counter(c["status"] for c in CHECKS)
+
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())
