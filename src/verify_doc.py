@@ -97,10 +97,34 @@ net_checks = [
 miss_net = [(n, s_) for n, s_ in net_checks if not s_ or s_ not in TEXT]
 net_checks = [(n, s_) for n, s_ in net_checks if s_ and s_ in TEXT]
 
+# --- ADR 0002（運用シミュレーション）との照合 ---
+ADR2 = (ROOT / "docs/adr/0002-long-run-independent-review.md")
+T2 = ADR2.read_text(encoding="utf-8") if ADR2.exists() else ""
+SW = json.loads((ROOT / "outputs/swarm_sim.json").read_text(encoding="utf-8"))
+bv = {r["shared_bias"]: r for r in SW["bias_variance"]}
+sel = {r["branches"]: r for r in SW["selection"]}
+herd = {r["anchor_prob"]: r for r in SW["herding"]}
+adr_checks = [
+    ("Q1 b=0.10 R=10", f"{bv[0.1]['R=10']:.3f}"),
+    ("Q1 b=0.10 R=1", f"{bv[0.1]['R=1']:.3f}"),
+    ("Q1 b=0.20 R=10", f"{bv[0.2]['R=10']:.3f}"),
+    ("Q2 144 枝の族錯誤率", f"{sel[144]['fwer']:.4f}"),
+    ("Q2 144 枝の最小 p 中央値", f"{sel[144]['median_min_p']:.4f}"),
+    ("Q2 144 枝の必要置換回数", f"{sel[144]['perm_needed']}"),
+    ("Q2 12 枝の Holm しきい値", f"{sel[12]['holm_thr']:.2e}"),
+    ("Q3 q=0.9 の誤り残存", f"{herd[0.9]['error_persistence']:.3f}"),
+    ("Q3 独立多数決", f"{herd[0.9]['independent_majority']:.3f}"),
+    ("Q3 鎖の正答率", f"{herd[0.9]['chain_accuracy']:.3f}"),
+]
+miss_adr = [(n, s_) for n, s_ in adr_checks if s_ not in T2]
+
 miss = [(n, s, "") for n, s, _ in checks if s and s not in TEXT]
-print(f"照合項目 {len(checks) + len(net_checks)} 件 / 不一致 {len(miss) + len(miss_net)} 件")
+print(f"照合項目 {len(checks) + len(net_checks) + len(adr_checks)} 件 / "
+      f"不一致 {len(miss) + len(miss_net) + len(miss_adr)} 件")
+for n, s_ in miss_adr:
+    print(f"  [NG] ADR0002 {n}: '{s_}' が見つからない")
 for n, s_ in miss_net:
     print(f"  [NG] {n}: 文書に '{s_}' が見つからない")
 for n, s in miss:
     print(f"  [NG] {n}: 文書に '{s}' が見つからない")
-sys.exit(1 if (miss or miss_net) else 0)
+sys.exit(1 if (miss or miss_net or miss_adr) else 0)

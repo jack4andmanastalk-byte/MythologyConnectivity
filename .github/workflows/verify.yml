@@ -25,7 +25,7 @@ jobs:
       - name: hard-code audit
         run: make audit
 
-      # 4) 全解析（ネットワーク全件検証を含む）と文書照合
+      # 4) 運用シミュレーション（ADR 0002）と全解析（ネットワーク全件検証を含む）
       - name: run pipeline
         run: make run
 

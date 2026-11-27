@@ -287,7 +287,7 @@ def main():
     (OUT / "results.json").write_text(json.dumps(res, ensure_ascii=False, indent=2), encoding="utf-8")
     print(("文書照合 OK: " if doc_ok else "文書照合 NG: ") + res["meta"]["doc_check"])
     man = [f"{sha256(p)}  {p.name}" for p in sorted(OUT.glob("*"))
-           if p.is_file() and p.name != "manifest.sha256"]
+           if p.is_file() and p.name != "manifest.sha256" and not p.name.startswith(".")]
     (OUT / "manifest.sha256").write_text("\n".join(man) + "\n", encoding="utf-8")
     print(json.dumps(res["decision"], ensure_ascii=False, indent=2))
     print("done:", OUT)

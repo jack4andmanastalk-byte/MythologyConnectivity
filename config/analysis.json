@@ -141,5 +141,42 @@
     },
     "pass_rate": 0.95,
     "pass_rate_note": "再計算一致とみなすノード比率の下限"
+  },
+  "swarm_sim": {
+    "note": "多モデル・並列レビュー（GitSwarm 型）の誤差訂正能力を評価するための設定。結果ではなく運用パラメータ。",
+    "rater_sigma": 0.1,
+    "shared_biases": [
+      0.0,
+      0.05,
+      0.1,
+      0.2
+    ],
+    "n_raters": [
+      1,
+      3,
+      5,
+      10
+    ],
+    "alpha": 0.05,
+    "branch_counts": [
+      1,
+      5,
+      12,
+      30,
+      144
+    ],
+    "n_perm": 200,
+    "herding": {
+      "accuracy": 0.85,
+      "anchor_prob": [
+        0.0,
+        0.5,
+        0.9
+      ],
+      "copy_prob": 0.7,
+      "chain_len": 5,
+      "n_trials": 20000,
+      "seed": 42
+    }
   }
 }
