@@ -11,12 +11,21 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "outputs"
 VOLATILE = ("generated_at", "runtime_sec")
+SKIP = ("manifest.sha256",)          # 他ファイルのハッシュなので上位で決まる
+STAMP_PREFIX = "生成:"               # レポート冒頭の生成時刻行は結果ではない
 
 
 def snapshot():
     snap = {}
     for p in sorted(OUT.glob("*")):
         if not p.is_file():
+            continue
+        if p.name in SKIP:
+            continue
+        if p.suffix == ".md":
+            txt = "\n".join(l for l in p.read_text(encoding="utf-8").splitlines()
+                             if not l.lstrip().startswith(STAMP_PREFIX))
+            snap[p.name] = hashlib.sha256(txt.encode()).hexdigest()
             continue
         if p.name == "results.json":
             d = json.loads(p.read_text(encoding="utf-8"))

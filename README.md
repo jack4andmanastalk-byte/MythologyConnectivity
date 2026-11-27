@@ -47,6 +47,21 @@ python3 src/verify_doc.py          # 本文の数値と results.json / network_c
 
 `run_all.py` はこの 2 つを先に実行し、どちらかが失敗したら解析を中止します。
 
+## リポジトリとしての運用（ハーネス）
+
+このディレクトリはそのまま git リポジトリとして使える（初期コミット済み）。
+
+```bash
+make all      # validate → audit → 全解析（ネットワーク全件検証を含む）→ 文書照合
+make determ   # 2 回実行して生成物が一致することを確認（約 150 秒）
+make network  # 埋め込みグラフ全件の検証だけを再実行
+```
+
+* `outputs/` は追跡しない（CI が artifacts として保存する）。
+* `docs/prereg/` の事前登録は**結果より前**にコミットする。その順序は
+  `src/check_prereg.py` が git 履歴で検査し、CI の最初のゲートになる。
+* 運用方針とその限界は `docs/adr/0001-repository-as-harness.md` に書いてある。
+
 ## 決定性
 
 同一環境で 2 回実行したとき、`results.json`（時刻・実行時間を除く）と
