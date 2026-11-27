@@ -27,6 +27,7 @@ python3 src/run_all.py        # 検証 → 定数監査 → 全解析 → ネッ
 | `config/analysis.json` | 唯一の設定源（語彙・エンジン・検定・判定基準） |
 | `src/check_prereg.py` | 事前登録が設定変更より前にコミットされたことを git 履歴で検査 |
 | `src/check_registry.py` | `docs/registry.md` の枝数から Holm しきい値と必要置換回数を算出し、`n_perm` 不足なら exit 1 |
+| `tests/test_check_registry.py` | 登録簿パース・Holm要件・文書宣言の回帰テスト（`make test`） |
 | `src/engine.py` | 決定論的剥離エンジン（校正済み類似度 / コサイン、次元シャッフル帰無） |
 | `src/stats.py` | BH-FDR、ブートストラップ CI、Krippendorff α（順序） |
 | `src/validate.py` | アノテーションのスキーマ・証拠・重複検査（`schema/annotation.schema.json` に準拠） |
@@ -44,6 +45,7 @@ python3 src/run_all.py        # 検証 → 定数監査 → 全解析 → ネッ
 | `docs/peer_review_summary_en.md` | 査読用サマリ（英語要約、`verify_doc.py` 照合済み） |
 | `docs/registry.md` | 事前登録台帳（全 7 枝・Holm 補正・結果一覧） |
 | `docs/adr/` | 設計判断記録（ADR 0001〜0003） |
+| `docs/github_main_protection_manual_ja.md` | GitHubで`main`に必須CIチェックを設定する簡易手順 |
 
 ## 検証コマンド
 
@@ -52,6 +54,7 @@ python3 src/check_prereg.py        # 事前登録の先行コミット順序検�
 python3 src/check_registry.py      # 登録簿の Holm しきい値と n_perm 要件検査
 python3 src/validate.py            # アノテーション検証。問題があれば exit 1
 python3 src/audit_no_hardcode.py   # 手書き定数監査。違反があれば exit 1
+make test                         # 登録簿・Holm要件の回帰テスト（標準ライブラリのみ）
 python3 src/verify_network.py      # 埋め込みグラフ全件の検証。outputs/network_verification.md を生成
 python3 src/verify_doc.py          # 本文の数値と results.json / network_checks.json の照合
 ```
@@ -63,7 +66,7 @@ python3 src/verify_doc.py          # 本文の数値と results.json / network_c
 このディレクトリはそのまま git リポジトリとして使える（初期コミット済み）。
 
 ```bash
-make all      # prereg → registry → validate → audit → sim → 全解析 → 文書照合
+make all      # prereg → registry → validate → audit → test → sim → 全解析 → 文書照合
 make determ   # 2 回実行して生成物が一致することを確認（約 150 秒）
 make network  # 埋め込みグラフ全件の検証だけを再実行
 ```

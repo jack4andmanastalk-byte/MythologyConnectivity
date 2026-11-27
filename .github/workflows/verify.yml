@@ -31,6 +31,10 @@ jobs:
       - name: hard-code audit
         run: make audit
 
+      # 3b) Holm・登録簿のパース境界条件を標準ライブラリだけで検査
+      - name: registry regression tests
+        run: make test
+
       # 4) 運用シミュレーション（ADR 0002）と全解析（ネットワーク全件検証を含む）
       - name: run pipeline
         run: make run
