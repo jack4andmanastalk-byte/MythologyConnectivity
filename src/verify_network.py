@@ -29,7 +29,22 @@ import engine as E                     # noqa: E402
 
 CFG = json.loads((ROOT / "config/analysis.json").read_text(encoding="utf-8"))
 NET = CFG["network"]
-PKG = Path(NET["package_root"])
+def resolve_pkg():
+    """v17 パッケージの位置を解決する（絶対パス → リポジトリ内 vendor/ → 旧既定値）。"""
+    cands = [Path(NET["package_root"])]
+    if not Path(NET["package_root"]).is_absolute():
+        cands = [ROOT / NET["package_root"]]
+    cands += [ROOT / "vendor/kojiki_mythology_v17_local",
+              Path("/home/user/work/kojiki_mythology_v17_local")]
+    for c in cands:
+        if (c / NET["html_v17"]).exists():
+            return c
+    raise SystemExit(
+        "v17 パッケージが見つからないためネットワーク検証を中止: "
+        + ", ".join(str(c) for c in cands))
+
+
+PKG = resolve_pkg()
 D17 = PKG / NET["data_dir_v17"]
 D16 = PKG / NET["data_dir_v16"]
 TOL = NET["tolerances"]

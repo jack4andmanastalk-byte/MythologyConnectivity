@@ -116,7 +116,7 @@
     "note": "レベル>0 のセルには最低この文字数の原文引用を要求する"
   },
   "network": {
-    "package_root": "/home/user/work/kojiki_mythology_v17_local",
+    "package_root": "vendor/kojiki_mythology_v17_local",
     "html_v17": "output_v17_experiment/eurasia_myth_atlas_v17_interactive.html",
     "html_v16": "output_v16_experiment/eurasia_myth_atlas_v16_interactive.html",
     "data_dir_v17": "output_v17_experiment/data",
@@ -130,7 +130,7 @@
       "explained": 0.01,
       "decomp_pp": 0.02
     },
-    "note": "HTML に埋め込まれたグラフ（v17: 297 ノード / 597 エッジ）の全件検証に用いるパスと許容差",
+    "note": "HTML に埋め込まれたグラフ（v17: 297 ノード / 597 エッジ）の全件検証に用いるパスと許容差。package_root はリポジトリからの相対パス。vendor/ に v17 パッケージを置く。",
     "expected": {
       "nodes": 297,
       "edges": 597,
