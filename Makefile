@@ -1,8 +1,8 @@
 PY ?= python3
 
-.PHONY: all prereg registry validate audit sim run network doc determ clean
+.PHONY: all prereg registry validate audit test sim run network doc determ clean
 
-all: prereg registry validate audit sim run doc    ## 事前登録 → 登録簿 → 検証 → 監査 → 運用シミュレーション → 全解析 → 文書照合
+all: prereg registry validate audit test sim run doc    ## 事前登録 → 登録簿 → 検証 → 監査 → 回帰テスト → 運用シミュレーション → 全解析 → 文書照合
 
 prereg:                            ## 事前登録が結果より先に固定されたか（git 履歴）
 	$(PY) src/check_prereg.py
@@ -15,6 +15,9 @@ validate:                          ## アノテーションのスキーマ・証
 
 audit:                             ## 解析定数がコードに漏れていないことの AST 監査
 	$(PY) src/audit_no_hardcode.py
+
+test:                              ## 登録簿・Holm要件の回帰テスト（標準ライブラリのみ）
+	$(PY) -m unittest discover -s tests -v
 
 sim:                               ## 多モデル並列レビューの誤差訂正能力の評価（ADR 0002 の数値）
 	$(PY) src/sim_swarm_review.py
