@@ -1,0 +1,226 @@
+{
+  "version": "18.0",
+  "layer2": {
+    "vocab": [
+      "R01",
+      "R02",
+      "R03",
+      "R04",
+      "R05",
+      "R06",
+      "R07",
+      "R08",
+      "R09",
+      "R10",
+      "R11",
+      "R12",
+      "R13",
+      "R14",
+      "R15"
+    ],
+    "levels": {
+      "0": "不在",
+      "1": "痕跡・言及のみ",
+      "2": "明確に存在",
+      "3": "中心的・定義的"
+    },
+    "legacy_level_map": {
+      "lo": 0.6,
+      "hi": 0.8,
+      "note": "v17 の重み w を順序尺度へ: w<=0 ->0, 0<w<lo ->1, lo<=w<hi ->2, w>=hi ->3"
+    }
+  },
+  "engine": {
+    "primary": {
+      "mode": "calibrated",
+      "z_thresh": 2.0,
+      "max_parents": 3,
+      "proto_dist_km": 20000.0,
+      "max_dist_km": 20000.0,
+      "dt_split": 350,
+      "use_transforms": false
+    },
+    "reference_v17_compatible": {
+      "mode": "cosine",
+      "score_thresh": 0.45,
+      "dot_thresh": 0.25,
+      "max_parents": 3,
+      "proto_dist_km": 20000.0,
+      "max_dist_km": 20000.0,
+      "dt_split": 350,
+      "use_transforms": false
+    },
+    "sensitivity": {
+      "z_thresh": [
+        1.5,
+        2.0,
+        2.5,
+        3.0
+      ],
+      "max_dist_km": [
+        2500.0,
+        6400.0,
+        10000.0,
+        20000.0
+      ],
+      "max_parents": [
+        2,
+        3,
+        4
+      ],
+      "score_thresh": [
+        0.4,
+        0.45,
+        0.55
+      ],
+      "dot_thresh": [
+        0.2,
+        0.25,
+        0.35
+      ]
+    }
+  },
+  "inference": {
+    "n_perm": 200,
+    "seed": 42,
+    "alpha": 0.05,
+    "fdr": "benjamini-hochberg",
+    "bootstrap": 10000,
+    "robustness_seeds": [
+      42,
+      43,
+      44
+    ]
+  },
+  "agreement": {
+    "min_alpha_for_claim": 0.667,
+    "n_levels": 4
+  },
+  "layer1_audit": {
+    "vocab": [
+      "M13",
+      "M19",
+      "M30",
+      "M37",
+      "M39",
+      "M42",
+      "U28",
+      "U29",
+      "U30",
+      "U31"
+    ],
+    "note": "v16 75D のうち、仮説の中核をなす 10 次元を抽出した信頼性監査用グリッド"
+  },
+  "validation": {
+    "min_evidence_chars": 6,
+    "note": "レベル>0 のセルには最低この文字数の原文引用を要求する"
+  },
+  "network": {
+    "package_root": "vendor/kojiki_mythology_v17_local",
+    "html_v17": "output_v17_experiment/eurasia_myth_atlas_v17_interactive.html",
+    "html_v16": "output_v16_experiment/eurasia_myth_atlas_v16_interactive.html",
+    "data_dir_v17": "output_v17_experiment/data",
+    "data_dir_v16": "output_v16_experiment/data",
+    "dt_split_years": 350,
+    "max_parents": 3,
+    "tolerances": {
+      "weight_rounding": 0.0005,
+      "dot_rounding": 0.0001,
+      "dist_km": 2.0,
+      "explained": 0.01,
+      "decomp_pp": 0.02
+    },
+    "note": "HTML に埋め込まれたグラフ（v17: 297 ノード / 597 エッジ）の全件検証に用いるパスと許容差。package_root はリポジトリからの相対パス。vendor/ に v17 パッケージを置く。",
+    "expected": {
+      "nodes": 297,
+      "edges": 597,
+      "motifs_v17": 90,
+      "motifs_v16": 75,
+      "v16_nodes": 281,
+      "note": "報告書が主張している件数。検証の期待値として使う"
+    },
+    "pass_rate": 0.95,
+    "pass_rate_note": "再計算一致とみなすノード比率の下限"
+  },
+  "swarm_sim": {
+    "note": "多モデル・並列レビュー（GitSwarm 型）の誤差訂正能力を評価するための設定。結果ではなく運用パラメータ。",
+    "rater_sigma": 0.1,
+    "shared_biases": [
+      0.0,
+      0.05,
+      0.1,
+      0.2
+    ],
+    "n_raters": [
+      1,
+      3,
+      5,
+      10
+    ],
+    "alpha": 0.05,
+    "branch_counts": [
+      1,
+      5,
+      12,
+      30,
+      144
+    ],
+    "n_perm": 200,
+    "herding": {
+      "accuracy": 0.85,
+      "anchor_prob": [
+        0.0,
+        0.5,
+        0.9
+      ],
+      "copy_prob": 0.7,
+      "chain_len": 5,
+      "n_trials": 20000,
+      "seed": 42
+    }
+  },
+  "display_policy": {
+    "mode": "annotate_with_derived_audit",
+    "derived_audit_path": "derived/html_embedded_v17_audit.json",
+    "expected_gap_nodes": 21,
+    "expected_evaluable_nodes": 248,
+    "gap_threshold": 0.01,
+    "note": "ADR 0003 に従い凍結 HTML は改変せず、注記と derived 台帳の機械照合で運用する"
+  },
+  "pass_c": {
+    "annotation_path": "annotations/l2_kojiki_passC.jsonl",
+    "grid_id": "L2_ALT_V1",
+    "target_ids": [
+      "K1-05",
+      "K1-07",
+      "K1-09",
+      "K1-12",
+      "K1-16",
+      "K1-17",
+      "K2-01",
+      "K2-04",
+      "K2-08",
+      "K2-09",
+      "K2-11",
+      "K3-01",
+      "K3-04"
+    ],
+    "alt_vocab_definitions": {
+      "R01": "異常事象（疫病・天変・災禍等）の前兆・因果を解読する占卜体系、およびその災禍を解除する儀礼的手続き",
+      "R02": "発話・宣誓・呪言・託宣そのものに現実の事態や相手の行動を強制・改変する霊的効力があるとみなす言語呪術観",
+      "R03": "異系統の政治・宗教・言語体系に由来する語彙や制度を、物語内の語りとして自集団の固有語や在来系譜へ意図的に翻訳・置換して正統化する記述操作（物語外部の文献学的推測は含めない）",
+      "R04": "太陽神格（または太陽を象徴する最高位格）へ統治権・祭祀権の正統性を排他的に集中させる構造",
+      "R05": "太陽神以外の主要な自然神格（月・嵐・海等）を王権中枢から周縁化・排除または従属位置へ再編する構造",
+      "R06": "政治的統治（行政・軍事・世俗支配）と宗教的祭祀（神事・祓除・神託仲介）の職掌・領域の分離または分担",
+      "R07": "特定の刀剣・武器それ自体を単なる道具ではなく神格・霊威の宿る礼拝対象・神体として扱う表現",
+      "R08": "鏡または円盤状の光輝・反射器物を、太陽的権威や神聖性の視覚的象徴・威信財として祭祀や授受に用いる表現",
+      "R09": "珠玉・宝石・装身具を、単なる装飾ではなく霊力・生命力・統治権の媒介物として儀礼的または呪術的に用いる表現",
+      "R10": "複数の異なる種類の象徴的威信財を一組の複合セット（一対以上の異種器物の組み合わせ）として王位継承・統治委任に用いる表現（単一器物のみの言及は複合とみなさない）",
+      "R11": "身体の洗浄・水浴、または身代わり・贖物（祓具・財物等）への穢れ・罪の転嫁によって個人または集団の危機を浄化する儀礼",
+      "R12": "個別の事件対応にとどまらず、領域全体・定期的暦日に一律適用され、かつ共同体から徴収・義務化される制度化された定期浄化・課税儀礼",
+      "R13": "敗者・旧支配勢力・死者の領域に対し、現世の統治権とは別の領域（他界・幽冥・地下等）の専属支配権を認める二重主権的棲み分け",
+      "R14": "敗者や荒ぶる霊威の祟りを鎮撫するため、恒久的な祭祀施設（社殿・祠等）を造営し、公的守護神格として奉斎・統合する記述",
+      "R15": "憑依・神懸り・夢告などの超越的託宣を根拠として、外部集団・異域への軍事征討を神聖な使命として正統化するイデオロギー"
+    }
+  }
+}

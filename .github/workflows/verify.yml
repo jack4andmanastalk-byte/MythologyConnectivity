@@ -1,0 +1,49 @@
+name: verify
+on:
+  push:
+  pull_request:
+
+jobs:
+  gates:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pip install numpy pandas
+
+      # 1) 事前登録が結果より先にコミットされているか
+      - name: pre-registration order
+        run: python src/check_prereg.py
+
+      # 1b) 登録簿の Holm しきい値と n_perm 要件
+      - name: check registry thresholds
+        run: make registry
+
+      # 2) スキーマ・証拠・重複
+      - name: validate annotations
+        run: make validate
+
+      # 3) コード内の解析定数ゼロ
+      - name: hard-code audit
+        run: make audit
+
+      # 4) 運用シミュレーション（ADR 0002）と全解析（ネットワーク全件検証を含む）
+      - name: run pipeline
+        run: make run
+
+      # 4b) 本文の数値と機械出力の照合
+      - name: verify docs
+        run: make doc
+
+      # 5) 同一環境で 2 回実行して生成物が一致すること
+      - name: determinism
+        run: make determ
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: outputs
+          path: outputs/
