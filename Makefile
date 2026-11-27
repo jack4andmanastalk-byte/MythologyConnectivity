@@ -1,6 +1,6 @@
 PY ?= python3
 
-.PHONY: all prereg registry validate audit test sim run network doc determ clean
+.PHONY: all prereg registry validate audit test sim run network doc determ work-status clean
 
 all: prereg registry validate audit test sim run doc    ## 事前登録 → 登録簿 → 検証 → 監査 → 回帰テスト → 運用シミュレーション → 全解析 → 文書照合
 
@@ -16,7 +16,7 @@ validate:                          ## アノテーションのスキーマ・証
 audit:                             ## 解析定数がコードに漏れていないことの AST 監査
 	$(PY) src/audit_no_hardcode.py
 
-test:                              ## 登録簿・Holm要件の回帰テスト（標準ライブラリのみ）
+test:                              ## 登録簿・並列作業claim・検証状態の回帰テスト（標準ライブラリのみ）
 	$(PY) -m unittest discover -s tests -v
 
 sim:                               ## 多モデル並列レビューの誤差訂正能力の評価（ADR 0002 の数値）
@@ -30,6 +30,9 @@ network:                           ## 埋め込みグラフ 297 ノード / 597 
 
 doc:                               ## 手書き本文の数値が機械出力と一致するかの照合
 	$(PY) src/verify_doc.py
+
+work-status:                       ## 並列作業キューのclaim状況を表示（状態は .work_scheduler/ に保存）
+	$(PY) src/work_scheduler.py status
 
 determ:                            ## 2 回実行して生成物が一致することの確認
 	$(PY) src/check_determinism.py

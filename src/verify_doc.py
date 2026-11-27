@@ -75,10 +75,20 @@ for key, lab in [(("max_dist_km", 2500.0), "距離 2500"), (("max_dist_km", 6400
 # --- 埋め込みネットワーク検証（network_checks.json）との照合 ---
 import re as _re
 NJ_P = ROOT / "outputs/network_checks.json"
+NET_STATUS_P = ROOT / "outputs/network_verification_status.json"
+if NET_STATUS_P.exists():
+    try:
+        network_run_status = json.loads(NET_STATUS_P.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        network_run_status = {"status": "failed", "reason": f"status JSON parse error: {exc}"}
+else:
+    network_run_status = {"status": "unknown", "reason": "network status file is absent"}
+if not isinstance(network_run_status, dict):
+    network_run_status = {"status": "failed", "reason": "status JSON root must be an object"}
 net_checks, miss_net = [], []
 exp_edges = str(CFG["network"]["expected"]["edges"])
 c1_cnt = None
-if NJ_P.exists():
+if NJ_P.exists() and network_run_status.get("status") == "passed":
     NJ = json.loads(NJ_P.read_text(encoding="utf-8"))
     G = {c["id"]: c for c in NJ["checks"]}
     num = lambda cid, pat, grp=1: _re.search(pat, str(G[cid]["value"])).group(grp)
@@ -112,6 +122,26 @@ if NJ_P.exists():
     ]
     miss_net = [(n, s_) for n, s_ in net_checks if not s_ or s_ not in TEXT]
     net_checks = [(n, s_) for n, s_ in net_checks if s_ and s_ in TEXT]
+
+network_state = network_run_status.get("status", "unknown")
+if network_state == "passed":
+    if not NJ_P.is_file():
+        miss_net.append(("ネットワーク検証成果物", "outputs/network_checks.json is missing"))
+    checks_meta = network_run_status.get("checks")
+    if not isinstance(checks_meta, dict) or checks_meta.get("total", 0) <= 0 or checks_meta.get("ng", 1) != 0:
+        miss_net.append(("ネットワーク検証状態", "passed status has invalid check counts"))
+    required_artifacts = network_run_status.get("artifacts", [])
+    if not isinstance(required_artifacts, list) or not required_artifacts:
+        miss_net.append(("ネットワーク検証成果物", "passed status has no artifact list"))
+    else:
+        for relative in required_artifacts:
+            if not isinstance(relative, str) or not (ROOT / relative).is_file():
+                miss_net.append(("ネットワーク検証成果物", f"missing artifact: {relative}"))
+elif network_state == "failed":
+    miss_net.append(("ネットワーク全件検証", network_run_status.get("reason", "status=failed")))
+else:
+    reason = network_run_status.get("reason", "network status file is absent")
+    print(f"[UNVERIFIED] ネットワーク全件検証: status={network_state}; {reason}")
 
 # --- ADR 0002（運用シミュレーション）との照合 ---
 ADR2 = (ROOT / "docs/adr/0002-long-run-independent-review.md")

@@ -15,7 +15,7 @@ v17 パッケージ（`kojiki_mythology_v17_local`）の手法を「手書きの
 
 ```bash
 cd v18
-python3 src/run_all.py        # 検証 → 定数監査 → 全解析 → ネットワーク全件検証 → レポート → マニフェスト（約 85 秒）
+python3 src/run_all.py        # 検証 → 定数監査 → 全解析 → ネットワーク検証状態 → レポート → マニフェスト（約 85 秒）
 ```
 
 依存: Python 3.11+ / numpy / pandas（scipy・sklearn・matplotlib・ネットワーク不要）
@@ -33,8 +33,10 @@ python3 src/run_all.py        # 検証 → 定数監査 → 全解析 → ネッ
 | `src/validate.py` | アノテーションのスキーマ・証拠・重複検査（`schema/annotation.schema.json` に準拠） |
 | `src/audit_no_hardcode.py` | 数値リテラルの AST 監査。解析定数がコードに漏れていないことを機械的に確認 |
 | `src/build.py` | 行列の組み立て |
-| `src/verify_network.py` | v17 HTML 埋め込みグラフ（297 ノード / 597 エッジ）の全件検証。構造・層構成・数値再現・全ノード統計 |
-| `src/verify_doc.py` | 手書き文書の数値が `results.json` / `network_checks.json` と一致するかを機械照合（不一致なら exit 1） |
+| `src/verify_network.py` | v17 HTML 埋め込みグラフ（297 ノード / 597 エッジ）の全件検証。構造・層構成・数値再現・全ノード統計。状態は `network_verification_status.json` に `passed` / `failed` / `unavailable` で記録 |
+| `src/verify_doc.py` | 手書き文書の数値が `results.json` / `network_checks.json` と一致するかを機械照合（不一致なら exit 1）。ネットワーク未検証状態も表示 |
+| `src/work_scheduler.py` | 共有ワークスペース内の並列チャット向け atomic claim・lease・heartbeat・complete/release |
+| `config/work_queue.json` | 優先度・依存関係・必要パスつき作業キュー |
 | `src/run_all.py` | 上記を順に実行し、結果・レポート・マニフェストを生成 |
 | `annotations/` | 評定データ（pass A / pass B / 中立操作定義 pass C / アンカー / L1 監査 / v17 legacy 変換） |
 | `data/frozen/` | 凍結入力（297 ノード、v16 75D 行列、L1 75D 行列） |
@@ -54,12 +56,26 @@ python3 src/check_prereg.py        # 事前登録の先行コミット順序検�
 python3 src/check_registry.py      # 登録簿の Holm しきい値と n_perm 要件検査
 python3 src/validate.py            # アノテーション検証。問題があれば exit 1
 python3 src/audit_no_hardcode.py   # 手書き定数監査。違反があれば exit 1
-make test                         # 登録簿・Holm要件の回帰テスト（標準ライブラリのみ）
-python3 src/verify_network.py      # 埋め込みグラフ全件の検証。outputs/network_verification.md を生成
+make test                         # 登録簿・scheduler・検証状態の回帰テスト（標準ライブラリのみ）
+python3 src/verify_network.py      # 全件検証。終了コード0=passed、2=unavailable、1=failed
 python3 src/verify_doc.py          # 本文の数値と results.json / network_checks.json の照合
+make work-status                  # 作業キューの担当・lease・依存状態を表示
 ```
 
-`run_all.py` は `validate` と `audit_no_hardcode` を先に実行し、どちらかが失敗したら解析を中止します。
+`run_all.py` は `validate` と `audit_no_hardcode` を先に実行し、どちらかが失敗したら解析を中止します。v17原本や Python 依存がない場合、ネットワーク検証は黙って `skipped` にせず `outputs/network_verification_status.json` を `unavailable` として記録し、未検証範囲を `outputs/report.md`・`outputs/results.json`・CI job summary に残して他の解析を続けます。`make run` / CI の成功と、ネットワーク全件検証の成功は別の状態です。`make network` は `unavailable` を終了コード2で返します。
+
+## 並列チャットの担当取得
+
+`config/work_queue.json` のタスクは、同じ共有 workspace 上で `src/work_scheduler.py` により排他的に取得できます。worker ID はチャットごとに一意に発行し、lease を heartbeat で延長してください。
+
+```bash
+python3 src/work_scheduler.py worker-id
+python3 src/work_scheduler.py status
+python3 src/work_scheduler.py claim-next --worker arena-発行ID
+# 完了時: python3 src/work_scheduler.py complete TASK_ID --token CLAIM_TOKEN --reason "結果を記録"
+```
+
+状態は Git 管理外の `.work_scheduler/work_scheduler_state.json` に置きます。排他が成立するのは全 worker が同じ共有ファイルシステム・同じ state path を使う場合だけで、独立した sandbox/clone 間は調整しません。設計・lease・復旧手順は `docs/parallel_work_scheduler.md` を参照。
 
 ## リポジトリとしての運用（ハーネス）
 

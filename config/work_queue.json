@@ -1,0 +1,112 @@
+{
+  "schema": "arena.work-queue/1",
+  "description": "共有ワークスペース内で Arena チャットが担当を排他的に取得するタスク定義。状態は .work_scheduler/work_scheduler_state.json に置く。",
+  "scheduler": {
+    "default_lease_seconds": 21600
+  },
+  "tasks": [
+    {
+      "id": "V17-SOURCE-RECOVERY",
+      "title": "v17 元パッケージの所在・完全性を確認",
+      "priority": 1,
+      "depends_on": [],
+      "requires_paths": [],
+      "description": "ZIP_INFO.txt が列挙する v17 vendor 40 ファイルについて、原本または完全性を検証できる配布物を探す。見つからなければ捜索範囲と未検証範囲を記録し、ファイルを推測・再構成しない。",
+      "acceptance": [
+        "40 件の目録と取得できたファイルの SHA-256 を照合する。",
+        "取得不能の場合は捜索場所・未検証範囲・次の取得依頼先を日本語レポートに明記する。"
+      ]
+    },
+    {
+      "id": "V17-NETWORK-FULL-VERIFICATION",
+      "title": "v17 ネットワーク全件検証を実行",
+      "priority": 2,
+      "depends_on": ["V17-SOURCE-RECOVERY"],
+      "requires_paths": [
+        "vendor/kojiki_mythology_v17_local/output_v17_experiment/eurasia_myth_atlas_v17_interactive.html",
+        "vendor/kojiki_mythology_v17_local/output_v17_experiment/data/v17_eurasia_edges_multiplex.csv",
+        "vendor/kojiki_mythology_v17_local/output_v17_experiment/data/v17_eurasia_297nodes_90d.csv",
+        "vendor/kojiki_mythology_v17_local/output_v17_experiment/data/v17_eurasia_edges_90d.csv",
+        "vendor/kojiki_mythology_v17_local/output_v17_experiment/data/v17_eurasia_edges_joint90d.csv",
+        "vendor/kojiki_mythology_v17_local/output_v17_experiment/data/v17_pure_l2_ext_edges.csv",
+        "vendor/kojiki_mythology_v17_local/output_v17_experiment/data/v17_pure_l2_ext_nodes.csv",
+        "vendor/kojiki_mythology_v17_local/output_v17_experiment/data/v17_pure_l2_dom_edges.csv",
+        "vendor/kojiki_mythology_v17_local/output_v17_experiment/data/v17_pure_l2_dom_nodes.csv",
+        "vendor/kojiki_mythology_v17_local/output_v17_experiment/data/v17_eurasia_297nodes_multiplex.csv",
+        "vendor/kojiki_mythology_v17_local/output_v17_experiment/data/v17_kojiki_3layer_decomposition.csv",
+        "vendor/kojiki_mythology_v17_local/output_v17_experiment/data/v17_aggregate_summary.json",
+        "vendor/kojiki_mythology_v17_local/output_v16_experiment/eurasia_myth_atlas_v16_interactive.html",
+        "vendor/kojiki_mythology_v17_local/output_v16_experiment/data/v16_eurasia_edges_75d.csv",
+        "vendor/kojiki_mythology_v17_local/output_v16_experiment/data/v16_eurasia_281nodes_75d.csv"
+      ],
+      "description": "必要な v17/v16 原本が配置され、目録ハッシュを確認できた後に make network を実行する。",
+      "acceptance": [
+        "全検査結果と NG/WARN 件数を保存する。",
+        "検証器の終了コードと outputs/network_verification_status.json を確認し、未実行・資材不足を成功扱いしない。"
+      ]
+    },
+    {
+      "id": "L1-SHORT-EVIDENCE-REVIEW",
+      "title": "L1短証拠警告3件の出典・引用を照合",
+      "priority": 2,
+      "depends_on": [],
+      "requires_paths": [
+        "annotations/l1_audit_passA.jsonl",
+        "config/analysis.json"
+      ],
+      "description": "K1-16.M19、K1-17.M19、K3-03.M37 をそれぞれの注釈・実際の典拠に照合する。警告を消すためだけに引用を水増しせず、出典本文と注釈・要約を区別する。",
+      "acceptance": [
+        "3件すべてについて対象の主張、典拠、該当箇所、引用の性質を記録する。",
+        "修正が必要な場合のみ最小限の注釈変更を提案し、裏付け不能なら警告を維持する。"
+      ]
+    },
+    {
+      "id": "KOJIKI-SHORT-EVIDENCE-REVIEW",
+      "title": "古事記短証拠警告6件の本文照合",
+      "priority": 2,
+      "depends_on": [],
+      "requires_paths": [
+        "annotations/l2_kojiki_passB.jsonl",
+        "config/analysis.json"
+      ],
+      "description": "K1-17.R07/R08/R09、K2-08.R15、K2-09.R15、K2-11.R09 を典拠の該当箇所と個別に照合する。青空文庫版武田祐吉校註は書き下し文として扱い、白文・考古学的根拠と混同しない。",
+      "acceptance": [
+        "6件すべてを出典の本文・注釈・見出しに分けて記録する。",
+        "必要な訂正だけを提案し、機械的な類似語一致や脚注番号を証拠扱いしない。"
+      ]
+    },
+    {
+      "id": "LP14-ARCHAEOLOGY-SOURCE-REVIEW",
+      "title": "LP14の考古学的主張を独立資料で照合",
+      "priority": 2,
+      "depends_on": [],
+      "requires_paths": [
+        "annotations/l2_anchors_passA.jsonl"
+      ],
+      "description": "LP14.R07/R09 の副葬・三点セット等の主張について、考古学的報告書・一次資料または出典台帳を照合する。物語本文・書き下し文だけを考古学的証拠として使わない。",
+      "acceptance": [
+        "各主張について書誌情報と該当箇所を記録する。",
+        "根拠を確認できない場合は限界を記録し、警告を残す。"
+      ]
+    },
+    {
+      "id": "SHORT-EVIDENCE-FINAL-CHECK",
+      "title": "短証拠11件の最終検証・未解決項目の明示",
+      "priority": 3,
+      "depends_on": [
+        "L1-SHORT-EVIDENCE-REVIEW",
+        "KOJIKI-SHORT-EVIDENCE-REVIEW",
+        "LP14-ARCHAEOLOGY-SOURCE-REVIEW"
+      ],
+      "requires_paths": [
+        "src/validate.py",
+        "config/analysis.json"
+      ],
+      "description": "各レビューを突き合わせ、必要と承認された最小修正だけを反映した後 make validate を再実行する。出典未確認の警告を消さず、件数と理由を記録する。",
+      "acceptance": [
+        "validate の警告・エラー件数と対象IDを記録する。",
+        "証拠の性質（書き下し、物語上の要約、考古学的主張）を混同せず、未解決事項を明示する。"
+      ]
+    }
+  ]
+}
