@@ -1,0 +1,182 @@
+{
+  "version": "18.0",
+  "layer2": {
+    "vocab": [
+      "R01",
+      "R02",
+      "R03",
+      "R04",
+      "R05",
+      "R06",
+      "R07",
+      "R08",
+      "R09",
+      "R10",
+      "R11",
+      "R12",
+      "R13",
+      "R14",
+      "R15"
+    ],
+    "levels": {
+      "0": "不在",
+      "1": "痕跡・言及のみ",
+      "2": "明確に存在",
+      "3": "中心的・定義的"
+    },
+    "legacy_level_map": {
+      "lo": 0.6,
+      "hi": 0.8,
+      "note": "v17 の重み w を順序尺度へ: w<=0 ->0, 0<w<lo ->1, lo<=w<hi ->2, w>=hi ->3"
+    }
+  },
+  "engine": {
+    "primary": {
+      "mode": "calibrated",
+      "z_thresh": 2.0,
+      "max_parents": 3,
+      "proto_dist_km": 20000.0,
+      "max_dist_km": 20000.0,
+      "dt_split": 350,
+      "use_transforms": false
+    },
+    "reference_v17_compatible": {
+      "mode": "cosine",
+      "score_thresh": 0.45,
+      "dot_thresh": 0.25,
+      "max_parents": 3,
+      "proto_dist_km": 20000.0,
+      "max_dist_km": 20000.0,
+      "dt_split": 350,
+      "use_transforms": false
+    },
+    "sensitivity": {
+      "z_thresh": [
+        1.5,
+        2.0,
+        2.5,
+        3.0
+      ],
+      "max_dist_km": [
+        2500.0,
+        6400.0,
+        10000.0,
+        20000.0
+      ],
+      "max_parents": [
+        2,
+        3,
+        4
+      ],
+      "score_thresh": [
+        0.4,
+        0.45,
+        0.55
+      ],
+      "dot_thresh": [
+        0.2,
+        0.25,
+        0.35
+      ]
+    }
+  },
+  "inference": {
+    "n_perm": 200,
+    "seed": 42,
+    "alpha": 0.05,
+    "fdr": "benjamini-hochberg",
+    "bootstrap": 10000,
+    "robustness_seeds": [
+      42,
+      43,
+      44
+    ]
+  },
+  "agreement": {
+    "min_alpha_for_claim": 0.667,
+    "n_levels": 4
+  },
+  "layer1_audit": {
+    "vocab": [
+      "M13",
+      "M19",
+      "M30",
+      "M37",
+      "M39",
+      "M42",
+      "U28",
+      "U29",
+      "U30",
+      "U31"
+    ],
+    "note": "v16 75D のうち、仮説の中核をなす 10 次元を抽出した信頼性監査用グリッド"
+  },
+  "validation": {
+    "min_evidence_chars": 6,
+    "note": "レベル>0 のセルには最低この文字数の原文引用を要求する"
+  },
+  "network": {
+    "package_root": "vendor/kojiki_mythology_v17_local",
+    "html_v17": "output_v17_experiment/eurasia_myth_atlas_v17_interactive.html",
+    "html_v16": "output_v16_experiment/eurasia_myth_atlas_v16_interactive.html",
+    "data_dir_v17": "output_v17_experiment/data",
+    "data_dir_v16": "output_v16_experiment/data",
+    "dt_split_years": 350,
+    "max_parents": 3,
+    "tolerances": {
+      "weight_rounding": 0.0005,
+      "dot_rounding": 0.0001,
+      "dist_km": 2.0,
+      "explained": 0.01,
+      "decomp_pp": 0.02
+    },
+    "note": "HTML に埋め込まれたグラフ（v17: 297 ノード / 597 エッジ）の全件検証に用いるパスと許容差。package_root はリポジトリからの相対パス。vendor/ に v17 パッケージを置く。",
+    "expected": {
+      "nodes": 297,
+      "edges": 597,
+      "motifs_v17": 90,
+      "motifs_v16": 75,
+      "v16_nodes": 281,
+      "note": "報告書が主張している件数。検証の期待値として使う"
+    },
+    "pass_rate": 0.95,
+    "pass_rate_note": "再計算一致とみなすノード比率の下限"
+  },
+  "swarm_sim": {
+    "note": "多モデル・並列レビュー（GitSwarm 型）の誤差訂正能力を評価するための設定。結果ではなく運用パラメータ。",
+    "rater_sigma": 0.1,
+    "shared_biases": [
+      0.0,
+      0.05,
+      0.1,
+      0.2
+    ],
+    "n_raters": [
+      1,
+      3,
+      5,
+      10
+    ],
+    "alpha": 0.05,
+    "branch_counts": [
+      1,
+      5,
+      12,
+      30,
+      144
+    ],
+    "n_perm": 200,
+    "herding": {
+      "accuracy": 0.85,
+      "anchor_prob": [
+        0.0,
+        0.5,
+        0.9
+      ],
+      "copy_prob": 0.7,
+      "chain_len": 5,
+      "n_trials": 20000,
+      "seed": 42
+    }
+  }
+}

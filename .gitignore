@@ -1,0 +1,16 @@
+# 生成物は追跡しない（CI が artifacts として保存する）
+outputs/*
+!outputs/.gitkeep
+
+# 実行時キャッシュ
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.pytest_cache/
+
+# 大型バイナリ（HTML / 図版 / zip）は置かない。必要な JSON は derived/ に抽出して持つ
+*.html
+*.zip
+*.bundle
+derived/*.png
+vendor/
