@@ -74,38 +74,44 @@ for key, lab in [(("max_dist_km", 2500.0), "距離 2500"), (("max_dist_km", 6400
 
 # --- 埋め込みネットワーク検証（network_checks.json）との照合 ---
 import re as _re
-NJ = json.loads((ROOT / "outputs/network_checks.json").read_text(encoding="utf-8"))
-G = {c["id"]: c for c in NJ["checks"]}
-num = lambda cid, pat, grp=1: _re.search(pat, str(G[cid]["value"])).group(grp)
-a1_parts = G["A1"]["value"].split(" / ")
-c1_cnt = num("C1", r"(\d+) 本")
-c5_common = num("C5", r"共通 (\d+)")
-c5_only90 = num("C5", r"90D のみ (\d+)")
-c5_onlymp = num("C5", r"表示のみ (\d+)")
-e_cos_d = float(num("E-cosine-all", r"d=([0-9.]+)"))
-e_cal_d = float(num("E-calibrated-all", r"d=([0-9.]+)"))
-e_jac_cnt = num("E-jac", r"共通 (\d+)")
-b15_refs = num("B15", r"(\d+) 参照")
-net_checks = [
-    ("ネットワーク ノード数", f"{a1_parts[0]} ノード"),
-    ("ネットワーク エッジ数", f"{a1_parts[1]} エッジ"),
-    ("層構成の再現本数", f"{c1_cnt} 本"),
-    ("90D との共通", f"共通 {c5_common}"),
-    ("90D のみ", f"90D のみ {c5_only90}"),
-    ("表示のみ", f"表示のみ {c5_onlymp}"),
-    ("L1 重み再現", num("D1", r"([0-9.]+e-0?5)")),
-    ("L1 被説明率再現率", num("D2", r"0.01 以内 ([0-9.]+)")),
-    ("古事記乖離の最大値", f"{NJ['kojiki_gap'][0]['displayed']:.3f}"),
-    ("古事記乖離の再計算値", f"{NJ['kojiki_gap'][0]['replay']:.3f}"),
-    ("乖離ノード数", "21 / 248"),
-    ("全ノード検定 d(コサイン)", f"{e_cos_d:.1f}"),
-    ("全ノード検定 d(校正済み)", f"{e_cal_d:.1f}"),
-    ("独立実装との共通辺", e_jac_cnt),
-    ("Jaccard", num("E-jac", r"Jaccard ([0-9.]+)")),
-    ("モチーフ参照数", b15_refs),
-]
-miss_net = [(n, s_) for n, s_ in net_checks if not s_ or s_ not in TEXT]
-net_checks = [(n, s_) for n, s_ in net_checks if s_ and s_ in TEXT]
+NJ_P = ROOT / "outputs/network_checks.json"
+net_checks, miss_net = [], []
+exp_edges = str(CFG["network"]["expected"]["edges"])
+c1_cnt = None
+if NJ_P.exists():
+    NJ = json.loads(NJ_P.read_text(encoding="utf-8"))
+    G = {c["id"]: c for c in NJ["checks"]}
+    num = lambda cid, pat, grp=1: _re.search(pat, str(G[cid]["value"])).group(grp)
+    a1_parts = G["A1"]["value"].split(" / ")
+    exp_edges = a1_parts[1]
+    c1_cnt = num("C1", r"(\d+) 本")
+    c5_common = num("C5", r"共通 (\d+)")
+    c5_only90 = num("C5", r"90D のみ (\d+)")
+    c5_onlymp = num("C5", r"表示のみ (\d+)")
+    e_cos_d = float(num("E-cosine-all", r"d=([0-9.]+)"))
+    e_cal_d = float(num("E-calibrated-all", r"d=([0-9.]+)"))
+    e_jac_cnt = num("E-jac", r"共通 (\d+)")
+    b15_refs = num("B15", r"(\d+) 参照")
+    net_checks = [
+        ("ネットワーク ノード数", f"{a1_parts[0]} ノード"),
+        ("ネットワーク エッジ数", f"{a1_parts[1]} エッジ"),
+        ("層構成の再現本数", f"{c1_cnt} 本"),
+        ("90D との共通", f"共通 {c5_common}"),
+        ("90D のみ", f"90D のみ {c5_only90}"),
+        ("表示のみ", f"表示のみ {c5_onlymp}"),
+        ("L1 重み再現", num("D1", r"([0-9.]+e-0?5)")),
+        ("L1 被説明率再現率", num("D2", r"0.01 以内 ([0-9.]+)")),
+        ("古事記乖離の最大値", f"{NJ['kojiki_gap'][0]['displayed']:.3f}"),
+        ("古事記乖離の再計算値", f"{NJ['kojiki_gap'][0]['replay']:.3f}"),
+        ("乖離ノード数", "21 / 248"),
+        ("全ノード検定 d(コサイン)", f"{e_cos_d:.1f}"),
+        ("全ノード検定 d(校正済み)", f"{e_cal_d:.1f}"),
+        ("独立実装との共通辺", e_jac_cnt),
+        ("Jaccard", num("E-jac", r"Jaccard ([0-9.]+)")),
+        ("モチーフ参照数", b15_refs),
+    ]
+    miss_net = [(n, s_) for n, s_ in net_checks if not s_ or s_ not in TEXT]
+    net_checks = [(n, s_) for n, s_ in net_checks if s_ and s_ in TEXT]
 
 # --- ADR 0002（運用シミュレーション）との照合 ---
 ADR2 = (ROOT / "docs/adr/0002-long-run-independent-review.md")
@@ -172,7 +178,7 @@ ADR3_P = ROOT / "docs/adr/0003-display-mix-policy.md"
 T3 = ADR3_P.read_text(encoding="utf-8").replace("\u2212", "-") if ADR3_P.exists() else ""
 adr3_checks = [
     ("ノード数", str(AUD["total_nodes"])),
-    ("エッジ数", a1_parts[1]),
+    ("エッジ数", exp_edges),
     ("評価可能ノード", str(AUD["evaluable_l1_nodes"])),
     ("乖離話数", str(AUD["gap_count"])),
     ("K1-05 表示", f3(max_gap_row["displayed_pct"])),
@@ -218,8 +224,8 @@ summary_checks = [
     ("α B-C(13)", f3(AG["passB_vs_passC_13"]["alpha"])),
     ("Δα 低下量", f3(AG["delta_alpha_same13_to_passC"])),
     ("ネットワーク ノード", str(AUD["total_nodes"])),
-    ("ネットワーク エッジ", a1_parts[1]),
-    ("90D エッジ", c1_cnt),
+    ("ネットワーク エッジ", exp_edges),
+    *([("90D エッジ", c1_cnt)] if c1_cnt is not None else []),
     ("評価可能ノード", str(AUD["evaluable_l1_nodes"])),
     ("乖離話数", str(AUD["gap_count"])),
     ("K1-05 表示", f3(max_gap_row["displayed_pct"])),
