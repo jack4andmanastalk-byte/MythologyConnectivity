@@ -11,6 +11,7 @@
 | なぜリポジトリで運用するか（判断） | `docs/adr/0001-repository-as-harness.md` |
 | 多モデル並列運用の限界と規則 | `docs/adr/0002-long-run-independent-review.md` |
 | 試行の登録簿（全試行・否定的結果も） | `docs/registry.md` |
+| 前段の成果物（v17 検証レポート） | `docs/v17_integrity_verification_report.md` |
 | 事前登録（判定基準を結果前に固定） | `docs/prereg/20261127-layer2-verification.md` |
 
 ## 最初の 6 コマンド
