@@ -330,5 +330,24 @@
     "note": "src/concurrency_probe.py が実測する。しきい値はここに置き、コードには書かない。",
     "json_payload_fields": 4000,
     "char_per_field": 200
+  },
+  "append_only": {
+    "note": "docs/registry.md の入力行と data/frozen/ は「基底にあった行が同じバイト列で残る」ことを検査する。行の追加・別シャードへの移動は許すが、既存行の書き換え・削除は検出する（枝 #14）。",
+    "registry": "docs/registry.md",
+    "frozen_glob": "data/frozen/*",
+    "note_frozen": "凍結データは本来不変。mtime/内容の改変はここで落ちる。",
+    "history_subject_chars": 50,
+    "short_sha_chars": 7,
+    "note_display": "違反の説明に出す切り詰め幅。解析上のしきい値ではない。"
+  },
+  "ids": {
+    "note": "衝突しない ID を採番する（枝 #14）。全シャードの和集合と照合してから返す。",
+    "default_prefix": "TASK",
+    "shards": [
+      "config/work_queue.json",
+      "docs/registry.md"
+    ],
+    "length": 6,
+    "attempts": 8
   }
 }

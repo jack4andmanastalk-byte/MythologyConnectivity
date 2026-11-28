@@ -5,9 +5,9 @@ ifneq ($(OUTDIR),)
 export ANALYSIS_OUTPUT_DIR := $(OUTDIR)
 endif
 
-.PHONY: all prereg registry validate audit test sim run network doc determ interactive work-status clean edges pathdep repro numbers probe outdir generated gate
+.PHONY: all prereg registry validate audit test sim run network doc determ interactive work-status clean edges pathdep repro numbers probe outdir generated gate invariant new-id rules
 
-all: prereg registry validate audit test sim run doc numbers probe generated    ## 事前登録 → 登録簿 → 検証 → 監査 → 回帰テスト → 全解析 → 文書照合 → 数値ゲート → 並行安全性 → 生成物の鮮度
+all: prereg registry validate audit test sim run doc numbers probe generated invariant rules    ## 事前登録 → 登録簿 → 検証 → 監査 → 回帰テスト → 全解析 → 文書照合 → 数値ゲート → 並行安全性 → 生成物の鮮度 → 不変性 → ruleset
 
 prereg:                            ## 事前登録が結果より先に固定されたか（git 履歴）
 	$(PY) src/check_prereg.py
@@ -53,6 +53,21 @@ generated:                         ## 追跡下の生成物が今のコードと
 
 gate:                              ## origin/main を取り込んだ状態でゲートを回す（マージ前）
 	$(PY) src/merge_gate.py
+
+invariant:                         ## 登録簿の事前登録セルと凍結データが書き換わっていないか（枝 #14）
+	$(PY) src/append_only.py --base origin/main
+
+invariant-history:                 ## 全履歴を走査して不変性違反を洗い出す（枝 #14）
+	$(PY) src/append_only.py --history
+
+new-id:                            ## 衝突しない ID を採番する（枝 #14。make new-id ARGS="--count 3"）
+	$(PY) src/new_id.py $(ARGS)
+
+rules:                             ## ruleset（コードで直せない設定）を期待値と突合（枝 #14）
+	$(PY) src/repo_rules.py
+
+rules-live:                        ## gh api で実際の ruleset を取得して突合（ネットワーク要）
+	$(PY) src/repo_rules.py --live
 
 network:                           ## 埋め込みグラフ 297 ノード / 597 エッジの全件検証
 	$(PY) src/verify_network.py
