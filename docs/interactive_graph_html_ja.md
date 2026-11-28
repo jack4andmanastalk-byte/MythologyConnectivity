@@ -69,3 +69,36 @@ make interactive    # または python3 src/build_interactive_html.py（要 nump
 UI・操作ロジックは `src/interactive_atlas.template.html.tmpl` にあります。
 なお `.gitignore` は HTML を原則除外していますが、本ファイルのみ例外として追跡します
 （ユーザー要望による人間確認用成果物。再生成手順は本ドキュメントのとおり）。
+
+## ブラウザで開く方法（ローカル動作の保証）
+
+この HTML は**外部参照が 1 つもない完全自己完結文書**です（CDN・画像・fetch・XHR・
+iframe・http(s) URL すべてゼロ）。そのため:
+
+* ダウンロードしたファイルを **Chrome に直接ドラッグ＆ドロップ**（またはダブルクリック）すれば、
+  **オフラインの `file://` 表示でそのまま動作**します。サーバやネットワークは不要です。
+* 404 が表示された場合、表示されているのはこの HTML ではなく**取得元 URL のエラーページ**
+  （保存された 404 ページ）である可能性が高いです。ファイル名を確認し、正しい取得経路から
+  取得し直してください:
+  1. GitHub の blob ページ右上の「Download raw file」
+     （`github.com/jack4andmanastalk-byte/MythologyConnectivity` → `docs/interactive/`）
+  2. リポジトリの ZIP ダウンロード（`docs/interactive/graph_network_atlas.html` を含む）
+  3. `git clone` 後の `docs/interactive/graph_network_atlas.html`
+* ネットワーク経由で開く場合は、任意の静的サーバで配信できます
+  （例: `python3 -m http.server 8080 --directory docs/interactive`）。
+
+## 検証（回帰テスト）
+
+`make test` に `tests/test_interactive_html.py`（標準ライブラリのみ）が含まれ、
+以下を機械的に検査します:
+
+1. 生成物の存在と実体（100KB 超・DOCTYPE・lang）
+2. **外部参照ゼロ**（script src / link / img / url(http) / fetch / XHR / WebSocket /
+   @import / iframe / 絶対 URL 等の総ざらい。1 件でも残れば失敗）
+3. 埋め込み DATA のノード ID が `data/frozen/nodes_297.csv` と完全一致
+4. 乖離台帳（21 話）が `derived/html_embedded_v17_audit.json` と完全一致
+5. エッジの参照整合（source/target 実在・自己ループ 0）と meta 件数の整合
+6. テンプレートの `__DATA_JSON__` プレースホルダ保持（再生成可能性）
+
+加えて、jsdom による操作スモークテスト 20 項目（タブ切替・選択・検索・フィルタ・
+ソート・オーバーレイ・ナビゲーション）と、再生成 2 回の SHA-256 一致を確認済みです。
