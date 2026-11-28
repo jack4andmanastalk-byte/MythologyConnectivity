@@ -1,0 +1,14 @@
+{
+  "schema": "generated-manifest/1",
+  "note": "生成物を手で編集していないことの証拠。`python3 src/check_generated.py --write` で更新する。生成物を更新したら、生成コードも同じ PR で更新すること。",
+  "artifacts": {
+    "derived/display_reproducibility.json": {
+      "sha256": "b42e986015bb7f9d207e8a7e98d4f12a0d998ac41680b174da8a775bcd3061d7",
+      "sources": {
+        "src/display_reproducibility.py": "dca6a2849f6d381c129f591e4a054f659830aa73593bc93321d85cdecee9493d",
+        "src/analysis_io.py": "89421ce50b6390f9a662dc90c20bd4cd33da78c48080fe3e1d530bc6fb974c04"
+      },
+      "note": "ADR 0003 の表示台帳。src/display_reproducibility.py が生成する。"
+    }
+  }
+}

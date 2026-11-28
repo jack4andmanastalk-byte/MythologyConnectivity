@@ -35,8 +35,13 @@ PROVENANCE_LABEL = {
 }
 
 
-def main() -> int:
-    audit = json.loads(AUDIT.read_text(encoding="utf-8"))
+def build(audit: dict | None = None):
+    """台帳から (DataFrame, 出力 JSON dict) を組み立てる。書き込みはしない。
+
+    `src/check_generated.py` が「追跡下の JSON が今のコードから再生成した値と
+    一致するか」を確かめるために呼ぶ（`--check-map` 相当）。
+    """
+    audit = json.loads(AUDIT.read_text(encoding="utf-8")) if audit is None else audit
     import pandas as pd
     nodes = pd.read_csv(NODES)
     kind = dict(zip(nodes["id"], nodes["kind"]))
@@ -88,6 +93,11 @@ def main() -> int:
               "値の誤りではない。表示は 3 系統の混成（ADR 0003）。"),
     )
 
+    return df, outp
+
+
+def main() -> int:
+    df, outp = build()
     IO.write_json_atomic(JSON_OUT, outp)
     CSV_OUT.parent.mkdir(exist_ok=True)
     IO.write_dataframe_atomic(df, CSV_OUT, index=False)
