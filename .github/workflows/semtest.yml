@@ -1,0 +1,21 @@
+name: semtest
+on:
+  pull_request:
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - name: facts
+        run: |
+          {
+            echo "SHA=$GITHUB_SHA"
+            echo "HEAD=$(git rev-parse HEAD)"
+            echo "NPARENTS=$(git rev-list --parents -n1 HEAD | wc -w)"
+            echo "SUBJ=$(git log -1 --pretty=%s)"
+            echo "MAIN=$(git rev-parse origin/main 2>/dev/null || echo none)"
+            echo "BRANCH=$(git rev-parse --abbrev-ref HEAD)"
+          } | tee /tmp/facts.txt
+          echo "### facts" >> $GITHUB_STEP_SUMMARY
+          sed 's/^/    /' /tmp/facts.txt >> $GITHUB_STEP_SUMMARY
