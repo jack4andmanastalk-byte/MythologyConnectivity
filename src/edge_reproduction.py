@@ -151,7 +151,15 @@ def summarize(rows):
         classes=by_class,
         class_ratio={k: (round(v / total, 4) if total else None) for k, v in by_class.items()},
         tolerances=dict(primary=PRIMARY_TOL, sensitivity=SENS_TOL),
+        # 全 597 行の内訳（1 行 1 エッジ）。CSV は outputs/edge_reproduction.csv
         all_edges=block(rows),
+        edge_rows=[dict(source=r["source"], target=r["target"], weight=r["weight"],
+                        classification=r["classification"],
+                        primary_abs_diff=r["primary_abs_diff"],
+                        target_is_kojiki=r["target_is_kojiki"],
+                        source_is_kojiki=r["source_is_kojiki"],
+                        weight_rank_within_target=r["weight_rank_within_target"])
+                   for r in rows],
         kojiki_inflow=block(koj_in),
         kojiki_outflow=block(koj_out),
         by_weight_rank=rank_block,

@@ -314,6 +314,7 @@
         ],
         "context_allow": []
       }
-    ]
+    ],
+    "violation_snippet_chars": 160
   }
 }

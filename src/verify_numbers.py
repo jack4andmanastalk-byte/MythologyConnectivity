@@ -85,6 +85,7 @@ def measured_values():
 
 
 def main() -> int:
+    snippet_len = CFG["doc_checks"].get("violation_snippet_chars", 160)
     measured, graph = measured_values()
     rules = DC["rules"]
     violations, checked, exempt = [], 0, 0
@@ -109,7 +110,7 @@ def main() -> int:
                             violations.append(dict(
                                 file=str(rel), line=lineno, rule=rule["label"],
                                 expected=expect, found=got, text=m.group(0),
-                                snippet=line.strip()[:160]))
+                                snippet=line.strip()[:snippet_len]))
     if violations:
         print(f"[NG] 文書数値: 違反 {len(violations)} 件 / 照合 {checked} 件")
         for v in violations:
