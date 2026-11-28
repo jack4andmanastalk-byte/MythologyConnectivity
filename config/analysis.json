@@ -185,7 +185,9 @@
     "expected_gap_nodes": 21,
     "expected_evaluable_nodes": 248,
     "gap_threshold": 0.01,
-    "note": "ADR 0003 に従い凍結 HTML は改変せず、注記と derived 台帳の機械照合で運用する"
+    "note": "ADR 0003 に従い凍結 HTML は改変せず、注記と derived 台帳の機械照合で運用する",
+    "reproducibility_json": "derived/display_reproducibility.json",
+    "reproducibility_csv": "outputs/display_reproducibility.csv"
   },
   "pass_c": {
     "annotation_path": "annotations/l2_kojiki_passC.jsonl",
@@ -222,5 +224,97 @@
       "R14": "敗者や荒ぶる霊威の祟りを鎮撫するため、恒久的な祭祀施設（社殿・祠等）を造営し、公的守護神格として奉斎・統合する記述",
       "R15": "憑依・神懸り・夢告などの超越的託宣を根拠として、外部集団・異域への軍事征討を神聖な使命として正統化するイデオロギー"
     }
+  },
+  "path_connectivity": {
+    "primary_tolerance_key": "weight_rounding",
+    "sensitivity_tolerance": 0.01,
+    "l2_source_prefix": "LP",
+    "preregistration": "docs/prereg/20261128-path-connectivity-followup.md",
+    "west_regions": [
+      "メソポタミア（Ur III以前）",
+      "メソポタミア（OB～MB）",
+      "メソポタミア（NA以降）",
+      "エジプト（アマルナ以前）",
+      "エジプト（アマルナ以降）",
+      "ギリシャ・ローマ",
+      "アナトリア・レヴァント（旧約等）",
+      "イラン（アヴェスター・ズルワーン）",
+      "インド（ヴェーダ・ウパニシャッド）",
+      "インド（ヒンドゥー・叙事詩・プラーナ）",
+      "インド（仏教・ジャータカ・仏伝）"
+    ],
+    "ancestor_loss_ratio": 0.5,
+    "outputs": [
+      "edge_reproduction.csv",
+      "edge_reproduction.json",
+      "path_dependency.csv",
+      "path_dependency.json"
+    ]
+  },
+  "doc_checks": {
+    "exempt_marker": "doc-number-exempt",
+    "note": "パターンは『総数を主張する表現』に限定する。部分集合（評価可能・プロファイル・うち等）は context_allow で除外。",
+    "rules": [
+      {
+        "id": "kojiki-node-count",
+        "label": "古事記ノード数",
+        "source": "data/frozen/nodes_297.csv:kind==kojiki",
+        "value": 37,
+        "patterns": [
+          "古事記\\s*(\\d+)\\s*話"
+        ],
+        "context_allow": [
+          "評価可能",
+          "プロファイル",
+          "with_profile",
+          "evaluable",
+          "profiled",
+          "うち",
+          "のうち",
+          "対象"
+        ]
+      },
+      {
+        "id": "network-check-count",
+        "label": "ネットワーク検査項目数",
+        "source": "verify_network.checks",
+        "value": 60,
+        "patterns": [
+          "検査\\s*(\\d+)\\s*項目",
+          "(\\d+)\\s*チェック",
+          "全\\s*(\\d+)\\s*項目",
+          "(\\d+)\\s*checks?\\b"
+        ],
+        "context_allow": [
+          "当時",
+          "初版",
+          "v17 検証"
+        ]
+      },
+      {
+        "id": "registry-branch-count",
+        "label": "登録枝数",
+        "source": "docs/registry.md",
+        "value": null,
+        "patterns": [
+          "全\\s*(\\d+)\\s*枝"
+        ],
+        "context_allow": [
+          "仮説検定のみ"
+        ]
+      },
+      {
+        "id": "graph-node-count",
+        "label": "グラフのノード数",
+        "source": "derived/v17_html_embedded_data.json",
+        "value": 297,
+        "patterns": [
+          "(\\d+)\\s*ノード\\s*/\\s*\\d+\\s*エッジ",
+          "(\\d+)\\s*nodes?\\s*/\\s*\\d+\\s*edges?"
+        ],
+        "context_allow": []
+      }
+    ],
+    "violation_snippet_chars": 160
   }
 }

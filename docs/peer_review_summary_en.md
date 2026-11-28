@@ -1,6 +1,6 @@
 # Peer-Review Summary: Comparative Mythology Network Verification (v18 / v18.1)
 
-**Research Question**: Does the previously reported Layer 2 (Kingship, Ritual, and Regalia; 15 dimensions) connectivity across 297 Eurasian mythological nodes (52 *Kojiki* episodes plus comparative traditions) reflect genuine structural signal grounded in textual evidence, or is it an artifact of coding design, uncalibrated similarity metrics, and graph composition?
+**Research Question**: Does the previously reported Layer 2 (Kingship, Ritual, and Regalia; 15 dimensions) connectivity across 297 Eurasian mythological nodes (37 *Kojiki* episodes plus comparative traditions) reflect genuine structural signal grounded in textual evidence, or is it an artifact of coding design, uncalibrated similarity metrics, and graph composition?
 
 **Principal Conclusions**:
 1. **No statistically supportable signal is found in Layer 2 (15D)**: The null hypothesis cannot be rejected on the calibrated primary endpoint (`mean_best_match_z` = 3.020 vs null 3.024 ± 0.100, p = 0.498, Cohen's d = −0.04; ordinalized legacy v17 weights likewise yield 2.473 vs 2.470 ± 0.063, p = 0.502, d = 0.04).
@@ -14,7 +14,7 @@
 An AST-based full audit (`src/verify_network.py`: 60 checks total; OK 40, WARN 7, NG 0, INFO 13) of the frozen v17 interactive HTML (297 nodes, 597 edges) uncovered critical architectural discrepancies:
 
 * **Graph mismatch (Check C5)**: The 597 displayed HTML edges are not the reported 90D joint graph (504 edges; overlap 393, 90D-only 111, display-only 204), but an overlay of Layer 1 (`v16`) edges with Layer 2 edges restricted around *Kojiki* and LP anchors.
-* **21-Episode Display Mix Resolution (ADR 0003 / Branch #5 `NET-DISPLAY-21`)**: Among 248 Layer-1-evaluable nodes, 21 episodes (all within the 52 *Kojiki* nodes) exhibit display vs edge-replay discrepancies exceeding 0.01 (largest gap at `K1-05`: displayed 0.707 vs replayed 0.2332, diff −0.4738) because the HTML displays weighted 3-layer decomposition totals (`decomp.total_final`). Per ADR 0003, the frozen HTML is preserved unaltered; full 297-node provenance (`v16.L1` 244, `decomp.total_final` 37, `pureL2_dom` 16) and the 21 gap records are formalized in `derived/html_embedded_v17_audit.json` and continuously verified by Check `F10` (21 / 21 exact match).
+* **21-Episode Display Mix Resolution (ADR 0003 / Branch #5 `NET-DISPLAY-21`)**: Among 248 Layer-1-evaluable nodes, 21 episodes (all within the 37 *Kojiki* nodes) exhibit display vs edge-replay discrepancies exceeding 0.01 (largest gap at `K1-05`: displayed 0.707 vs replayed 0.2332, diff −0.4738) because the HTML displays weighted 3-layer decomposition totals (`decomp.total_final`). Per ADR 0003, the frozen HTML is preserved unaltered; full 297-node provenance (`v16.L1` 244, `decomp.total_final` 37, `pureL2_dom` 16) and the 21 gap records are formalized in `derived/html_embedded_v17_audit.json` and continuously verified by Check `F10` (21 / 21 exact match).
 
 ## 2. Harness-Driven Re-Verification Design (v18 / v18.1)
 
@@ -37,7 +37,7 @@ An AST-based full audit (`src/verify_network.py`: 60 checks total; OK 40, WARN 7
 | `l1_legacy_cosine` (pos. ctrl) | L1 | `mean_best_cosine` | 0.761 | 0.600 ± 0.012 | 0.005 | 13.83 | 89.87% (66.77%) | 491 |
 | `l1_legacy_calibrated` (pos. ctrl) | L1 | `mean_best_match_z` | 5.268 | 4.684 ± 0.104 | 0.005 | 5.61 | 93.98% (87.75%) | 695 |
 
-The apparent signal in uncalibrated cosine (`p = 0.040`, `d = 1.83`) reflects sparse-vector geometry rather than motif specificity and vanishes under parent-pool z-calibration (`p = 0.498`, `d = −0.04`). Zero of 25 *Kojiki* nodes pass BH-FDR, and seed robustness (seeds 42/43/44: p = 0.498 / 0.493 / 0.517) and parameter sweeps confirm invariance.
+The apparent signal in uncalibrated cosine (`p = 0.040`, `d = 1.83`) reflects sparse-vector geometry rather than motif specificity and vanishes under parent-pool z-calibration (`p = 0.498`, `d = −0.04`). Zero of 25 evaluable *Kojiki* nodes pass BH-FDR, and seed robustness (seeds 42/43/44: p = 0.498 / 0.493 / 0.517) and parameter sweeps confirm invariance.
 
 ### 3.2 Inter-Rater Reliability & Vocabulary Independence (`pass A / B / C`)
 

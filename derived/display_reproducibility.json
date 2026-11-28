@@ -1,0 +1,106 @@
+{
+  "schema": "display-reproducibility/1",
+  "source_ledger": "derived/html_embedded_v17_audit.json",
+  "policy": "ADR 0003: annotate_with_derived_audit",
+  "gap_threshold": 0.01,
+  "total_nodes": 297,
+  "overall": {
+    "nodes": 297,
+    "replayable": 248,
+    "not_replayable": 49,
+    "over_threshold": 21,
+    "provenance_counts": {
+      "v16.L1": 244,
+      "decomp.total_final": 37,
+      "pureL2_dom": 16
+    }
+  },
+  "by_kind": {
+    "anchor": {
+      "nodes": 16,
+      "replayable": 0,
+      "not_replayable": 16,
+      "over_threshold": 0,
+      "provenance_counts": {
+        "pureL2_dom": 16
+      }
+    },
+    "eurasia": {
+      "nodes": 244,
+      "replayable": 212,
+      "not_replayable": 32,
+      "over_threshold": 0,
+      "provenance_counts": {
+        "v16.L1": 244
+      }
+    },
+    "kojiki": {
+      "nodes": 37,
+      "replayable": 36,
+      "not_replayable": 1,
+      "over_threshold": 21,
+      "provenance_counts": {
+        "decomp.total_final": 37
+      }
+    }
+  },
+  "by_provenance": {
+    "decomp.total_final": {
+      "nodes": 37,
+      "replayable": 36,
+      "not_replayable": 1,
+      "over_threshold": 21,
+      "provenance_counts": {
+        "decomp.total_final": 37
+      }
+    },
+    "pureL2_dom": {
+      "nodes": 16,
+      "replayable": 0,
+      "not_replayable": 16,
+      "over_threshold": 0,
+      "provenance_counts": {
+        "pureL2_dom": 16
+      }
+    },
+    "v16.L1": {
+      "nodes": 244,
+      "replayable": 212,
+      "not_replayable": 32,
+      "over_threshold": 0,
+      "provenance_counts": {
+        "v16.L1": 244
+      }
+    }
+  },
+  "kojiki_gap_ids": [
+    "K1-01",
+    "K1-05",
+    "K1-06",
+    "K1-07",
+    "K1-12",
+    "K1-14",
+    "K1-17",
+    "K1-21",
+    "K2-01",
+    "K2-02",
+    "K2-04",
+    "K2-05",
+    "K2-06",
+    "K2-07",
+    "K2-08",
+    "K2-10",
+    "K3-01",
+    "K3-02",
+    "K3-03",
+    "K3-04",
+    "K3-05"
+  ],
+  "cross_check": {
+    "expected_gap_nodes": 21,
+    "expected_evaluable_nodes": 248,
+    "gap_matches_expected": true,
+    "evaluable_matches_expected": true
+  },
+  "note": "replayable=False は『画面の L1 エッジから被説明率を再計算できない』ことのみを意味し、値の誤りではない。表示は 3 系統の混成（ADR 0003）。"
+}

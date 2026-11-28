@@ -1,8 +1,8 @@
 PY ?= python3
 
-.PHONY: all prereg registry validate audit test sim run network doc determ interactive work-status clean
+.PHONY: all prereg registry validate audit test sim run network doc determ interactive work-status clean edges pathdep repro numbers
 
-all: prereg registry validate audit test sim run doc    ## 事前登録 → 登録簿 → 検証 → 監査 → 回帰テスト → 運用シミュレーション → 全解析 → 文書照合
+all: prereg registry validate audit test sim run doc numbers    ## 事前登録 → 登録簿 → 検証 → 監査 → 回帰テスト → 運用シミュレーション → 全解析 → 文書照合 → 数値ゲート
 
 prereg:                            ## 事前登録が結果より先に固定されたか（git 履歴）
 	$(PY) src/check_prereg.py
@@ -24,6 +24,18 @@ sim:                               ## 多モデル並列レビューの誤差訂
 
 run: prereg registry validate audit sim  ## 全解析（results.json / report.md / manifest を生成）
 	$(PY) src/run_all.py
+
+edges:                             ## 597 エッジを 4 クラスに全件分類（枝 #8）
+	$(PY) src/edge_reproduction.py
+
+pathdep:                           ## 古事記経路の単一障害点・中継依存の感度分析（枝 #9）
+	$(PY) src/path_dependency.py
+
+repro:                             ## 表示被説明率の再計算可否台帳（枝 #10）
+	$(PY) src/display_reproducibility.py
+
+numbers:                           ## 文書中の総数表現の統一ゲート（枝 #11）
+	$(PY) src/verify_numbers.py
 
 network:                           ## 埋め込みグラフ 297 ノード / 597 エッジの全件検証
 	$(PY) src/verify_network.py
