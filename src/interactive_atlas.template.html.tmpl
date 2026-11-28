@@ -113,6 +113,10 @@
     <label class="toggle-lbl" title="地理座標モードに世界地図（Natural Earth・パブリックドメイン）を背景表示します">
       <input type="checkbox" id="chk-map-bg" checked> 🗺 地図背景
     </label>
+    <label class="toggle-lbl" title="交易史・考古学遺物に基づく中継交易ルートを半透明の帯で表示します（大雑把な近似・クリックで詳細）">
+      <input type="checkbox" id="chk-trade" checked> 🐫 交易路
+    </label>
+    <select id="trade-era-sel" title="表示する交易路の時代を選択"></select>
     <button id="btn-steppe" class="steppe-btn">🐎 草原⇔印イ</button>
     <button id="btn-norse" class="norse-btn">🛡️ 北欧←印イ(PIE)</button>
     <button id="btn-pie" class="pie-btn">🌐 印欧比較</button>
@@ -242,6 +246,7 @@
   <div class="legend-item" style="color:#f59e0b;">┈◆┈ 非表示セクター経由 間接ブリッジ</div>
   <div class="legend-item" style="color:#f87171;">⚠ 乖離台帳(ADR 0003)・第2層評定・L1再評定 → インスペクタに v18 追記カード</div>
   <div class="legend-item">🗺 地図背景: Natural Earth 1:110m（パブリックドメイン・HTML埋め込み・通信なし）</div>
+  <div class="legend-item">🐫 半透明の帯＝交易史・考古学遺物に基づく中継交易ルート（大雑把な近似・クリックで詳細）</div>
 </div>
 
 <script>
@@ -262,6 +267,8 @@ let selectedId = null;
 
 let dynamicZoom = true;
 let showMapBg = true;
+let showTrade = true;
+let tradeEra = "all";
 let visibleSectors = new Set(DATA.lanes);
 let hiddenPathMode = "bridge"; // "bridge" | "ghost" | "strict"
 
@@ -324,6 +331,11 @@ function geoX(lon) {
 function geoY(lat) {
   if (GEO) return GEO.y_top + (GEO.merc_top_deg - mercYdeg(lat)) * GEO.k;
   return H - PAD.b - ((lat + 22) / 96.0) * (H - PAD.t - PAD.b);
+}
+
+function tX(t) {
+  const tc = Math.max(-2650, Math.min(1400, t));
+  return PAD.l + (xWarp(tc) / 11.3) * (W - PAD.l - PAD.r);
 }
 
 // ---------------------------------------------------------------------------
@@ -740,6 +752,138 @@ function getAncestorDescendantSet(rootId, visNodes, ghostNodes, bridges) {
 // ---------------------------------------------------------------------------
 // 4. メインSVG描画（セクター圧縮・直接エッジ・仮想ブリッジ・LODラベル）
 // ---------------------------------------------------------------------------
+// 交易路オーバーレイ: 交易史・考古学遺物に基づく中継交易ルートを半透明の帯で近似表示
+// （data/trade_routes.json 由来・表示専用。解析計算には未使用）
+function drawTradeLayer(parentG, laneGeom) {
+  const tr = DATA.trade_routes;
+  if (!tr || !tr.routes) return;
+  const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+  g.setAttribute("id", "trade-g");
+  const eraName = {};
+  (tr.eras || []).forEach(e => { eraName[e.id] = e.name; });
+  const spanOf = (r) => {
+    const ys = r.chain.filter(l => laneGeom[l]).map(l => laneGeom[l].yc);
+    return ys.length ? Math.max(...ys) - Math.min(...ys) : 0;
+  };
+  const routes = tr.routes
+    .filter(r => (tradeEra === "all" || r.era === tradeEra) && (r.chain || []).filter(l => laneGeom[l]).length >= 2)
+    .slice()
+    .sort((a, b) => spanOf(b) - spanOf(a));
+  const labelBoxes = [];
+  routes.forEach(r => {
+    const lanes = r.chain.filter(l => laneGeom[l]);
+    let x1 = tX(r.t_from), x2 = tX(r.t_to);
+    if (x2 - x1 < 46) { const cx = (x1 + x2) / 2; x1 = cx - 23; x2 = cx + 23; }
+    const col = r.color || "#94a3b8";
+    const rg = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    rg.setAttribute("class", "trade-route-g");
+    rg.setAttribute("data-route", r.id);
+    const ys = lanes.map(l => laneGeom[l].yc);
+    const yTop = Math.min(...ys), yBot = Math.max(...ys);
+
+    // 期間の淡いコリドー（ごく薄い下地）
+    const corridor = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+    corridor.setAttribute("x", x1); corridor.setAttribute("y", yTop - 8);
+    corridor.setAttribute("width", x2 - x1); corridor.setAttribute("height", yBot - yTop + 16);
+    corridor.setAttribute("rx", 7);
+    corridor.setAttribute("fill", col); corridor.setAttribute("opacity", "0.045");
+    rg.appendChild(corridor);
+
+    // 各セクター（レーン）の薄い帯
+    lanes.forEach(ln => {
+      const yc = laneGeom[ln].yc;
+      const strip = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+      strip.setAttribute("x", x1); strip.setAttribute("y", yc - 3.6);
+      strip.setAttribute("width", x2 - x1); strip.setAttribute("height", 7.2);
+      strip.setAttribute("rx", 3.6);
+      strip.setAttribute("fill", col); strip.setAttribute("opacity", "0.16");
+      rg.appendChild(strip);
+    });
+
+    // セクター間の縦の軟帯（中継接続のニュアンス）
+    const xs = (x2 - x1) >= 96 ? [x1 + 18, (x1 + x2) / 2, x2 - 18] : [(x1 + x2) / 2];
+    for (let i = 0; i < lanes.length - 1; i++) {
+      const yA = laneGeom[lanes[i]].yc, yB = laneGeom[lanes[i + 1]].yc;
+      xs.forEach((xv, xi) => {
+        const link = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        link.setAttribute("x1", xv); link.setAttribute("x2", xv);
+        link.setAttribute("y1", yA); link.setAttribute("y2", yB);
+        link.setAttribute("stroke", col);
+        link.setAttribute("stroke-width", "5.5");
+        link.setAttribute("stroke-linecap", "round");
+        link.setAttribute("opacity", xi === Math.floor(xs.length / 2) ? "0.12" : "0.07");
+        rg.appendChild(link);
+      });
+    }
+
+    // 中継点ドット
+    lanes.forEach(ln => {
+      const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+      dot.setAttribute("cx", (x1 + x2) / 2); dot.setAttribute("cy", laneGeom[ln].yc);
+      dot.setAttribute("r", "2.8");
+      dot.setAttribute("fill", col); dot.setAttribute("opacity", "0.6");
+      rg.appendChild(dot);
+    });
+
+    // ラベル（帯の上端・重なりは上下にずらして回避）
+    const approxW = [...r.name].reduce((a, ch) => a + (ch.charCodeAt(0) > 255 ? 8.6 : 5.0), 0);
+    const lx = (x1 + x2) / 2;
+    let ly = yTop - 9;
+    for (let guard = 0; guard < 6; guard++) {
+      const clash = labelBoxes.some(b => Math.abs(b.y - ly) < 10 && Math.abs(b.x - lx) < (b.w + approxW) / 2);
+      if (!clash) break;
+      ly -= 11;
+    }
+    labelBoxes.push({ x: lx, y: ly, w: approxW });
+    const lbl = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    lbl.setAttribute("x", lx); lbl.setAttribute("y", ly);
+    lbl.setAttribute("text-anchor", "middle");
+    lbl.setAttribute("font-size", "8.6");
+    lbl.setAttribute("fill", col); lbl.setAttribute("opacity", "0.9");
+    lbl.textContent = r.name;
+    rg.appendChild(lbl);
+
+    // 操作用ヒットエリア（ホバーでツールチップ・クリックで詳細）
+    const hit = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+    hit.setAttribute("x", x1 - 4); hit.setAttribute("y", yTop - 16);
+    hit.setAttribute("width", x2 - x1 + 8); hit.setAttribute("height", yBot - yTop + 28);
+    hit.setAttribute("fill", "transparent");
+    hit.style.cursor = "pointer";
+    hit.addEventListener("mousemove", (ev) => {
+      const chain = r.chain.map(l => shortLaneName(l)).join(" ⇄ ");
+      const eraTxt = eraName[r.era] ? "（" + eraName[r.era] + "）" : "";
+      tooltip.innerHTML = `<b style="color:${col};">🐫 ${escHtml(r.name)}</b>${escHtml(eraTxt)}<br>結ぶセクター: <span style="color:#fde68a;">${escHtml(chain)}</span><br>主要交易品: ${escHtml((r.commodities || []).join("・"))}<br><span style="color:#94a3b8;">${escHtml(r.evidence)}</span>`;
+      tooltip.style.display = "block";
+      const box = tooltip.parentElement.getBoundingClientRect();
+      tooltip.style.left = Math.min(box.width - 360, ev.clientX - box.left + 14) + "px";
+      tooltip.style.top = Math.min(box.height - 130, ev.clientY - box.top + 14) + "px";
+    });
+    hit.addEventListener("mouseleave", () => { tooltip.style.display = "none"; });
+    hit.addEventListener("click", (ev) => {
+      if (ev.stopPropagation) ev.stopPropagation();
+      showTradeRouteDetail(r, eraName[r.era] || "");
+    });
+    rg.appendChild(hit);
+    g.appendChild(rg);
+  });
+  parentG.appendChild(g);
+}
+
+function showTradeRouteDetail(r, eraLabel) {
+  const chain = r.chain.map(l => `<div class="edge-row"><b>${escHtml(l)}</b>（${escHtml(shortLaneName(l))}）</div>`).join("");
+  const tStr = `${r.t_from < 0 ? "前" + Math.abs(r.t_from) : r.t_from + " CE"}〜${r.t_to < 0 ? "前" + Math.abs(r.t_to) : r.t_to + " CE"}`;
+  detailPanel.innerHTML = `
+    <div class="card">
+      <h2>🐫 交易路: ${escHtml(r.name)}</h2>
+      <p style="color:#94a3b8;">時代区分: ${escHtml(eraLabel)} ／ おおよその時期: ${tStr}</p>
+      <p><b>主要交易品:</b> ${escHtml((r.commodities || []).join("・"))}</p>
+      <p><b>結ぶセクター（中継の連なり）:</b></p>
+      ${chain}
+      <p style="margin-top:8px;"><b>拠点・証拠（交易史・考古学遺物）:</b><br>${escHtml(r.evidence)}</p>
+      <p style="color:#64748b;font-size:10px;">※ 表示は交易圏の大雑把な近似です（厳密な経路・年代の断定ではありません）。出所: data/trade_routes.json</p>
+    </div>`;
+}
+
 function render() {
   const topoInfo = computeSectorVisibilityAndBridges();
   const { visNodes, ghostNodes, bridges, hiddenIndirectCount, hasHiddenSectors } = topoInfo;
@@ -847,6 +991,11 @@ function render() {
     });
   }
   vpG.appendChild(bgG);
+
+  // 交易路オーバーレイ（スイムレーン・半透明の帯）
+  if (mode === "swim" && showTrade && DATA.trade_routes) {
+    drawTradeLayer(vpG, laneGeom);
+  }
 
   const trace = (selectedId && coords[selectedId]) ? getAncestorDescendantSet(selectedId, visNodes, ghostNodes, bridges) : null;
   const qLower = searchQuery.trim().toLowerCase();
@@ -1455,6 +1604,16 @@ document.getElementById("chk-map-bg").onchange = (ev) => {
   render();
 };
 
+document.getElementById("chk-trade").onchange = (ev) => {
+  showTrade = ev.target.checked;
+  render();
+};
+
+document.getElementById("trade-era-sel").onchange = (ev) => {
+  tradeEra = ev.target.value;
+  render();
+};
+
 svg.addEventListener("wheel", (ev) => {
   if (ev.preventDefault) ev.preventDefault();
   const pt = clientToSvg(ev.clientX, ev.clientY);
@@ -1507,8 +1666,12 @@ document.getElementById("btn-reset").onclick = () => {
   hiddenPathMode = "bridge";
   dynamicZoom = true;
   showMapBg = true;
+  showTrade = true;
+  tradeEra = "all";
   document.getElementById("chk-dyn-zoom").checked = true;
   document.getElementById("chk-map-bg").checked = true;
+  document.getElementById("chk-trade").checked = true;
+  document.getElementById("trade-era-sel").value = "all";
   document.getElementById("txt-search").value = "";
   document.getElementById("btn-steppe").classList.remove("active");
   document.getElementById("btn-norse").classList.remove("active");
@@ -1538,6 +1701,19 @@ window.__v14Debug = {
 };
 
 initCatalogControls();
+
+(function initTradeEraSelect() {
+  const sel = document.getElementById("trade-era-sel");
+  if (!sel || !DATA.trade_routes) return;
+  const optAll = document.createElement("option");
+  optAll.value = "all"; optAll.textContent = "🐫 交易路: 全時代";
+  sel.appendChild(optAll);
+  (DATA.trade_routes.eras || []).forEach(e => {
+    const o = document.createElement("option");
+    o.value = e.id; o.textContent = "🐫 " + e.name;
+    sel.appendChild(o);
+  });
+})();
 renderSectorGrid();
 render();
 </script>

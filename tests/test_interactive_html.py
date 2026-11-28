@@ -249,5 +249,68 @@ class TestWorldMapBackground(unittest.TestCase):
             self.assertLess(dist, 100, f"({lon},{lat}) が海岸線から遠すぎる: {dist:.0f}px")
 
 
+class TestTradeRoutes(unittest.TestCase):
+    """スイムレーンの交易路オーバーレイ（半透明の帯・中継交易ルート）の検査。"""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.text = HTML_PATH.read_text(encoding="utf-8")
+        cls.data = load_embedded_data(cls.text)
+        cls.tr = cls.data.get("trade_routes") or {}
+        cls.template = TEMPLATE_PATH.read_text(encoding="utf-8")
+
+    def test_trade_routes_embedded(self):
+        """交易路データ（data/trade_routes.json）が埋め込まれ、近似表示である旨の注記がある。"""
+        self.assertTrue(self.tr, "trade_routes が埋め込まれていること")
+        self.assertGreaterEqual(len(self.tr.get("routes", [])), 6)
+        self.assertGreaterEqual(len(self.tr.get("eras", [])), 3)
+        self.assertIn("近似", self.tr.get("disclaimer", ""))
+
+    def test_route_schema_and_lane_names(self):
+        """各ルートのスキーマが完全で、参照レーン名が DATA.lanes と厳密一致する。"""
+        lane_set = set(self.data["lanes"])
+        era_ids = {e["id"] for e in self.tr["eras"]}
+        color_re = re.compile(r"^#[0-9a-fA-F]{6}$")
+        for r in self.tr["routes"]:
+            for key in ("id", "era", "name", "t_from", "t_to", "chain", "commodities", "evidence", "color"):
+                self.assertIn(key, r, f"{r.get('id')}: {key} 欠落")
+            self.assertIn(r["era"], era_ids, f"{r['id']}: 未定義の時代 {r['era']}")
+            self.assertLess(r["t_from"], r["t_to"], r["id"])
+            self.assertGreaterEqual(len(r["chain"]), 2, r["id"])
+            for lane in r["chain"]:
+                self.assertIn(lane, lane_set, f"{r['id']}: 未定義レーン {lane}")
+            self.assertTrue(r["commodities"], r["id"])
+            self.assertTrue(len(r["evidence"]) >= 10, r["id"])
+            self.assertRegex(r["color"], color_re, r["id"])
+        ids = [r["id"] for r in self.tr["routes"]]
+        self.assertEqual(len(ids), len(set(ids)), "ルート ID の重複")
+
+    def test_known_routes_present(self):
+        """依頼で挙げられた交易路（ラピスラズリ・琥珀・アマルナ・海路・横断路・シルクロード）が収録されている。"""
+        ids = {r["id"] for r in self.tr["routes"]}
+        for rid in ("lapis", "amber", "amarna", "silk", "sea", "trans_india"):
+            self.assertIn(rid, ids)
+        names = " ".join(r["name"] for r in self.tr["routes"])
+        self.assertIn("ラピスラズリ", names)
+        self.assertIn("琥珀", names)
+        self.assertIn("海路", names)
+        self.assertIn("横断路", names)
+
+    def test_render_layer_and_controls(self):
+        """描画レイヤー・トグル・時代セレクト・凡例がテンプレートと生成物に存在する。"""
+        for token in ("drawTradeLayer", "trade-g", 'id="chk-trade"', 'id="trade-era-sel"', "showTradeRouteDetail"):
+            self.assertIn(token, self.template, token)
+            self.assertIn(token, self.text, token)
+        self.assertIn("🐫", self.text)
+        self.assertIn("中継交易ルート", self.text)
+
+    def test_display_only_no_external_refs(self):
+        """交易路データに通信を誘導する文字列（URL 等）が含まれない。"""
+        blob = json.dumps(self.tr, ensure_ascii=False)
+        self.assertNotIn("http://", blob)
+        self.assertNotIn("https://", blob)
+        self.assertNotIn("ftp://", blob)
+
+
 if __name__ == "__main__":
     unittest.main()
