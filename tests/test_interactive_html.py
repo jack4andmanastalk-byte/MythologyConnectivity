@@ -159,6 +159,23 @@ class TestInteractiveHtml(unittest.TestCase):
         self.assertIn("__DATA_JSON__", template)
         self.assertNotIn("__DATA_JSON__", self.text)
 
+    def test_doc_connectivity_numbers_match_data(self):
+        """考察節の接続性数値（最長距離・長距離エッジ数・K1-05 被説明率・親エッジ距離）が DATA と一致する。"""
+        doc = (ROOT / "docs/interactive_graph_html_ja.md").read_text(encoding="utf-8")
+        edges = self.data["edges"]
+        max_e = max(edges, key=lambda e: e["dist_km"])
+        n_far = sum(1 for e in edges if e["dist_km"] > 6000)
+        k5 = next(n for n in self.data["nodes"] if n["id"] == "K1-05")
+        self.assertIn(f"{max_e['dist_km']:,.0f} km", doc, "最長エッジ距離")
+        self.assertIn(f"{n_far} 本", doc, "6,000km 超の本数")
+        self.assertIn(f"{k5['explained_pct']}%", doc, "K1-05 先行被説明率")
+        by_pair = {(e["source"], e["target"]): e for e in edges}
+        for pair in (("CN04", "K1-02"), ("SE08", "K1-01"), ("SI09", "K1-01")):
+            e = by_pair[pair]
+            self.assertIn(f"{e['dist_km']:,.0f}km", doc, f"{pair} の距離")
+        self.assertIn("512", doc)
+        self.assertIn("1,212", doc)
+
 
 class TestWorldMapBackground(unittest.TestCase):
     """地理座標モードの世界地図背景（Natural Earth 埋め込み・通信なし）の検査。"""
