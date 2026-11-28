@@ -1,1079 +1,1495 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>古事記×ユーラシア神話 グラフネットワーク確認アトラス（v18データ再構築）</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>v17 二層統合ネットワーク：75D神話 × 15D王権儀礼・物質レガリア（90D × 297ノード × 597エッジ）</title>
 <style>
-  :root {
-    --bg: #0e1420; --panel: #17202f; --panel2: #1d2939; --line: #2b3a52;
-    --text: #e8eef7; --muted: #9db0c7; --accent: #ffb454; --accent2: #56b4e9;
-    --danger: #ff6b6b; --ok: #7fd18a; --chip: #243247;
-  }
-  * { box-sizing: border-box; }
-  html, body { margin: 0; padding: 0; height: 100%; }
-  body {
-    background: var(--bg); color: var(--text);
-    font-family: "Hiragino Sans", "Noto Sans CJK JP", "Yu Gothic UI", Meiryo, sans-serif;
-    font-size: 13px; display: flex; flex-direction: column; overflow: hidden;
-  }
-  header {
-    display: flex; align-items: center; gap: 12px; padding: 8px 14px;
-    background: linear-gradient(180deg, #16213a, #121a29); border-bottom: 1px solid var(--line);
-    flex-wrap: wrap;
-  }
-  header h1 { font-size: 15px; margin: 0; font-weight: 700; letter-spacing: .02em; }
-  header .sub { color: var(--muted); font-size: 11px; }
-  .chips { display: flex; gap: 6px; flex-wrap: wrap; margin-left: auto; }
-  .chip {
-    background: var(--chip); border: 1px solid var(--line); border-radius: 999px;
-    padding: 2px 10px; font-size: 11px; color: var(--muted); white-space: nowrap;
-  }
-  .chip b { color: var(--text); font-weight: 600; }
-  .chip.warn b { color: var(--accent); }
-  button {
-    background: var(--panel2); color: var(--text); border: 1px solid var(--line);
-    border-radius: 6px; padding: 4px 10px; cursor: pointer; font-size: 12px;
-    font-family: inherit;
-  }
-  button:hover { border-color: var(--accent2); }
-  button.primary { background: #24446b; border-color: #3b6ea5; }
-  #toolbar {
-    display: flex; align-items: center; gap: 10px; padding: 6px 14px;
-    background: var(--panel); border-bottom: 1px solid var(--line); flex-wrap: wrap;
-  }
-  #toolbar .group { display: flex; align-items: center; gap: 5px; }
-  #toolbar label { color: var(--muted); font-size: 11px; user-select: none; }
-  #toolbar input[type="checkbox"] { accent-color: var(--accent2); }
-  #toolbar input[type="range"] { width: 90px; accent-color: var(--accent); }
-  #toolbar input[type="text"] {
-    background: var(--panel2); color: var(--text); border: 1px solid var(--line);
-    border-radius: 6px; padding: 4px 8px; width: 190px; font-size: 12px;
-    font-family: inherit;
-  }
-  .tab {
-    padding: 4px 12px; border-radius: 6px; border: 1px solid var(--line);
-    background: transparent; color: var(--muted); cursor: pointer; font-size: 12px;
-    font-family: inherit;
-  }
-  .tab.active { background: #24446b; color: var(--text); border-color: #3b6ea5; }
-  details.regionbox { position: relative; }
-  details.regionbox summary {
-    list-style: none; cursor: pointer; background: var(--panel2);
-    border: 1px solid var(--line); border-radius: 6px; padding: 4px 10px;
-    color: var(--muted); font-size: 12px; user-select: none;
-  }
-  details.regionbox summary::-webkit-details-marker { display: none; }
-  .regionmenu {
-    position: absolute; z-index: 40; top: 110%; left: 0; width: 320px; max-height: 320px;
-    overflow: auto; background: var(--panel2); border: 1px solid var(--line);
-    border-radius: 8px; padding: 8px; box-shadow: 0 8px 24px rgba(0,0,0,.5);
-  }
-  .regionmenu .row { display: flex; align-items: center; gap: 6px; padding: 2px 2px; }
-  .regionmenu .sw { width: 10px; height: 10px; border-radius: 3px; flex: none; }
-  .regionmenu .row label { flex: 1; color: var(--text); font-size: 11px; }
-  #stageWrap { flex: 1; display: flex; min-height: 0; }
-  #stageBox { flex: 1; position: relative; min-width: 0; background:
-    radial-gradient(1200px 700px at 65% 20%, #14203a 0%, #0e1420 70%); }
-  #stage { width: 100%; height: 100%; display: block; cursor: grab; }
-  #stage.dragging { cursor: grabbing; }
-  #detail {
-    width: 360px; flex: none; background: var(--panel); border-left: 1px solid var(--line);
-    overflow-y: auto; padding: 12px;
-  }
-  #detail h2 { font-size: 13px; margin: 0 0 2px; line-height: 1.5; }
-  #detail .idline { color: var(--accent); font-weight: 700; font-size: 12px; }
-  #detail .placeholder { color: var(--muted); padding: 20px 6px; line-height: 2; }
-  .dsec { margin-top: 12px; border-top: 1px solid var(--line); padding-top: 8px; }
-  .dsec h3 { font-size: 11px; color: var(--accent2); margin: 0 0 6px; letter-spacing: .05em; }
-  .kv { display: grid; grid-template-columns: 8.5em 1fr; gap: 2px 8px; font-size: 11px; }
-  .kv .k { color: var(--muted); }
-  .kv .v { color: var(--text); word-break: break-all; }
-  .pill {
-    display: inline-block; border-radius: 999px; padding: 1px 8px; font-size: 10px;
-    border: 1px solid var(--line); background: var(--chip); margin: 1px 2px 1px 0;
-    color: var(--muted);
-  }
-  .pill.gap { border-color: var(--danger); color: var(--danger); }
-  .pill.ok { border-color: var(--ok); color: var(--ok); }
-  .ev { background: var(--panel2); border-left: 3px solid var(--accent2);
-    padding: 5px 8px; margin: 4px 0; font-size: 11px; line-height: 1.7; border-radius: 0 6px 6px 0; }
-  .ev .who { color: var(--muted); font-size: 10px; }
-  .edgerow {
-    display: flex; gap: 6px; align-items: baseline; padding: 2px 4px; border-radius: 4px;
-    cursor: pointer; font-size: 11px;
-  }
-  .edgerow:hover { background: var(--panel2); }
-  .edgerow .w { color: var(--accent); min-width: 3.2em; text-align: right; }
-  .edgerow .nm { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .panelview { display: none; flex: 1; min-height: 0; overflow: auto; padding: 12px 16px; }
-  .panelview.active { display: block; }
-  #stageWrap.hidden { display: none; }
-  table.data { border-collapse: collapse; width: 100%; font-size: 11px; }
-  table.data th, table.data td {
-    border-bottom: 1px solid var(--line); padding: 4px 6px; text-align: left;
-    white-space: nowrap;
-  }
-  table.data th { position: sticky; top: 0; background: var(--panel2); cursor: pointer;
-    z-index: 2; color: var(--accent2); font-weight: 600; }
-  table.data tr { cursor: pointer; }
-  table.data tr:hover td { background: #22304a; }
-  table.data tr.sel td { background: #2c4264; }
-  table.data td.num { text-align: right; font-variant-numeric: tabular-nums; }
-  .mwrap { overflow: auto; max-height: 100%; }
-  table.matrix { border-collapse: collapse; font-size: 10px; }
-  table.matrix th, table.matrix td { border: 1px solid var(--line); padding: 3px 5px;
-    text-align: center; }
-  table.matrix th.rowh { text-align: left; position: sticky; left: 0; background: var(--panel2);
-    z-index: 1; max-width: 260px; overflow: hidden; text-overflow: ellipsis; }
-  table.matrix thead th { position: sticky; top: 0; background: var(--panel2); z-index: 2; }
-  table.matrix thead th.corner { left: 0; z-index: 3; }
-  table.matrix td.cell { cursor: pointer; min-width: 30px; font-variant-numeric: tabular-nums; }
-  table.matrix tr:hover td { outline: 1px solid var(--accent2); }
-  #tooltip {
-    position: fixed; z-index: 90; pointer-events: none; display: none;
-    background: rgba(13, 20, 33, .95); border: 1px solid var(--line); border-radius: 8px;
-    padding: 7px 10px; font-size: 11px; max-width: 340px; line-height: 1.7;
-    box-shadow: 0 6px 18px rgba(0,0,0,.45);
-  }
-  #tooltip .t-title { color: var(--accent); font-weight: 700; }
-  #overlay {
-    position: fixed; inset: 0; z-index: 100; background: rgba(5, 9, 16, .72);
-    display: none; align-items: center; justify-content: center;
-  }
-  #overlay.open { display: flex; }
-  #notesCard {
-    width: min(860px, 92vw); max-height: 86vh; overflow: auto; background: var(--panel);
-    border: 1px solid var(--line); border-radius: 12px; padding: 18px 22px;
-    box-shadow: 0 20px 60px rgba(0,0,0,.6); line-height: 1.9; font-size: 12px;
-  }
-  #notesCard h2 { margin: 0 0 4px; font-size: 15px; }
-  #notesCard h3 { font-size: 12px; color: var(--accent2); margin: 14px 0 4px; }
-  #notesCard ul { margin: 4px 0; padding-left: 1.4em; }
-  #notesCard code { background: var(--panel2); border-radius: 4px; padding: 1px 6px; font-size: 11px; }
-  .legend { display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
-    color: var(--muted); font-size: 11px; }
-  .legend svg { display: inline-block; vertical-align: middle; }
-  #statusbar {
-    padding: 4px 14px; background: var(--panel); border-top: 1px solid var(--line);
-    color: var(--muted); font-size: 11px; display: flex; gap: 14px; flex-wrap: wrap;
-  }
-  .node-shape { cursor: pointer; }
-  .edge-path { fill: none; }
-  .dimmed { opacity: .12; }
-  .hidden-item { display: none; }
-  .lane-label { fill: var(--muted); font-size: 11px; }
-  .lane-line { stroke: var(--line); stroke-width: 1; }
-  .axis-label { fill: var(--muted); font-size: 11px; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Hiragino Kaku Gothic ProN", "Noto Sans CJK JP", "Yu Gothic", sans-serif; background: #0b1120; color: #e2e8f0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+  header { background: #111827; border-bottom: 1px solid #1e293b; padding: 7px 13px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 7px; z-index: 25; position: relative; }
+  .head-left { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+  header h1 { font-size: 13.0px; font-weight: 700; color: #f8fafc; }
+  header .sub { font-size: 10.0px; color: #94a3b8; margin-top: 1px; }
+  .view-tabs { display: inline-flex; background: #0b1120; border: 1px solid #334155; border-radius: 8px; padding: 2px; gap: 3px; }
+  .tab-btn { background: transparent; border: none; color: #94a3b8; font-size: 11.2px; font-weight: 700; padding: 4.5px 9.5px; border-radius: 6px; cursor: pointer; }
+  .tab-btn.active { background: #0284c7; color: #ffffff; }
+  .tab-btn:hover:not(.active) { background: #1e293b; color: #f8fafc; }
+  .controls { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; }
+  button, select, input[type=text] { background: #1e293b; color: #f1f5f9; border: 1px solid #334155; border-radius: 6px; padding: 4.2px 7.5px; font-size: 10.9px; cursor: pointer; }
+  button.active { background: #0f766e; border-color: #2dd4bf; color: white; font-weight: 700; }
+  button.steppe-btn.active { background: #b45309; border-color: #fbbf24; color: white; }
+  button.norse-btn.active { background: #4338ca; border-color: #818cf8; color: white; }
+  button.pie-btn.active { background: #065f46; border-color: #34d399; color: white; }
+  button.sector-btn { background: #1e293b; border-color: #38bdf8; color: #7dd3fc; font-weight: 700; }
+  button.sector-btn.open { background: #0369a1; border-color: #7dd3fc; color: #ffffff; }
+  button:hover { background: #334155; }
+  .toggle-lbl { font-size: 10.8px; display: flex; align-items: center; gap: 4px; color: #cbd5e1; cursor: pointer; background: #1e293b; border: 1px solid #334155; border-radius: 6px; padding: 3.5px 7px; }
+  .toggle-lbl input { cursor: pointer; }
+
+  /* セクター選択ドロップダウンパネル */
+  #sector-drawer { position: absolute; top: 100%; right: 14px; width: 690px; max-width: calc(100vw - 28px); max-height: 82vh; overflow-y: auto; background: rgba(15,23,42,0.98); border: 1px solid #38bdf8; border-radius: 10px; padding: 12px 14px; box-shadow: 0 12px 36px rgba(0,0,0,0.75); z-index: 60; display: none; }
+  #sector-drawer.open { display: block; }
+  .drawer-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid #1e293b; }
+  .drawer-head h3 { font-size: 12.5px; color: #38bdf8; }
+  .preset-row { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 9px; }
+  .preset-btn { font-size: 10.4px; padding: 3.5px 8px; background: #172554; border-color: #3b82f6; color: #dbeafe; }
+  .preset-btn:hover { background: #1d4ed8; }
+  .hidden-mode-box { background: #111827; border: 1px solid #334155; border-radius: 8px; padding: 8px 10px; margin-bottom: 9px; }
+  .hidden-mode-box .hm-title { font-size: 11px; font-weight: 700; color: #fbbf24; margin-bottom: 5px; }
+  .hm-opts { display: flex; flex-wrap: wrap; gap: 8px; }
+  .hm-opt { display: flex; align-items: flex-start; gap: 5px; font-size: 10.5px; color: #cbd5e1; cursor: pointer; background: #1e293b; border: 1px solid #334155; border-radius: 6px; padding: 5px 8px; flex: 1; min-width: 185px; }
+  .hm-opt.selected { border-color: #fbbf24; background: #292011; color: #fef3c7; }
+  .sector-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; }
+  .sec-chk { display: flex; align-items: center; gap: 6px; background: #111827; border: 1px solid #1e293b; border-radius: 6px; padding: 4.5px 7px; font-size: 10.5px; cursor: pointer; color: #e2e8f0; }
+  .sec-chk.on { border-color: #475569; background: #1e293b; }
+  .sec-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+  .sec-cnt { margin-left: auto; font-size: 9.8px; color: #94a3b8; }
+
+  main#graph-view { display: flex; flex: 1; overflow: hidden; }
+  #canvas-wrap { flex: 1; position: relative; overflow: hidden; background: #0f172a; user-select: none; }
+  svg { width: 100%; height: 100%; display: block; cursor: grab; }
+  svg.dragging { cursor: grabbing; }
+  .zoom-hud { position: absolute; top: 10px; right: 12px; z-index: 15; display: flex; align-items: center; gap: 4px; background: rgba(15,23,42,0.93); border: 1px solid #334155; border-radius: 8px; padding: 4px 7px; box-shadow: 0 4px 12px rgba(0,0,0,0.45); }
+  .zoom-hud button { padding: 3px 8px; font-size: 12px; font-weight: 700; min-width: 26px; }
+  .zoom-pct { font-size: 11px; color: #94a3b8; min-width: 42px; text-align: center; font-variant-numeric: tabular-nums; }
+  .lod-pill { font-size: 10.0px; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: #1e293b; color: #38bdf8; border: 1px solid #334155; margin-left: 3px; }
+  .status-banner { position: absolute; top: 10px; left: 12px; z-index: 14; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; background: rgba(15,23,42,0.88); border: 1px solid #334155; border-radius: 7px; padding: 4px 9px; font-size: 10.5px; color: #cbd5e1; pointer-events: none; }
+  .status-banner b { color: #fbbf24; }
+  .zoom-hint { position: absolute; bottom: 8px; right: 12px; z-index: 12; font-size: 10.1px; color: #64748b; background: rgba(15,23,42,0.82); padding: 3px 8px; border-radius: 4px; pointer-events: none; }
+
+  aside { width: 356px; background: #111827; border-left: 1px solid #1e293b; padding: 11px; overflow-y: auto; display: flex; flex-direction: column; gap: 9px; }
+  .card { background: #1e293b; border-radius: 8px; padding: 9.5px; border: 1px solid #334155; }
+  .card h2 { font-size: 12.2px; color: #38bdf8; margin-bottom: 5px; }
+  .card p { font-size: 11.3px; line-height: 1.48; color: #cbd5e1; }
+  .badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 700; margin: 2px 3px 2px 0; }
+  .b-dir { background: #1d4ed8; color: #dbeafe; }
+  .b-shr { background: #0f766e; color: #ccfbf1; }
+  .b-brg { background: #92400e; color: #fef3c7; border: 1px solid #f59e0b; }
+  .b-sig { background: #b45309; color: #fef3c7; }
+  .b-stp { background: #92400e; color: #fef3c7; border: 1px solid #fbbf24; }
+  .b-nc { background: #3730a3; color: #e0e7ff; border: 1px solid #818cf8; }
+  .b-other { background: #334155; color: #e2e8f0; }
+  .edge-row { padding: 5px 4px; border-bottom: 1px solid #334155; font-size: 10.8px; cursor: pointer; border-radius: 4px; }
+  .edge-row:hover { background: #263449; }
+  .motif-tag { display: inline-block; background: #0f172a; border: 1px solid #475569; border-radius: 4px; padding: 2px 5px; font-size: 10px; margin: 2px 3px 2px 0; color: #93c5fd; }
+  .tooltip { position: absolute; pointer-events: none; background: rgba(15,23,42,0.97); border: 1px solid #475569; border-radius: 6px; padding: 8px 10px; font-size: 11px; color: #f8fafc; max-width: 340px; display: none; z-index: 40; box-shadow: 0 4px 16px rgba(0,0,0,0.65); line-height: 1.45; }
+  .legend-bar { display: flex; flex-wrap: wrap; gap: 10px; font-size: 10.4px; padding: 4.5px 14px; background: #0b1120; border-top: 1px solid #1e293b; color: #94a3b8; }
+  .legend-item { display: flex; align-items: center; gap: 5px; }
+
+  #catalog-view { display: none; flex: 1; flex-direction: column; overflow: hidden; background: #0f172a; padding: 12px 16px; gap: 10px; }
+  .cat-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+  .chip { background: #1e293b; border: 1px solid #334155; color: #cbd5e1; border-radius: 14px; padding: 3px 10px; font-size: 10.5px; cursor: pointer; }
+  .chip.active { background: #0284c7; border-color: #38bdf8; color: #ffffff; font-weight: 700; }
+  .cat-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; background: #111827; padding: 8px 12px; border-radius: 8px; border: 1px solid #1e293b; }
+  .cat-table-wrap { flex: 1; overflow-y: auto; border: 1px solid #1e293b; border-radius: 8px; background: #111827; }
+  table { width: 100%; border-collapse: collapse; font-size: 11.3px; }
+  thead th { position: sticky; top: 0; background: #1e293b; color: #f8fafc; text-align: left; padding: 8px 10px; border-bottom: 1px solid #334155; font-size: 10.8px; z-index: 5; }
+  tbody tr { border-bottom: 1px solid #1e293b; cursor: pointer; }
+  tbody tr:hover { background: #1e293b; }
+  td { padding: 6px 10px; vertical-align: top; color: #cbd5e1; line-height: 1.4; }
+  .lane-pill { display: inline-block; padding: 2px 7px; border-radius: 10px; font-size: 10px; font-weight: 700; color: #ffffff; white-space: nowrap; }
 </style>
 </head>
 <body>
-
 <header>
-  <div>
-    <h1>古事記×ユーラシア神話 グラフネットワーク確認アトラス</h1>
-    <div class="sub">v18 リポジトリ凍結データから再構築（<code>src/build_interactive_html.py</code>）／人間確認用ビュー</div>
+  <div class="head-left">
+    <div class="view-tabs">
+      <button id="tab-graph" class="tab-btn active">🗺️ グラフアトラス</button>
+      <button id="tab-catalog" class="tab-btn">📚 収録済神話リスト (297件)</button>
+    </div>
+    <div>
+      <h1>v17 二層統合ネットワーク：Layer 1 (75D神話) × Layer 2 (15D政治儀礼物質)（90D × 297ノード × 597エッジ）</h1>
+      <div class="sub">U29-31神話層 ＋ R01-15(ステップ神剣/ビートリムキ/ネルガル/雑密陀羅尼/鏡剣勾玉/大宝神祇令)の別レイヤー定量接続 <span style="color:#7dd3fc;font-weight:700;">／ v18更新: 乖離台帳(ADR 0003)・第2層評定・L1再評定を追記</span></div>
+    </div>
   </div>
-  <div class="chips" id="statChips"></div>
-  <button id="btnNotes" class="primary">データと注記</button>
+  <div class="controls" id="graph-controls">
+    <button id="btn-swim" class="active">スイムレーン</button>
+    <button id="btn-geo">地理座標</button>
+    <button id="btn-sectors" class="sector-btn">🎛 セクター選択 (19/19)</button>
+    <label class="toggle-lbl" title="ズーム拡大時に密集ノードを動的に広げ、文字肥大化を抑制してタイトルを展開します">
+      <input type="checkbox" id="chk-dyn-zoom" checked> ズーム動的展開
+    </label>
+    <button id="btn-steppe" class="steppe-btn">🐎 草原⇔印イ</button>
+    <button id="btn-norse" class="norse-btn">🛡️ 北欧←印イ(PIE)</button>
+    <button id="btn-pie" class="pie-btn">🌐 印欧比較</button>
+    <button id="btn-v17layer2" style="background:#0f766e;border-color:#5eead4;color:#ccfbf1;">👑 v17 第2層(儀礼・物質)経路</button>
+    <select id="sel-edge">
+      <option value="all">全エッジ (→ ＋ ↔)</option>
+      <option value="directed_transmission">時差伝播のみ (Δt≥350)</option>
+      <option value="shared_proto_or_parallel">共通祖型のみ (Δt&lt;350)</option>
+    </select>
+    <input type="text" id="txt-search" placeholder="検索 (例: K1-07, NC_N02, クヴァシル)..." style="width:155px;">
+    <button id="btn-reset">リセット</button>
+  </div>
+
+  <!-- セクター自由オン・オフ ＆ 隠れたパス処理設定パネル -->
+  <div id="sector-drawer">
+    <div class="drawer-head">
+      <h3>🎛 セクター表示コントロール ＆ 非表示時の経路処理モード</h3>
+      <button id="btn-close-drawer" style="padding:2px 8px;">✕ 閉じる</button>
+    </div>
+    <div class="preset-row">
+      <button class="preset-btn" onclick="window.__applyPreset('all')">すべて表示 (18)</button>
+      <button class="preset-btn" onclick="window.__applyPreset('meso_ii_jp')">🏛️ メソポタミア＋印イ＋古事記 (8)</button>
+      <button class="preset-btn" onclick="window.__applyPreset('ie_steppe_norse')">🐎 印イ＋ステップ・ウラル＋北欧ケルト (6)</button>
+      <button class="preset-btn" style="background:#0f766e;border-color:#5eead4;color:#ccfbf1;" onclick="window.__applyPreset('v17_dual_layer_royalty')">👑 v17 第2層(メソポタミア/インド/草原/唐新羅/列島考古→古事記)</button>
+      <button class="preset-btn" onclick="window.__applyPreset('east_asia_jp')">🌏 東亜＋東南アジア＋古事記 (5)</button>
+      <button class="preset-btn" onclick="window.__applyPreset('ii_steppe')">☀️ イラン・インド4層＋草原 (5)</button>
+      <button class="preset-btn" style="background:#334155;border-color:#475569;" onclick="window.__applyPreset('none')">全解除</button>
+    </div>
+    <div class="hidden-mode-box">
+      <div class="hm-title">⚡ セクターを非表示にしたときの「経由パス」処理方法：</div>
+      <div class="hm-opts">
+        <label class="hm-opt selected" id="hm-opt-bridge" onclick="window.__setHiddenMode('bridge')">
+          <input type="radio" name="hidden_mode" value="bridge" checked>
+          <div><b>🌉 間接ブリッジ自動縮約 (推奨)</b><br><span style="color:#94a3b8;">非表示セクターを経由して繋がる可視ノード間を琥珀破線(⇢)で仮想接続し、経由経路を表示</span></div>
+        </label>
+        <label class="hm-opt" id="hm-opt-ghost" onclick="window.__setHiddenMode('ghost')">
+          <input type="radio" name="hidden_mode" value="ghost">
+          <div><b>👻 中継ゴースト保持</b><br><span style="color:#94a3b8;">可視セクター同士を繋ぐ経路上の仲介ノードだけ半透明残置＋極細回廊として表示</span></div>
+        </label>
+        <label class="hm-opt" id="hm-opt-strict" onclick="window.__setHiddenMode('strict')">
+          <input type="radio" name="hidden_mode" value="strict">
+          <div><b>✂ 直接エッジのみ</b><br><span style="color:#94a3b8;">両端が表示セクター内のエッジだけ描画（隠れた間接パス件数を警告表示）</span></div>
+        </label>
+      </div>
+    </div>
+    <div class="sector-grid" id="sector-grid"></div>
+  </div>
 </header>
 
-<div id="toolbar">
-  <div class="group" id="tabs">
-    <button class="tab active" data-tab="map">地図</button>
-    <button class="tab" data-tab="timeline">時系列レーン</button>
-    <button class="tab" data-tab="force">グラフ</button>
-    <button class="tab" data-tab="matrix">L2行列</button>
-    <button class="tab" data-tab="ledger">台帳</button>
-  </div>
-  <div class="group">
-    <label><input type="checkbox" id="layerPrimary" checked> L1主解析（校正z）</label>
-    <input type="range" id="minZ" min="0" max="100" value="0" step="1">
-    <label id="minZLabel">z≥0.0</label>
-  </div>
-  <div class="group">
-    <label><input type="checkbox" id="layerReference"> L1参考（v17互換cos）</label>
-    <input type="range" id="minCos" min="0" max="100" value="0" step="1">
-    <label id="minCosLabel">cos≥0.00</label>
-  </div>
-  <div class="group">
-    <label>ステップ</label>
-    <label><input type="checkbox" class="stepChk" value="1" checked>1</label>
-    <label><input type="checkbox" class="stepChk" value="2" checked>2</label>
-    <label><input type="checkbox" class="stepChk" value="3" checked>3</label>
-  </div>
-  <div class="group">
-    <label><input type="checkbox" id="kindEurasia" checked> ユーラシア</label>
-    <label><input type="checkbox" id="kindKojiki" checked> 古事記</label>
-    <label><input type="checkbox" id="kindAnchor" checked> アンカー</label>
-    <label><input type="checkbox" id="gapOnly"> 乖離台帳のみ</label>
-  </div>
-  <details class="regionbox" id="regionBox">
-    <summary id="regionSummary">地域フィルタ</summary>
-    <div class="regionmenu" id="regionMenu"></div>
-  </details>
-  <div class="group">
-    <input type="text" id="searchBox" placeholder="名称・ID 検索（Enter で最初に選択）">
-    <button id="btnReset">表示リセット</button>
-  </div>
-  <div class="legend group">
-    <svg width="26" height="16"><circle cx="8" cy="8" r="5.5" fill="#8fb8ff"></circle></svg>ユーラシア
-    <svg width="26" height="16"><rect x="3" y="3" width="10" height="10" transform="rotate(45 8 8)" fill="#ffd28a"></rect></svg>古事記
-    <svg width="26" height="16"><polygon points="8,2 14,14 2,14" fill="#a6f0c6"></polygon></svg>アンカー
-    <svg width="30" height="16"><circle cx="12" cy="8" r="5.5" fill="none" stroke="#ff6b6b" stroke-width="2"></circle></svg>乖離
-  </div>
-</div>
-
-<div id="stageWrap">
-  <div id="stageBox">
-    <svg id="stage" viewBox="0 0 1400 800" preserveAspectRatio="xMidYMid meet">
-      <defs>
-        <marker id="arrowPrimary" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-          <path d="M0,0 L8,4 L0,8 z" fill="#e8955a"></path>
-        </marker>
-        <marker id="arrowReference" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-          <path d="M0,0 L8,4 L0,8 z" fill="#5f87c9"></path>
-        </marker>
-      </defs>
-      <g id="viewport">
-        <g id="gGrid"></g>
-        <g id="gEdges"></g>
-        <g id="gNodes"></g>
-      </g>
-    </svg>
-  </div>
-  <aside id="detail">
-    <div class="placeholder" id="detailPlaceholder">
-      ノードをクリックすると、<br>・表示監査（ADR 0003）<br>・凍結 v16 統計<br>・L1 モチーフ（75次元）<br>・L2 評定（R01-R15・証拠つき）<br>・接続エッジ<br>を確認できます。
+<main id="graph-view">
+  <div id="canvas-wrap">
+    <div class="status-banner" id="status-banner">表示中: 19 / 19 セクター</div>
+    <div class="zoom-hud">
+      <button id="btn-zoom-out" title="ズームアウト">－</button>
+      <span id="zoom-pct" class="zoom-pct">100%</span>
+      <button id="btn-zoom-in" title="ズームイン">＋</button>
+      <button id="btn-zoom-reset" title="表示位置・倍率をリセット">全体</button>
+      <span id="lod-pill" class="lod-pill">LOD: 俯瞰</span>
     </div>
-    <div id="detailBody" style="display:none"></div>
+    <svg id="atlas-svg" viewBox="0 0 1280 940" preserveAspectRatio="xMidYMid meet"></svg>
+    <div class="zoom-hint">拡大すると密集ノードが動的に開いて日本語タイトルを表示 ／ セクター選択で特定文明間のブリッジ可視化</div>
+    <div id="tooltip" class="tooltip"></div>
+  </div>
+  <aside id="inspector">
+    <div class="card">
+      <h2>ノード／経路インスペクタ (v17: 90D二層)</h2>
+      <p><b>① 動的ズーム：</b>ホイールや「＋」で 150%〜220% 以上へ拡大すると、古事記や北欧・ケルトの密集帯が自動的にほどけ、短縮日本語タイトルが展開されます。<br><b>② セクター選択：</b>上部の「🎛 セクター選択」から任意の文明だけを残すと縦幅が自動圧縮され、隠れた中間経路が<b>間接ブリッジ(⇢)</b>や<b>👻ゴースト</b>として見えます。</p>
+    </div>
+    <div id="detail-panel"></div>
   </aside>
-</div>
+</main>
 
-<div class="panelview" id="viewMatrix">
-  <h2 style="margin:0 0 4px;font-size:14px;">第 2 層 評定行列（L2_R01-R15）</h2>
-  <div class="sub" style="color:var(--muted);font-size:11px;margin-bottom:8px;">
-    行 = 古事記ノード / アンカーノード、列 = L2 語彙次元。セル色は水準（0不在〜3中心的）。
-    各セルの A / B / C / L は評定パス（A・B = 独立評定、C = 中立語彙操作、L = v17 legacy 写像）。
-    セルクリックで該当ノードの証拠を右パネルに表示。マスに評定がない次元は空欄。
+<section id="catalog-view">
+  <div class="cat-chips" id="cat-chips"></div>
+  <div class="cat-toolbar">
+    <select id="cat-region-sel"></select>
+    <select id="cat-tag-sel">
+      <option value="all">区分: すべて</option>
+      <option value="added_steppe">ステップ・ウラル追加（ST_S01〜10）</option>
+      <option value="layer2_dom">★ v17 第2層：列島考古・律令政治(4)</option>
+      <option value="layer2_ext">★ v17 第2層：大陸・草原儀礼物質(12)</option>
+      <option value="added_v16">v16 マハ細分化＆六度集経(4)</option>
+      <option value="added_v15">v15 東亜・草原検証(8)</option>
+      <option value="added_norse">v13 北欧・ケルト追加（NC_N01〜04）</option>
+      <option value="added_siberia">v12 シベリア極北新規</option>
+      <option value="added_sea">v12 海路(東南アジア・琉球)新規</option>
+      <option value="added_iran">v11 イラン増補</option>
+      <option value="added_india">v11 インド増補</option>
+      <option value="sig">統計的有意ノード（p &lt; 0.05）</option>
+    </select>
+    <select id="cat-sort-sel">
+      <option value="time_asc">並び: 実効年代 古い順</option>
+      <option value="id_asc">並び: ノードID順</option>
+      <option value="out_desc">並び: 出次数 多い順</option>
+      <option value="exp_desc">並び: 被説明率 高い順</option>
+      <option value="p_asc">並び: p値 小さい順</option>
+    </select>
+    <input type="text" id="cat-search" placeholder="リスト検索（例: 天岩戸, クシャーナ, ウシャス）..." style="width:295px;">
+    <span id="cat-count" style="font-size:11.5px; color:#38bdf8; font-weight:700; margin-left:auto;"></span>
   </div>
-  <div class="mwrap"><div id="matrixHost"></div></div>
-</div>
-
-<div class="panelview" id="viewLedger">
-  <h2 style="margin:0 0 4px;font-size:14px;">全ノード台帳（297 件）</h2>
-  <div class="sub" style="color:var(--muted);font-size:11px;margin-bottom:8px;">
-    見出しクリックでソート。行クリックで右パネルに詳細表示。
-    「表示被説明率」は凍結 HTML の表示値、「L1再生」は表示 L1 辺からの再計算（derived 台帳）。
-    「乖離」は ADR 0003 の閾値 0.01 を超える差。主解析/参考の in/out は本 HTML の再構築エッジによる次数。
+  <div class="cat-table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:76px;">ID</th>
+          <th style="width:195px;">時代層・系統・地域</th>
+          <th style="width:78px;">年代</th>
+          <th>収録神話（出典・モチーフ要約） ※クリックでグラフ表示</th>
+          <th style="width:110px;">区分</th>
+          <th style="width:66px;">被説明率</th>
+          <th style="width:64px;">p値</th>
+          <th style="width:64px;">入 / 出</th>
+          <th style="width:175px;">継承 / 固有残余モチーフ</th>
+        </tr>
+      </thead>
+      <tbody id="cat-tbody"></tbody>
+    </table>
   </div>
-  <div class="mwrap"><div id="ledgerHost"></div></div>
-</div>
+</section>
 
-<div id="statusbar">
-  <span id="statusText">準備完了</span>
-  <span>再生成: <code>make interactive</code>（または <code>python3 src/build_interactive_html.py</code>）</span>
-</div>
-
-<div id="tooltip"></div>
-
-<div id="overlay">
-  <div id="notesCard">
-    <h2>データと注記</h2>
-    <div id="notesBody"></div>
-    <div style="margin-top:14px;text-align:right;">
-      <button id="btnCloseNotes" class="primary">閉じる</button>
-    </div>
-  </div>
+<div class="legend-bar">
+  <div class="legend-item">■ ステップ・ウラル追加</div>
+  <div class="legend-item">▲ 北欧・ケルト新規</div>
+  <div class="legend-item">◆ その他増補 / ● 既存・古事記 (白枠: p&lt;0.05)</div>
+  <div class="legend-item" style="color:#fbbf24;">━━ 草原⇔印イ</div>
+  <div class="legend-item" style="color:#818cf8;">━━ 印イ→北欧(PIE)</div>
+  <div class="legend-item" style="color:#f59e0b;">┈◆┈ 非表示セクター経由 間接ブリッジ</div>
+  <div class="legend-item" style="color:#f87171;">⚠ 乖離台帳(ADR 0003)・第2層評定・L1再評定 → インスペクタに v18 追記カード</div>
 </div>
 
 <script>
-"use strict";
-const DATA = __DATA_JSON__;
+const DATA = __DATA_JSON__
+const svg = document.getElementById("atlas-svg");
+const tooltip = document.getElementById("tooltip");
+const detailPanel = document.getElementById("detail-panel");
+const graphView = document.getElementById("graph-view");
+const catalogView = document.getElementById("catalog-view");
+const graphControls = document.getElementById("graph-controls");
 
-/* ---------------- 基本ユーティリティ ---------------- */
-const $ = (sel) => document.querySelector(sel);
-const $$ = (sel) => Array.from(document.querySelectorAll(sel));
-const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({
-  "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
-}[c]));
-const fmtPct = (v, nd = 1) => (v === null || v === undefined) ? "—" : (v * 100).toFixed(nd) + "%";
-const fmtNum = (v, nd = 2) => (v === null || v === undefined) ? "—" : Number(v).toFixed(nd);
-const fmtInt = (v) => (v === null || v === undefined) ? "—" : String(Math.round(v));
+let activeTab = "graph";
+let mode = "swim";
+let edgeFilter = "all";
+let focusMode = "none";
+let searchQuery = "";
+let selectedId = null;
 
-const NODES = DATA.nodes;
-const NODE_BY_ID = {};
-NODES.forEach((n) => { NODE_BY_ID[n.id] = n; });
-const REGIONS = DATA.meta.region_order;
-const PALETTE = [
-  "#e6876c", "#e0b34d", "#9fc56b", "#57c98a", "#4fc3b1", "#4fb0e0",
-  "#6f92e8", "#9a86e0", "#c57fd6", "#e07fb2", "#e88d9c", "#b9a06a",
-  "#7fbf7f", "#63b8c9", "#8aa8d8", "#c9975f", "#a9c26a", "#d67f7f", "#8fd0c8"
-];
-const REGION_COLOR = {};
-REGIONS.forEach((reg, i) => { REGION_COLOR[reg] = PALETTE[i % PALETTE.length]; });
+let dynamicZoom = true;
+let visibleSectors = new Set(DATA.lanes);
+let hiddenPathMode = "bridge"; // "bridge" | "ghost" | "strict"
 
-const KIND_LABEL = { eurasia: "ユーラシア", kojiki: "古事記", anchor: "アンカー" };
-const PROV_LABEL = {
-  "v16.L1": "v16.L1（第1層表示）",
-  "decomp.total_final": "decomp.total_final（3層合成表示）",
-  "pureL2_dom": "pureL2_dom（第2層支配表示）"
-};
-const LEVEL_LABEL = { "0": "不在", "1": "痕跡・言及のみ", "2": "明確に存在", "3": "中心的・定義的" };
+let zoomScale = 1.0, panX = 0.0, panY = 0.0;
+let isDragging = false, dragMoved = false;
+let dragStartClientX = 0, dragStartClientY = 0, dragStartPanX = 0, dragStartPanY = 0;
+let rafPending = false;
+let lastLayoutScale = 1.0;
 
-/* ---------------- 状態 ---------------- */
-const state = {
-  tab: "map",
-  layers: { primary: true, reference: false },
-  minZ: 0, minCos: 0,
-  steps: new Set(["1", "2", "3"]),
-  kinds: new Set(["eurasia", "kojiki", "anchor"]),
-  regions: new Set(REGIONS),
-  gapOnly: false,
-  search: "",
-  sel: null,
-  view: { tx: 0, ty: 0, k: 1 }
-};
+let catRegion = "ALL", catTag = "all", catSort = "time_asc", catSearch = "";
 
-/* ---------------- レイアウト ---------------- */
-const WORLD_W = 1400, WORLD_H = 800, MARGIN = 70;
-function extent(vals) {
-  let lo = Infinity, hi = -Infinity;
-  vals.forEach((v) => { if (v < lo) lo = v; if (v > hi) hi = v; });
-  if (!isFinite(lo)) { lo = 0; hi = 1; }
-  if (hi === lo) { hi = lo + 1; }
-  return [lo, hi];
+const W = 1280, H = 940;
+const PAD = { l: 196, r: 46, t: 28, b: 32 };
+
+const nodeById = {};
+const outAdj = {};
+const inAdj = {};
+DATA.nodes.forEach(n => {
+  nodeById[n.id] = n;
+  outAdj[n.id] = [];
+  inAdj[n.id] = [];
+});
+DATA.edges.forEach((e, idx) => {
+  outAdj[e.source].push({ edge: e, idx });
+  inAdj[e.target].push({ edge: e, idx });
+});
+
+const isSteppeReg = (r) => r.startsWith("ステップ・ウラル");
+const isNorseReg = (r) => r === "北欧・ケルト";
+const isIIReg = (r) => r.startsWith("イラン") || r.startsWith("インド");
+
+function escHtml(s) {
+  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
-const [lonMin, lonMax] = extent(NODES.map((n) => n.lon));
-const [latMin, latMax] = extent(NODES.map((n) => n.lat));
-const [tMin, tMax] = extent(NODES.map((n) => n.t_eff));
-const LANE_H = 38;
-const LANE_INDEX = {};
-REGIONS.forEach((reg, i) => { LANE_INDEX[reg] = i; });
 
-function projMap(n) {
-  return [
-    MARGIN + (n.lon - lonMin) / (lonMax - lonMin) * (WORLD_W - 2 * MARGIN),
-    MARGIN + (latMax - n.lat) / (latMax - latMin) * (WORLD_H - 2 * MARGIN)
-  ];
+function shortLaneName(lane) {
+  return DATA.lane_short[lane] || lane;
 }
-function projTimeline(n) {
-  return [
-    MARGIN + (n.t_eff - tMin) / (tMax - tMin) * (WORLD_W - 2 * MARGIN),
-    40 + LANE_INDEX[n.region] * LANE_H + LANE_H / 2
-  ];
+
+function xWarp(t) {
+  if (t < -1800) return ((t + 2650) / 850.0) * 1.7;
+  if (t < -1000) return 1.7 + ((t + 1800) / 800.0) * 2.1;
+  if (t < -400)  return 3.8 + ((t + 1000) / 600.0) * 2.1;
+  if (t < 0)     return 5.9 + ((t + 400) / 400.0) * 1.8;
+  if (t < 400)   return 7.7 + (t / 400.0) * 1.4;
+  if (t < 800)   return 9.1 + ((t - 400) / 400.0) * 1.3;
+  return 10.4 + ((t - 800) / 800.0) * 0.9;
 }
-function projForce(n) {
-  return [n.fx ?? 0, n.fy ?? 0];
+
+// ---------------------------------------------------------------------------
+// 1. 非表示セクター経由のパス解析（中継ゴースト抽出 + 極小間接ブリッジ縮約）
+// ---------------------------------------------------------------------------
+function computeSectorVisibilityAndBridges() {
+  const visNodes = new Set();
+  const ghostNodes = new Set();
+
+  DATA.nodes.forEach(n => {
+    if (visibleSectors.has(n.region)) visNodes.add(n.id);
+  });
+
+  const hasHiddenSectors = visibleSectors.size < DATA.lanes.length;
+  const bridges = [];
+  let hiddenIndirectCount = 0;
+
+  if (hasHiddenSectors && visNodes.size > 0) {
+    // 1) 中継ゴースト: 可視ノードから非表示ノード経由で別の可視ノードへ到達できる全中間ノード
+    const reachFromVis = new Set();
+    const qFwd = [];
+    visNodes.forEach(u => {
+      outAdj[u].forEach(({ edge }) => {
+        if (edgeFilter !== "all" && edge.type !== edgeFilter) return;
+        if (!visNodes.has(edge.target) && !reachFromVis.has(edge.target)) {
+          reachFromVis.add(edge.target);
+          qFwd.push(edge.target);
+        }
+      });
+    });
+    while (qFwd.length) {
+      const cur = qFwd.shift();
+      outAdj[cur].forEach(({ edge }) => {
+        if (edgeFilter !== "all" && edge.type !== edgeFilter) return;
+        if (!visNodes.has(edge.target) && !reachFromVis.has(edge.target)) {
+          reachFromVis.add(edge.target);
+          qFwd.push(edge.target);
+        }
+      });
+    }
+
+    const reachToVis = new Set();
+    const qBwd = [];
+    visNodes.forEach(v => {
+      inAdj[v].forEach(({ edge }) => {
+        if (edgeFilter !== "all" && edge.type !== edgeFilter) return;
+        if (!visNodes.has(edge.source) && !reachToVis.has(edge.source)) {
+          reachToVis.add(edge.source);
+          qBwd.push(edge.source);
+        }
+      });
+    });
+    while (qBwd.length) {
+      const cur = qBwd.shift();
+      inAdj[cur].forEach(({ edge }) => {
+        if (edgeFilter !== "all" && edge.type !== edgeFilter) return;
+        if (!visNodes.has(edge.source) && !reachToVis.has(edge.source)) {
+          reachToVis.add(edge.source);
+          qBwd.push(edge.source);
+        }
+      });
+    }
+
+    reachFromVis.forEach(h => {
+      if (reachToVis.has(h)) ghostNodes.add(h);
+    });
+
+    // 2) 極小間接ブリッジ（Minimal Transitive Bridge）:
+    //    可視 u から「すべて非表示ノード」を経由して最初に可視 v に再突入するパスを束ねる
+    const bridgeMap = new Map();
+    const directSet = new Set();
+    DATA.edges.forEach(e => {
+      if (edgeFilter !== "all" && e.type !== edgeFilter) return;
+      if (visNodes.has(e.source) && visNodes.has(e.target)) {
+        directSet.add(e.source + "->" + e.target);
+      }
+    });
+
+    visNodes.forEach(u => {
+      // BFS: state = { id, pathNodes, pathWeight, minHops }
+      const q = [];
+      const visitedBest = new Map();
+      outAdj[u].forEach(({ edge }) => {
+        if (edgeFilter !== "all" && edge.type !== edgeFilter) return;
+        const nxt = edge.target;
+        if (!visNodes.has(nxt) && ghostNodes.has(nxt)) {
+          q.push({ id: nxt, via: [nxt], prodW: edge.weight, minW: edge.weight });
+        }
+      });
+
+      let safety = 0;
+      while (q.length && safety < 240) {
+        safety++;
+        const st = q.shift();
+        outAdj[st.id].forEach(({ edge }) => {
+          if (edgeFilter !== "all" && edge.type !== edgeFilter) return;
+          const nxt = edge.target;
+          const newProd = st.prodW * edge.weight;
+          const newMin = Math.min(st.minW, edge.weight);
+          if (visNodes.has(nxt)) {
+            if (nxt === u) return;
+            const key = u + "->" + nxt;
+            if (directSet.has(key)) return;
+            const viaCopy = st.via.slice();
+            if (!bridgeMap.has(key)) {
+              bridgeMap.set(key, {
+                source: u, target: nxt,
+                paths: [{ via: viaCopy, hops: viaCopy.length, weight: newProd, minW: newMin }],
+                bestWeight: newProd, minHops: viaCopy.length,
+              });
+            } else {
+              const rec = bridgeMap.get(key);
+              if (rec.paths.length < 6) {
+                const sig = viaCopy.join("->");
+                if (!rec.paths.some(p => p.via.join("->") === sig)) {
+                  rec.paths.push({ via: viaCopy, hops: viaCopy.length, weight: newProd, minW: newMin });
+                }
+              }
+              if (newProd > rec.bestWeight) rec.bestWeight = newProd;
+              if (viaCopy.length < rec.minHops) rec.minHops = viaCopy.length;
+            }
+          } else if (ghostNodes.has(nxt) && st.via.length < 4 && !st.via.includes(nxt)) {
+            const prevBest = visitedBest.get(nxt) || 0;
+            if (newProd > prevBest * 0.85) {
+              visitedBest.set(nxt, Math.max(prevBest, newProd));
+              q.push({ id: nxt, via: st.via.concat([nxt]), prodW: newProd, minW: newMin });
+            }
+          }
+        });
+      }
+    });
+
+    bridgeMap.forEach(b => {
+      b.paths.sort((a, c) => (a.hops - c.hops) || (c.weight - a.weight));
+      bridges.push(b);
+    });
+    bridges.sort((a, b) => b.bestWeight - a.bestWeight);
+    hiddenIndirectCount = bridges.length;
+  }
+
+  return { visNodes, ghostNodes, bridges, hiddenIndirectCount, hasHiddenSectors };
 }
-function layoutXY(n) {
-  if (state.tab === "timeline") return projTimeline(n);
-  if (state.tab === "force") return projForce(n);
-  return projMap(n);
-}
-function initForcePositions() {
-  NODES.forEach((n) => {
-    if (n.fx === undefined) {
-      const [x, y] = projMap(n);
-      n.fx = WORLD_W / 2 + (x - WORLD_W / 2) * 0.9;
-      n.fy = WORLD_H / 2 + (y - WORLD_H / 2) * 0.9;
-      n.vx = 0; n.vy = 0;
+
+// ---------------------------------------------------------------------------
+// 2. 動的レーン配置 ＆ ズーム連動ノード間隔再配置（Collision Spread）
+// ---------------------------------------------------------------------------
+function computeDynamicLayout(topoInfo) {
+  const { visNodes, ghostNodes } = topoInfo;
+  const activeGhostLanes = new Set();
+  if (hiddenPathMode === "ghost") {
+    ghostNodes.forEach(gid => activeGhostLanes.add(nodeById[gid].region));
+  }
+
+  // 表示するレーンの並び（通常レーン重み 1.0、ゴースト専用回廊は合計でも全体の約23%以内に自動調整）
+  const laneLayout = [];
+  let normalCount = 0;
+  let ghostLaneCount = 0;
+  DATA.lanes.forEach(lane => {
+    if (visibleSectors.has(lane)) normalCount++;
+    else if (hiddenPathMode === "ghost" && activeGhostLanes.has(lane)) ghostLaneCount++;
+  });
+  const ghostWeight = ghostLaneCount > 0 ? Math.min(0.26, (Math.max(1, normalCount) * 0.30) / ghostLaneCount) : 0.25;
+
+  let totalWeight = 0;
+  DATA.lanes.forEach(lane => {
+    if (visibleSectors.has(lane)) {
+      laneLayout.push({ lane, kind: "normal", weight: 1.0 });
+      totalWeight += 1.0;
+    } else if (hiddenPathMode === "ghost" && activeGhostLanes.has(lane)) {
+      laneLayout.push({ lane, kind: "ghost", weight: ghostWeight });
+      totalWeight += ghostWeight;
     }
   });
-}
 
-/* ---------------- フィルタ ---------------- */
-function nodeVisible(n) {
-  if (!state.kinds.has(n.kind)) return false;
-  if (!state.regions.has(n.region)) return false;
-  if (state.gapOnly && !n.gap) return false;
-  if (state.search) {
-    const q = state.search.toLowerCase();
-    if (!(n.id.toLowerCase().includes(q) || n.name.toLowerCase().includes(q) ||
-          n.region.toLowerCase().includes(q))) return false;
-  }
-  return true;
-}
-function edgeVisible(e, layer) {
-  if (!state.layers[layer]) return false;
-  if (!state.steps.has(String(e.step))) return false;
-  if (layer === "primary" && e.z < state.minZ) return false;
-  if (layer === "reference" && e.cos < state.minCos) return false;
-  const s = NODE_BY_ID[e.s], t = NODE_BY_ID[e.t];
-  return s && t && nodeVisible(s) && nodeVisible(t);
-}
+  const usableH = H - PAD.t - PAD.b;
+  const laneGeom = {};
+  let curY = PAD.t;
+  laneLayout.forEach(item => {
+    const h = totalWeight > 0 ? (item.weight / totalWeight) * usableH : 0;
+    laneGeom[item.lane] = { y0: curY, h, yc: curY + h * 0.5, kind: item.kind };
+    curY += h;
+  });
 
-/* ---------------- SVG 描画 ---------------- */
-const svg = $("#stage");
-const gGrid = $("#gGrid");
-const gEdges = $("#gEdges");
-const gNodes = $("#gNodes");
-const tooltip = $("#tooltip");
+  // どのノードを描くか決定
+  const drawNodes = [];
+  DATA.nodes.forEach(n => {
+    if (visNodes.has(n.id)) drawNodes.push({ node: n, isGhost: false });
+    else if (hiddenPathMode === "ghost" && ghostNodes.has(n.id)) drawNodes.push({ node: n, isGhost: true });
+  });
 
-function shapeSVG(n, x, y, color, selected) {
-  const ring = [];
-  if (n.provenance === "decomp.total_final") {
-    ring.push(`<circle cx="${x}" cy="${y}" r="11" fill="none" stroke="${color}" stroke-width="1.4" stroke-dasharray="4 3" opacity="0.9"/>`);
-  } else if (n.provenance === "pureL2_dom") {
-    ring.push(`<circle cx="${x}" cy="${y}" r="11" fill="none" stroke="${color}" stroke-width="1.4" stroke-dasharray="1.5 3" opacity="0.9"/>`);
-  }
-  if (n.gap) {
-    ring.push(`<circle cx="${x}" cy="${y}" r="14" fill="none" stroke="#ff6b6b" stroke-width="1.6" opacity="0.85"/>`);
-  }
-  let core;
-  if (n.kind === "kojiki") {
-    core = `<rect x="${x - 6}" y="${y - 6}" width="12" height="12" transform="rotate(45 ${x} ${y})" fill="${color}" stroke="#0e1420" stroke-width="1"/>`;
-  } else if (n.kind === "anchor") {
-    core = `<polygon points="${x},${y - 8} ${x + 7},${y + 6} ${x - 7},${y + 6}" fill="${color}" stroke="#0e1420" stroke-width="1"/>`;
-  } else {
-    core = `<circle cx="${x}" cy="${y}" r="6" fill="${color}" stroke="#0e1420" stroke-width="1"/>`;
-  }
-  const selRing = selected ? `<circle cx="${x}" cy="${y}" r="16" fill="none" stroke="#ffffff" stroke-width="2.4" opacity="0.95"/>` : "";
-  return selRing + ring.join("") + core;
-}
+  // ズーム連動の展開係数（1.0倍では0、拡大に比例して滑らかに広がる）
+  const expand = dynamicZoom ? Math.max(0, zoomScale - 1.0) : 0.0;
+  const invScale = dynamicZoom ? (1.0 / Math.pow(Math.max(1.0, zoomScale), 0.72)) : 1.0;
+  const xExpand = 1.0 + Math.min(3.5, expand * 1.25);
+  const yExpand = 1.0 + Math.min(2.6, expand * 0.95);
 
-function renderGrid() {
-  if (state.tab === "timeline") {
-    let html = "";
-    REGIONS.forEach((reg, i) => {
-      const y = 40 + i * LANE_H + LANE_H / 2;
-      html += `<line class="lane-line" x1="${MARGIN / 2}" y1="${y}" x2="${WORLD_W - MARGIN / 2}" y2="${y}" opacity="0.35"/>`;
-      html += `<text class="lane-label" x="6" y="${y + 4}">${esc(reg)}</text>`;
-    });
-    for (let t = Math.ceil(tMin / 500) * 500; t <= tMax; t += 500) {
-      const x = MARGIN + (t - tMin) / (tMax - tMin) * (WORLD_W - 2 * MARGIN);
-      html += `<line class="lane-line" x1="${x}" y1="20" x2="${x}" y2="${WORLD_H - 10}" opacity="0.25"/>`;
-      html += `<text class="axis-label" x="${x}" y="14" text-anchor="middle">t=${t}</text>`;
+  // 同レーン・同時期バケットでグルーピング
+  const grpMap = {};
+  drawNodes.forEach(({ node }) => {
+    const key = node.region + "_" + Math.floor(node.t_eff / 50);
+    if (!grpMap[key]) grpMap[key] = [];
+    grpMap[key].push(node.id);
+  });
+  Object.values(grpMap).forEach(arr => arr.sort());
+
+  const coords = {};
+  drawNodes.forEach(({ node, isGhost }, iOrder) => {
+    if (mode === "swim") {
+      const lg = laneGeom[node.region];
+      const key = node.region + "_" + Math.floor(node.t_eff / 50);
+      const grp = grpMap[key];
+      const idx = grp.indexOf(node.id);
+
+      let x = PAD.l + (xWarp(node.t_eff) / 11.3) * (W - PAD.l - PAD.r);
+      let y = lg.yc;
+
+      if (node.region === "古事記（日本）") {
+        // ズーム拡大に応じて 4列×10行 → 6列×7行 → 8列×5行 へ段階展開して縦の密集を解放
+        const cols = (dynamicZoom && zoomScale >= 2.15) ? 8 : ((dynamicZoom && zoomScale >= 1.40) ? 6 : 4);
+        const rows = Math.ceil(grp.length / cols);
+        const col = Math.floor(idx / rows);
+        const row = idx % rows;
+        const dxStep = (cols >= 8 ? 22.0 : (cols >= 6 ? 15.0 : 9.0)) * (1.0 + Math.min(1.5, expand * 0.45));
+        const dyStep = Math.min((lg.h * 0.84) / Math.max(1, rows), 6.8 * yExpand);
+        // 712 CEから右端までの余白と400-712 CE間の左空白を両方活用
+        const leftBias = cols >= 8 ? -42.0 : (cols >= 6 ? -18.0 : 0.0);
+        x += (col - (cols - 1) / 2.0) * dxStep + leftBias;
+        y += (row - (rows - 1) / 2.0) * dyStep;
+        if (expand > 0.25) x += ((row % 2) - 0.5) * 6.5 * Math.min(1.4, expand);
+      } else {
+        const m = grp.length;
+        const maxBand = lg.h * (isGhost ? 0.65 : 0.86);
+        const stepY = Math.min(maxBand / Math.max(1, m), (m <= 4 ? 8.2 : 5.6) * yExpand);
+        y += (idx - (m - 1) / 2.0) * stepY;
+        if (m >= 2) {
+          const colSpread = Math.min(34, (m <= 3 ? 6.5 : 4.8) * xExpand);
+          x += ((idx % 2) - 0.5) * colSpread;
+          if (m >= 5) x += (Math.floor(idx / 2) - (m / 4)) * Math.min(14.0, 3.8 * expand);
+        }
+      }
+      x = Math.max(PAD.l + 4, Math.min(W - 22, x));
+      y = Math.max(lg.y0 + 4.5, Math.min(lg.y0 + lg.h - 4.5, y));
+      coords[node.id] = { x, y, lg, isGhost, baseX: x, baseY: y };
+    } else {
+      let gx = PAD.l * 0.36 + ((node.lon + 25) / 205.0) * (W - PAD.l * 0.44 - 26);
+      let gy = H - PAD.b - ((node.lat + 22) / 96.0) * (H - PAD.t - PAD.b);
+      coords[node.id] = { x: gx, y: gy, lg: null, isGhost, baseX: gx, baseY: gy };
     }
-    gGrid.innerHTML = html;
-  } else {
-    gGrid.innerHTML = "";
-  }
-}
-
-function neighborSet() {
-  if (!state.sel) return null;
-  const set = new Set([state.sel]);
-  const edges = [];
-  if (state.layers.primary) edges.push(...DATA.edges.primary);
-  if (state.layers.reference) edges.push(...DATA.edges.reference);
-  edges.forEach((e) => {
-    if (e.s === state.sel) set.add(e.t);
-    if (e.t === state.sel) set.add(e.s);
   });
-  return set;
-}
 
-function render() {
-  renderGrid();
-  const near = neighborSet();
-  let edgeHtml = "";
-  const drawLayer = (edges, layer, marker, color, opa) => {
-    edges.forEach((e) => {
-      if (!edgeVisible(e, layer)) return;
-      const s = NODE_BY_ID[e.s], t = NODE_BY_ID[e.t];
-      const [x1, y1] = layoutXY(s), [x2, y2] = layoutXY(t);
-      const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
-      const dx = x2 - x1, dy = y2 - y1;
-      const cx = mx - dy * 0.12, cy = my + dx * 0.12;
-      let cls = "edge-path";
-      if (near && !(near.has(e.s) && near.has(e.t))) cls += " dimmed";
-      edgeHtml += `<path class="${cls}" d="M${x1},${y1} Q${cx},${cy} ${x2},${y2}" stroke="${color}" stroke-width="1.4" opacity="${opa}" marker-end="url(#${marker})"><title>${esc(e.s)} → ${esc(e.t)} / ${layer === "primary" ? "z" : "cos"}=${fmtNum(layer === "primary" ? e.z : e.cos, 3)} / step ${e.step} / Δt ${e.dt}年 / ${fmtInt(e.km)}km</title></path>`;
-    });
-  };
-  drawLayer(DATA.edges.primary, "primary", "arrowPrimary", "#e8955a", 0.5);
-  drawLayer(DATA.edges.reference, "reference", "arrowReference", "#5f87c9", 0.42);
+  // ズーム時（または地理モード密集時）の決定的な局所衝突回避（2D Collision Relaxation）
+  if ((dynamicZoom && expand > 0.08) || mode === "geo") {
+    const minSep = mode === "swim"
+      ? (8.5 + Math.min(14.0, expand * 5.2)) * invScale
+      : (7.5 + Math.min(12.0, expand * 4.8)) * invScale;
+    const iters = mode === "swim" ? 3 : 5;
+    const ids = drawNodes.map(d => d.node.id).sort();
 
-  let nodeHtml = "";
-  NODES.forEach((n) => {
-    if (!nodeVisible(n)) return;
-    const [x, y] = layoutXY(n);
-    const color = REGION_COLOR[n.region] || "#999";
-    let cls = "node-shape";
-    if (near && !near.has(n.id)) cls += " dimmed";
-    nodeHtml += `<g class="${cls}" data-id="${esc(n.id)}">${shapeSVG(n, x, y, color, n.id === state.sel)}</g>`;
-  });
-  gEdges.innerHTML = edgeHtml;
-  gNodes.innerHTML = nodeHtml;
-
-  $$("#gNodes .node-shape").forEach((g) => {
-    g.addEventListener("click", (ev) => {
-      ev.stopPropagation();
-      selectNode(g.getAttribute("data-id"));
-    });
-    g.addEventListener("mousemove", (ev) => showTooltip(ev, g.getAttribute("data-id")));
-    g.addEventListener("mouseleave", hideTooltip);
-  });
-  updateStatus();
-}
-
-function showTooltip(ev, id) {
-  const n = NODE_BY_ID[id];
-  if (!n) return;
-  tooltip.innerHTML = `<div class="t-title">${esc(n.id)}　${esc(n.name)}</div>
-    ${esc(n.region)} / ${esc(KIND_LABEL[n.kind] || n.kind)} / t=${n.t_eff}
-    <br>出所: ${esc(n.provenance || "—")} / 表示被説明率 ${fmtPct(n.exp_display)}`;
-  tooltip.style.display = "block";
-  const pad = 14;
-  let x = ev.clientX + pad, y = ev.clientY + pad;
-  const rect = tooltip.getBoundingClientRect();
-  if (x + rect.width > window.innerWidth) x = ev.clientX - rect.width - pad;
-  if (y + rect.height > window.innerHeight) y = ev.clientY - rect.height - pad;
-  tooltip.style.left = x + "px";
-  tooltip.style.top = y + "px";
-}
-function hideTooltip() { tooltip.style.display = "none"; }
-
-/* ---------------- パン＆ズーム ---------------- */
-function applyView() {
-  const v = state.view;
-  $("#viewport").setAttribute("transform", `translate(${v.tx},${v.ty}) scale(${v.k})`);
-}
-function svgPoint(ev) {
-  const pt = svg.createSVGPoint();
-  pt.x = ev.clientX; pt.y = ev.clientY;
-  return pt.matrixTransform(svg.getScreenCTM().inverse());
-}
-let dragState = null;
-svg.addEventListener("mousedown", (ev) => {
-  dragState = { x: ev.clientX, y: ev.clientY, tx: state.view.tx, ty: state.view.ty };
-  svg.classList.add("dragging");
-});
-window.addEventListener("mousemove", (ev) => {
-  if (!dragState) return;
-  const rect = svg.getBoundingClientRect();
-  const scale = WORLD_W / rect.width;
-  state.view.tx = dragState.tx + (ev.clientX - dragState.x) * scale;
-  state.view.ty = dragState.ty + (ev.clientY - dragState.y) * scale;
-  applyView();
-});
-window.addEventListener("mouseup", () => {
-  dragState = null;
-  svg.classList.remove("dragging");
-});
-svg.addEventListener("wheel", (ev) => {
-  ev.preventDefault();
-  const p = svgPoint(ev);
-  const v = state.view;
-  const factor = ev.deltaY < 0 ? 1.12 : 1 / 1.12;
-  const nk = Math.min(12, Math.max(0.2, v.k * factor));
-  v.tx = p.x - (p.x - v.tx) * (nk / v.k);
-  v.ty = p.y - (p.y - v.ty) * (nk / v.k);
-  v.k = nk;
-  applyView();
-}, { passive: false });
-svg.addEventListener("click", (ev) => {
-  if (ev.target === svg || ev.target.id === "viewport") {
-    state.sel = null;
-    render();
-    renderDetail();
-  }
-});
-
-/* ---------------- 力导向シミュレーション ---------------- */
-let forceTimer = null;
-function startForce() {
-  initForcePositions();
-  if (forceTimer) cancelAnimationFrame(forceTimer);
-  const edges = [];
-  if (state.layers.primary) DATA.edges.primary.forEach((e) => edges.push([e.s, e.t, 140]));
-  if (state.layers.reference) DATA.edges.reference.forEach((e) => edges.push([e.s, e.t, 150]));
-  const visible = NODES.filter(nodeVisible);
-  const idset = new Set(visible.map((n) => n.id));
-  const fedges = edges.filter(([s, t]) => idset.has(s) && idset.has(t));
-  let alpha = 1;
-  const step = () => {
-    alpha *= 0.985;
-    for (let i = 0; i < visible.length; i++) {
-      const a = visible[i];
-      for (let j = i + 1; j < visible.length; j++) {
-        const b = visible[j];
-        let dx = b.fx - a.fx, dy = b.fy - a.fy;
-        let d2 = dx * dx + dy * dy;
-        if (d2 < 1) { dx = (Math.random() - 0.5); dy = (Math.random() - 0.5); d2 = 1; }
-        const rep = 2400 / d2;
-        const d = Math.sqrt(d2);
-        a.fx -= dx / d * rep * alpha; a.fy -= dy / d * rep * alpha;
-        b.fx += dx / d * rep * alpha; b.fy += dy / d * rep * alpha;
+    for (let it = 0; it < iters; it++) {
+      for (let i = 0; i < ids.length; i++) {
+        const ci = coords[ids[i]];
+        const ni = nodeById[ids[i]];
+        for (let j = i + 1; j < ids.length; j++) {
+          const cj = coords[ids[j]];
+          const nj = nodeById[ids[j]];
+          if (mode === "swim" && ni.region !== nj.region) continue;
+          let dx = cj.x - ci.x, dy = cj.y - ci.y;
+          let dist = Math.hypot(dx, dy);
+          if (dist < minSep) {
+            if (dist < 0.01) { dx = 0.5; dy = 0.86; dist = 1.0; }
+            const push = (minSep - dist) * 0.52;
+            const ux = dx / dist, uy = dy / dist;
+            // スイムレーンでは年代順を壊さないようY方向に強め・X方向は穏やかに押す
+            const kx = mode === "swim" ? 0.35 : 1.0;
+            const ky = mode === "swim" ? 1.15 : 1.0;
+            ci.x -= ux * push * kx; ci.y -= uy * push * ky;
+            cj.x += ux * push * kx; cj.y += uy * push * ky;
+          }
+        }
+        if (mode === "swim" && ci.lg) {
+          // X基準から離れすぎないアンカー復元 & レーン上下枠内へクランプ
+          ci.x = ci.baseX * 0.15 + ci.x * 0.85;
+          ci.x = Math.max(PAD.l + 4, Math.min(W - 14, ci.x));
+          ci.y = Math.max(ci.lg.y0 + 5, Math.min(ci.lg.y0 + ci.lg.h - 5, ci.y));
+        }
       }
     }
-    fedges.forEach(([s, t, rest]) => {
-      const a = NODE_BY_ID[s], b = NODE_BY_ID[t];
-      const dx = b.fx - a.fx, dy = b.fy - a.fy;
-      const d = Math.sqrt(dx * dx + dy * dy) || 1;
-      const f = (d - rest) * 0.004 * alpha;
-      a.fx += dx / d * f; a.fy += dy / d * f;
-      b.fx -= dx / d * f; b.fy -= dy / d * f;
-    });
-    visible.forEach((n) => {
-      n.fx += (WORLD_W / 2 - n.fx) * 0.0012 * alpha;
-      n.fy += (WORLD_H / 2 - n.fy) * 0.0012 * alpha;
-    });
+  }
+
+  return { laneLayout, laneGeom, drawNodes, coords, expand, invScale };
+}
+
+// ---------------------------------------------------------------------------
+// 3. ビューポート変換（ズーム時の連続的再配置発火制御）
+// ---------------------------------------------------------------------------
+function updateZoomHud() {
+  const pct = document.getElementById("zoom-pct");
+  if (pct) pct.textContent = Math.round(zoomScale * 100) + "%";
+  const lodPill = document.getElementById("lod-pill");
+  if (lodPill) {
+    if (!dynamicZoom) lodPill.textContent = "LOD: 固定倍率";
+    else if (zoomScale >= 2.15) lodPill.textContent = "LOD: タイトル詳細展開";
+    else if (zoomScale >= 1.35) lodPill.textContent = "LOD: 全ID＋クラスタ展開";
+    else lodPill.textContent = "LOD: 俯瞰";
+  }
+}
+
+function applyViewportTransform() {
+  const vp = document.getElementById("viewport-g");
+  if (vp) vp.setAttribute("transform", `translate(${panX.toFixed(2)}, ${panY.toFixed(2)}) scale(${zoomScale.toFixed(4)})`);
+  updateZoomHud();
+}
+
+function scheduleZoomRender() {
+  applyViewportTransform();
+  if (!dynamicZoom) return;
+  if (Math.abs(zoomScale - lastLayoutScale) < 0.03) return;
+  if (rafPending) return;
+  rafPending = true;
+  const run = () => {
+    rafPending = false;
+    lastLayoutScale = zoomScale;
     render();
-    if (alpha > 0.02) forceTimer = requestAnimationFrame(step);
   };
-  step();
-}
-function stopForce() {
-  if (forceTimer) { cancelAnimationFrame(forceTimer); forceTimer = null; }
+  if (typeof requestAnimationFrame === "function") requestAnimationFrame(run);
+  else setTimeout(run, 0);
 }
 
-/* ---------------- 詳細パネル ---------------- */
-function edgeRow(e, dir, layer) {
-  const other = NODE_BY_ID[dir === "in" ? e.s : e.t];
-  return `<div class="edgerow" data-goto="${esc(other.id)}">
-    <span class="w">${fmtNum(e.z, 3)}</span>
-    <span class="nm">${esc(other.id)} ${esc(other.name)}</span>
-    <span class="pill">${layer === "primary" ? "主解析z" : "参考cos"}</span>
-    <span class="pill">step ${e.step}</span>
-    <span class="pill">Δt ${e.dt}</span>
-    <span class="pill">${fmtInt(e.km)}km</span>
-  </div>`;
+function clientToSvg(clientX, clientY) {
+  const rect = svg.getBoundingClientRect();
+  if (!rect || rect.width === 0 || rect.height === 0) return { x: W / 2, y: H / 2 };
+  const scaleFit = Math.min(rect.width / W, rect.height / H);
+  const ox = (rect.width - W * scaleFit) / 2;
+  const oy = (rect.height - H * scaleFit) / 2;
+  return { x: (clientX - rect.left - ox) / scaleFit, y: (clientY - rect.top - oy) / scaleFit };
 }
 
-function renderDetail() {
-  const host = $("#detailBody");
-  const ph = $("#detailPlaceholder");
-  if (!state.sel) {
-    host.style.display = "none";
-    ph.style.display = "block";
-    return;
+function zoomAt(factor, svgPtX, svgPtY) {
+  const newScale = Math.max(0.50, Math.min(8.0, zoomScale * factor));
+  const actualFactor = newScale / zoomScale;
+  panX = svgPtX - (svgPtX - panX) * actualFactor;
+  panY = svgPtY - (svgPtY - panY) * actualFactor;
+  zoomScale = newScale;
+  scheduleZoomRender();
+}
+
+function resetZoom() {
+  zoomScale = 1.0; panX = 0.0; panY = 0.0; lastLayoutScale = 1.0;
+  applyViewportTransform();
+}
+
+function centerOnNode(n, targetScale) {
+  if (!n) return;
+  zoomScale = Math.max(zoomScale, targetScale || 2.25);
+  lastLayoutScale = zoomScale;
+  const topoInfo = computeSectorVisibilityAndBridges();
+  const layout = computeDynamicLayout(topoInfo);
+  const pt = layout.coords[n.id];
+  if (pt) {
+    panX = W * 0.5 - pt.x * zoomScale;
+    panY = H * 0.5 - pt.y * zoomScale;
   }
-  const n = NODE_BY_ID[state.sel];
-  if (!n) { host.style.display = "none"; ph.style.display = "block"; return; }
-  ph.style.display = "none";
-  host.style.display = "block";
+  render();
+}
 
-  let html = `<div class="idline">${esc(n.id)}</div><h2>${esc(n.name)}</h2>
-    <div style="margin:4px 0;">
-      <span class="pill">${esc(KIND_LABEL[n.kind] || n.kind)}</span>
-      <span class="pill">${esc(n.region)}</span>
-      <span class="pill">t=${n.t_eff}</span>
-      <span class="pill">lat ${fmtNum(n.lat, 1)}, lon ${fmtNum(n.lon, 1)}</span>
-      ${n.gap ? '<span class="pill gap">乖離台帳</span>' : '<span class="pill ok">乖離なし</span>'}
-    </div>`;
+function getAncestorDescendantSet(rootId, visNodes, ghostNodes, bridges) {
+  const activeNodes = new Set([rootId]);
+  const activeEdges = new Set();
+  const activeBridges = new Set();
+  const allowedNode = (id) => visNodes.has(id) || (hiddenPathMode === "ghost" && ghostNodes.has(id));
 
-  html += `<div class="dsec"><h3>表示監査（ADR 0003）</h3><div class="kv">
-    <span class="k">表示出所</span><span class="v">${esc(PROV_LABEL[n.provenance] || n.provenance || "—")}</span>
-    <span class="k">表示被説明率</span><span class="v">${fmtPct(n.exp_display)}</span>
-    <span class="k">L1表示辺から再生</span><span class="v">${fmtPct(n.exp_replay)}</span>`;
-  if (n.gap) {
-    html += `<span class="k">乖離 gap_l1</span><span class="v" style="color:var(--danger)">${fmtNum(n.gap.gap_l1, 4)}</span>
-      <span class="k">v16 L1 値</span><span class="v">${fmtPct(n.gap.v16_l1_pct)}</span>
-      <span class="k">3層分解 l1_only</span><span class="v">${fmtPct(n.gap.decomp_l1_only_pct)}</span>
-      <span class="k">l2_ext 増分</span><span class="v">${fmtPct(n.gap.decomp_l2_ext_gain_pct)}</span>
-      <span class="k">l2_dom 増分</span><span class="v">${fmtPct(n.gap.decomp_l2_dom_gain_pct)}</span>
-      <span class="k">total_final</span><span class="v">${fmtPct(n.gap.decomp_total_final_pct)}</span>
-      </div><div class="ev">${esc(n.gap.display_note)}</div>`;
+  let q = [rootId];
+  while (q.length) {
+    const cur = q.shift();
+    inAdj[cur].forEach(({ edge, idx }) => {
+      if (edgeFilter !== "all" && edge.type !== edgeFilter) return;
+      if (allowedNode(edge.source)) {
+        activeEdges.add(idx);
+        if (!activeNodes.has(edge.source)) { activeNodes.add(edge.source); q.push(edge.source); }
+      }
+    });
+    if (hiddenPathMode === "bridge") {
+      bridges.forEach((b, bIdx) => {
+        if (b.target === cur) {
+          activeBridges.add(bIdx);
+          if (!activeNodes.has(b.source)) { activeNodes.add(b.source); q.push(b.source); }
+        }
+      });
+    }
+  }
+
+  q = [rootId];
+  while (q.length) {
+    const cur = q.shift();
+    outAdj[cur].forEach(({ edge, idx }) => {
+      if (edgeFilter !== "all" && edge.type !== edgeFilter) return;
+      if (allowedNode(edge.target)) {
+        activeEdges.add(idx);
+        if (!activeNodes.has(edge.target)) { activeNodes.add(edge.target); q.push(edge.target); }
+      }
+    });
+    if (hiddenPathMode === "bridge") {
+      bridges.forEach((b, bIdx) => {
+        if (b.source === cur) {
+          activeBridges.add(bIdx);
+          if (!activeNodes.has(b.target)) { activeNodes.add(b.target); q.push(b.target); }
+        }
+      });
+    }
+  }
+  return { activeNodes, activeEdges, activeBridges };
+}
+
+// ---------------------------------------------------------------------------
+// 4. メインSVG描画（セクター圧縮・直接エッジ・仮想ブリッジ・LODラベル）
+// ---------------------------------------------------------------------------
+function render() {
+  const topoInfo = computeSectorVisibilityAndBridges();
+  const { visNodes, ghostNodes, bridges, hiddenIndirectCount, hasHiddenSectors } = topoInfo;
+  const layout = computeDynamicLayout(topoInfo);
+  const { laneLayout, laneGeom, drawNodes, coords, expand, invScale } = layout;
+
+  svg.innerHTML = "";
+  const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+  const mSz = (6.0 * Math.max(0.45, invScale)).toFixed(2);
+  defs.innerHTML = `
+    <marker id="arr-dir" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="${mSz}" markerHeight="${mSz}" orient="auto"><path d="M 0 1 L 10 5 L 0 9 z" fill="#60a5fa" /></marker>
+    <marker id="arr-stp" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="${mSz}" markerHeight="${mSz}" orient="auto"><path d="M 0 1 L 10 5 L 0 9 z" fill="#fbbf24" /></marker>
+    <marker id="arr-nc" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="${mSz}" markerHeight="${mSz}" orient="auto"><path d="M 0 1 L 10 5 L 0 9 z" fill="#818cf8" /></marker>
+    <marker id="arr-proto" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="${mSz}" markerHeight="${mSz}" orient="auto"><path d="M 0 2 L 8 5 L 0 8 z" fill="#38bdf8" /></marker>
+    <marker id="arr-bridge" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="${(mSz*1.15).toFixed(2)}" markerHeight="${(mSz*1.15).toFixed(2)}" orient="auto"><path d="M 0 1 L 10 5 L 0 9 z" fill="#f59e0b" /></marker>
+  `;
+  svg.appendChild(defs);
+
+  const vpG = document.createElementNS("http://www.w3.org/2000/svg", "g");
+  vpG.setAttribute("id", "viewport-g");
+  vpG.setAttribute("transform", `translate(${panX.toFixed(2)}, ${panY.toFixed(2)}) scale(${zoomScale.toFixed(4)})`);
+
+  // 背景レーン描画
+  const bgG = document.createElementNS("http://www.w3.org/2000/svg", "g");
+  if (mode === "swim") {
+    laneLayout.forEach((item, i) => {
+      const lg = laneGeom[item.lane];
+      const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+      rect.setAttribute("x", PAD.l - 5); rect.setAttribute("y", lg.y0);
+      rect.setAttribute("width", W - PAD.l - PAD.r + 10); rect.setAttribute("height", lg.h);
+      let fill = i % 2 === 0 ? "#111a2e" : "#0b1120";
+      if (item.kind === "ghost") fill = "#080d19";
+      else if (isSteppeReg(item.lane)) fill = "#231a0d";
+      else if (isNorseReg(item.lane)) fill = "#171a33";
+      rect.setAttribute("fill", fill);
+      rect.setAttribute("stroke", item.kind === "ghost" ? "#334155" : "#1e293b");
+      if (item.kind === "ghost") rect.setAttribute("stroke-dasharray", "4,4");
+      bgG.appendChild(rect);
+
+      const txt = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      txt.setAttribute("x", PAD.l - 10);
+      txt.setAttribute("y", lg.yc + 3.2 * invScale);
+      txt.setAttribute("text-anchor", "end");
+      txt.setAttribute("font-size", ((item.kind === "ghost" ? 8.2 : 9.4) * Math.max(0.55, Math.min(1.05, invScale))).toFixed(2));
+      txt.setAttribute("font-weight", item.kind === "ghost" ? "400" : "bold");
+      txt.setAttribute("fill", item.kind === "ghost" ? "#64748b" : DATA.lane_colors[item.lane]);
+      txt.textContent = (item.kind === "ghost" ? "👻中継: " : "") + shortLaneName(item.lane);
+      bgG.appendChild(txt);
+    });
+
+    [-2550,-2100,-1800,-1350,-1000,-600,-400,-200,0,200,400,712,1000,1400].forEach(t => {
+      const tx = PAD.l + (xWarp(t) / 11.3) * (W - PAD.l - PAD.r);
+      const ln = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      ln.setAttribute("x1", tx); ln.setAttribute("x2", tx);
+      ln.setAttribute("y1", PAD.t); ln.setAttribute("y2", H - PAD.b);
+      ln.setAttribute("stroke", t === 600 ? "#818cf8" : "#1e293b");
+      ln.setAttribute("stroke-width", (1.0 * invScale).toFixed(2));
+      ln.setAttribute("stroke-dasharray", "3,4");
+      bgG.appendChild(ln);
+      const lbl = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      lbl.setAttribute("x", tx); lbl.setAttribute("y", H - 9);
+      lbl.setAttribute("text-anchor", "middle");
+      lbl.setAttribute("font-size", (9.2 * Math.max(0.45, invScale)).toFixed(2));
+      lbl.setAttribute("fill", "#64748b");
+      lbl.textContent = t < 0 ? ("前" + Math.abs(t)) : (t + " CE");
+      bgG.appendChild(lbl);
+    });
   } else {
-    html += `</div>`;
-  }
-  html += `</div>`;
-
-  if (n.v16) {
-    html += `<div class="dsec"><h3>凍結 v16 ノード統計</h3><div class="kv">
-      <span class="k">explained_frac</span><span class="v">${fmtNum(n.v16.explained_frac, 4)}</span>
-      <span class="k">best_p</span><span class="v">${fmtNum(n.v16.best_p, 4)}</span>
-      <span class="k">best_z</span><span class="v">${fmtNum(n.v16.best_z, 3)}</span>
-      <span class="k">in_deg / out_deg</span><span class="v">${fmtNum(n.v16.in_deg, 0)} / ${fmtNum(n.v16.out_deg, 0)}（v16凍結）</span>
-      <span class="k">cat_tag</span><span class="v">${esc(n.v16.cat_tag)}${n.v16.is_extra ? "（追加ノード）" : ""}</span>
-      <span class="k">inherited</span><span class="v">${esc(n.v16.inherited_motifs || "—")}</span>
-      <span class="k">residual</span><span class="v">${esc(n.v16.residual_motifs || "—")}</span>
-      </div></div>`;
-  }
-
-  html += `<div class="dsec"><h3>再構築エッジ次数（本 HTML）</h3><div class="kv">
-    <span class="k">L1主解析</span><span class="v">${n.primary ? `被説明 ${fmtPct(n.primary.explained)} / 親 ${n.primary.n_parents} / top z ${fmtNum(n.primary.top_z, 2)}` : "（75次元行列なし）"}</span>
-    <span class="k">L1参考</span><span class="v">${n.reference ? `被説明 ${fmtPct(n.reference.explained)} / 親 ${n.reference.n_parents}` : "（75次元行列なし）"}</span>
-    </div></div>`;
-
-  if (n.motifs.length) {
-    html += `<div class="dsec"><h3>L1 モチーフ（75次元・非ゼロ ${n.motifs.length} 件）</h3><div>`;
-    n.motifs.forEach(([f, v]) => {
-      html += `<span class="pill">${esc(f)} ${fmtNum(v, 2)}</span>`;
+    [0, 30, 60, 90, 120, 150].forEach(lon => {
+      const gx = PAD.l * 0.36 + ((lon + 25) / 205.0) * (W - PAD.l * 0.44 - 26);
+      const ln = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      ln.setAttribute("x1", gx); ln.setAttribute("x2", gx); ln.setAttribute("y1", PAD.t); ln.setAttribute("y2", H - PAD.b);
+      ln.setAttribute("stroke", "#1e293b"); ln.setAttribute("stroke-dasharray", "3,4");
+      bgG.appendChild(ln);
     });
-    html += `</div></div>`;
-  }
-
-  if (n.l2.length) {
-    html += `<div class="dsec"><h3>第 2 層 評定（L2_R01-R15）</h3>`;
-    n.l2.forEach((e) => {
-      const lv = Object.entries(e.levels).map(([k, v]) => `${k}=${v}`).join(" / ");
-      html += `<div class="ev"><div class="who">パス ${esc(e.pass)} / ${esc(e.annotator)} / ${esc(e.coded_at)} / ${esc(e.file)}</div>
-        <b>${esc(lv)}</b>`;
-      Object.entries(e.evidence).forEach(([k, v]) => {
-        html += `<div>◆ ${esc(k)}: ${esc(v)}</div>`;
-      });
-      if (e.notes) html += `<div style="color:var(--muted)">（注）${esc(e.notes)}</div>`;
-      html += `</div>`;
+    [-15, 0, 20, 40, 60].forEach(lat => {
+      const gy = H - PAD.b - ((lat + 22) / 96.0) * (H - PAD.t - PAD.b);
+      const ln = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      ln.setAttribute("x1", PAD.l * 0.36); ln.setAttribute("x2", W - 26); ln.setAttribute("y1", gy); ln.setAttribute("y2", gy);
+      ln.setAttribute("stroke", "#1e293b"); ln.setAttribute("stroke-dasharray", "3,4");
+      bgG.appendChild(ln);
     });
-    html += `</div>`;
   }
+  vpG.appendChild(bgG);
 
-  if (n.l1audit.length) {
-    html += `<div class="dsec"><h3>L1 信頼性 再評定（独立監査）</h3>`;
-    n.l1audit.forEach((e) => {
-      const lv = Object.entries(e.levels).map(([k, v]) => `${k}=${v}`).join(" / ");
-      html += `<div class="ev"><div class="who">パス ${esc(e.pass)} / ${esc(e.annotator)} / ${esc(e.file)}</div>
-        <b>${esc(lv)}</b>`;
-      Object.entries(e.evidence).forEach(([k, v]) => {
-        html += `<div>◆ ${esc(k)}: ${esc(v)}</div>`;
-      });
-      if (e.notes) html += `<div style="color:var(--muted)">（注）${esc(e.notes)}</div>`;
-      html += `</div>`;
+  const trace = (selectedId && coords[selectedId]) ? getAncestorDescendantSet(selectedId, visNodes, ghostNodes, bridges) : null;
+  const qLower = searchQuery.trim().toLowerCase();
+  const matchedIds = new Set();
+  if (qLower) {
+    drawNodes.forEach(({ node: n }) => {
+      const txt = (n.id + " " + n.name + " " + n.region + " " + n.inherited_motifs + " " + n.residual_motifs).toLowerCase();
+      if (txt.includes(qLower)) matchedIds.add(n.id);
     });
-    html += `</div>`;
   }
 
-  const ins = DATA.edges.primary.filter((e) => e.t === n.id).map((e) => [e, "primary"])
-    .concat(DATA.edges.reference.filter((e) => e.t === n.id).map((e) => [e, "reference"]));
-  const outs = DATA.edges.primary.filter((e) => e.s === n.id).map((e) => [e, "primary"])
-    .concat(DATA.edges.reference.filter((e) => e.s === n.id).map((e) => [e, "reference"]));
-  html += `<div class="dsec"><h3>接続エッジ（主解析＋参考・sim 順）</h3>`;
-  if (ins.length) {
-    html += `<div style="color:var(--muted);font-size:10px;margin:2px 0;">親（入辺 ${ins.length}）</div>`;
-    ins.sort((a, b) => b[0].z - a[0].z).forEach(([e, layer]) => { html += edgeRow(e, "in", layer); });
-  }
-  if (outs.length) {
-    html += `<div style="color:var(--muted);font-size:10px;margin:6px 0 2px;">子（出辺 ${outs.length}）</div>`;
-    outs.sort((a, b) => b[0].z - a[0].z).forEach(([e, layer]) => { html += edgeRow(e, "out", layer); });
-  }
-  if (!ins.length && !outs.length) {
-    html += `<div style="color:var(--muted)">再構築エッジでは孤立（第 2 層接続のみの可能性）。純 L2 接続辺はリポジトリ未追跡のため本 HTML には現れない。</div>`;
-  }
-  html += `</div>`;
+  const focusNodes = new Set();
+  const edgeG = document.createElementNS("http://www.w3.org/2000/svg", "g");
+  let directCountShown = 0;
 
-  host.innerHTML = html;
-  host.querySelectorAll("[data-goto]").forEach((el) => {
-    el.addEventListener("click", () => selectNode(el.getAttribute("data-goto")));
+  // 4-A. 通常・直接（およびゴースト経由）エッジ描画
+  DATA.edges.forEach((e, idx) => {
+    if (edgeFilter !== "all" && e.type !== edgeFilter) return;
+    const cs = coords[e.source], ct = coords[e.target];
+    if (!cs || !ct) return;
+    directCountShown++;
+
+    const src = nodeById[e.source], tgt = nodeById[e.target];
+    const isII_Steppe = (isIIReg(src.region) && isSteppeReg(tgt.region)) || (isSteppeReg(src.region) && isIIReg(tgt.region));
+    const isII_Norse = (isIIReg(src.region) && isNorseReg(tgt.region));
+    const isSteppeRel = isSteppeReg(src.region) || isSteppeReg(tgt.region);
+    const isNorseRel = isNorseReg(src.region) || isNorseReg(tgt.region);
+    const isPieRel = isII_Steppe || isII_Norse || (isSteppeReg(src.region) && isNorseReg(tgt.region));
+    const hasR = typeof e.shared === "string" ? /(?:^|,)R\d+/.test(e.shared) : (Array.isArray(e.shared) && e.shared.some(m => m.startsWith("R")));
+    const isL2Rel = src.cat_tag.startsWith("layer2_") || tgt.cat_tag.startsWith("layer2_") || (hasR && tgt.region === "古事記（日本）");
+
+    if (focusMode === "steppe" && isSteppeRel) { focusNodes.add(src.id); focusNodes.add(tgt.id); }
+    if (focusMode === "norse" && isNorseRel) { focusNodes.add(src.id); focusNodes.add(tgt.id); }
+    if (focusMode === "pie" && isPieRel) { focusNodes.add(src.id); focusNodes.add(tgt.id); }
+    if (focusMode === "l2" && isL2Rel) { focusNodes.add(src.id); focusNodes.add(tgt.id); }
+
+    const mx = (cs.x + ct.x) / 2, my = (cs.y + ct.y) / 2;
+    const dx = ct.x - cs.x, dy = ct.y - cs.y;
+    const cx = mx - dy * 0.11, cy = my + dx * 0.11;
+
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("d", `M ${cs.x.toFixed(2)} ${cs.y.toFixed(2)} Q ${cx.toFixed(2)} ${cy.toFixed(2)} ${ct.x.toFixed(2)} ${ct.y.toFixed(2)}`);
+    path.setAttribute("fill", "none");
+
+    const ghostTouch = cs.isGhost || ct.isGhost;
+    let op = ghostTouch ? 0.42 : (0.19 + 0.34 * e.weight);
+    let sw = (0.72 + 1.25 * e.weight) * invScale;
+    if (trace) {
+      if (trace.activeEdges.has(idx)) { op = 0.94; sw = (1.5 + 2.0 * e.weight) * invScale; } else { op = 0.04; }
+    } else if (focusMode === "steppe") {
+      if (isSteppeRel) { op = isII_Steppe ? 0.96 : 0.78; sw = ((isII_Steppe ? 2.1 : 1.35) + 1.5 * e.weight) * invScale; } else { op = 0.04; }
+    } else if (focusMode === "norse") {
+      if (isNorseRel) { op = isII_Norse ? 0.96 : 0.78; sw = ((isII_Norse ? 2.1 : 1.35) + 1.5 * e.weight) * invScale; } else { op = 0.04; }
+    } else if (focusMode === "pie") {
+      if (isPieRel) { op = 0.94; sw = (1.7 + 1.7 * e.weight) * invScale; } else { op = 0.04; }
+    } else if (focusMode === "l2") {
+      if (isL2Rel) { op = 0.96; sw = (1.9 + 1.8 * e.weight) * invScale; } else { op = 0.04; }
+    } else if (qLower) {
+      op = (matchedIds.has(e.source) || matchedIds.has(e.target)) ? 0.85 : 0.04;
+    }
+
+    const strokeCol = src.cat_tag === "layer2_dom" ? "#2dd4bf" : (src.cat_tag === "layer2_ext" ? "#c084fc" : (hasR && tgt.region === "古事記（日本）" ? "#a78bfa" : (isII_Steppe ? "#fbbf24" : (isII_Norse ? "#818cf8" : (e.type === "directed_transmission" ? "#60a5fa" : "#38bdf8")))));
+    path.setAttribute("stroke", strokeCol);
+    path.setAttribute("stroke-opacity", op.toFixed(2));
+    path.setAttribute("stroke-width", sw.toFixed(2));
+    if (e.type !== "directed_transmission" || ghostTouch) path.setAttribute("stroke-dasharray", `${(4.5*invScale).toFixed(1)},${(3.5*invScale).toFixed(1)}`);
+    const mEnd = isII_Steppe ? "url(#arr-stp)" : (isII_Norse ? "url(#arr-nc)" : (e.type === "directed_transmission" ? "url(#arr-dir)" : "url(#arr-proto)"));
+    path.setAttribute("marker-end", mEnd);
+    edgeG.appendChild(path);
   });
-}
 
-function selectNode(id) {
-  state.sel = id;
-  render();
-  renderDetail();
-  const row = document.querySelector(`#ledgerHost tr[data-id="${CSS.escape(id)}"]`);
-  if (row) row.classList.add("sel");
-}
+  // 4-B. 間接ブリッジ自動縮約エッジ描画（hiddenPathMode === "bridge" のとき）
+  let bridgeShown = 0;
+  if (hiddenPathMode === "bridge" && bridges.length > 0) {
+    bridges.forEach((b, bIdx) => {
+      const cs = coords[b.source], ct = coords[b.target];
+      if (!cs || !ct) return;
+      bridgeShown++;
+      const mx = (cs.x + ct.x) / 2, my = (cs.y + ct.y) / 2;
+      const dx = ct.x - cs.x, dy = ct.y - cs.y;
+      const cx = mx - dy * 0.16, cy = my + dx * 0.16;
 
-/* ---------------- L2 行列 ---------------- */
-function renderMatrix() {
-  const vocab = [];
-  for (let i = 1; i <= 15; i++) vocab.push("R" + String(i).padStart(2, "0"));
-  const rows = NODES.filter((n) => n.l2.length);
-  let html = `<table class="matrix"><thead><tr><th class="corner">ノード</th>`;
-  vocab.forEach((v) => { html += `<th>${v}</th>`; });
-  html += `</tr></thead><tbody>`;
-  rows.forEach((n) => {
-    html += `<tr><th class="rowh" title="${esc(n.name)}">${esc(n.id)} ${esc(n.name)}</th>`;
-    vocab.forEach((dim) => {
-      const marks = [];
-      let maxLv = -1;
-      n.l2.forEach((e) => {
-        if (e.levels[dim] !== undefined) {
-          marks.push(`${e.pass[0].toUpperCase()}${e.levels[dim]}`);
-          maxLv = Math.max(maxLv, e.levels[dim]);
-        }
+      let op = 0.48 + Math.min(0.42, b.bestWeight * 1.1);
+      let sw = (1.15 + Math.min(1.5, b.bestWeight * 3.0)) * invScale;
+      if (trace) {
+        if (trace.activeBridges.has(bIdx)) { op = 0.96; sw = 2.4 * invScale; }
+        else op = 0.05;
+      } else if (qLower) {
+        op = (matchedIds.has(b.source) || matchedIds.has(b.target)) ? 0.92 : 0.05;
+      }
+
+      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      path.setAttribute("d", `M ${cs.x.toFixed(2)} ${cs.y.toFixed(2)} Q ${cx.toFixed(2)} ${cy.toFixed(2)} ${ct.x.toFixed(2)} ${ct.y.toFixed(2)}`);
+      path.setAttribute("fill", "none");
+      path.setAttribute("stroke", "#f59e0b");
+      path.setAttribute("stroke-opacity", op.toFixed(2));
+      path.setAttribute("stroke-width", sw.toFixed(2));
+      path.setAttribute("stroke-dasharray", `${(6.0*invScale).toFixed(1)},${(3.2*invScale).toFixed(1)}`);
+      path.setAttribute("marker-end", "url(#arr-bridge)");
+      path.style.cursor = "pointer";
+
+      const p0 = b.paths[0];
+      const viaTxt = p0.via.map(vid => `${vid}(${shortLaneName(nodeById[vid].region)})`) .join(" → ");
+      path.addEventListener("mouseenter", (ev) => {
+        if (isDragging) return;
+        tooltip.innerHTML = `<b style="color:#fbbf24;">🌉 間接ブリッジ縮約経路 (${b.paths.length}ルート / 最短${b.minHops}中継)</b><br><b>${escHtml(b.source)}</b> (${escHtml(nodeById[b.source].short_name)}) ⇢ <b>${escHtml(b.target)}</b> (${escHtml(nodeById[b.target].short_name)})<br>代表経由: <span style="color:#fde68a;">${escHtml(viaTxt)}</span>`;
+        tooltip.style.display = "block";
+        const box = document.getElementById("canvas-wrap").getBoundingClientRect();
+        tooltip.style.left = Math.min(box.width - 350, ev.clientX - box.left + 14) + "px";
+        tooltip.style.top = Math.min(box.height - 110, ev.clientY - box.top + 14) + "px";
       });
-      const colors = ["#22304a", "#3c5a76", "#4f8f6f", "#8fc46a", "#d9e86a"];
-      const bg = maxLv < 0 ? "#16202f" : colors[maxLv + 1];
-      const tip = marks.join(" ");
-      html += `<td class="cell" style="background:${bg};color:${maxLv >= 2 ? "#12202f" : "var(--text)"}" data-id="${esc(n.id)}" title="${esc(tip)}">${esc(tip)}</td>`;
+      path.addEventListener("mouseleave", () => { tooltip.style.display = "none"; });
+      path.addEventListener("click", (ev) => {
+        if (ev && ev.stopPropagation) ev.stopPropagation();
+        selectedId = b.target;
+        showDetail(nodeById[b.target], topoInfo);
+        render();
+      });
+      edgeG.appendChild(path);
+
+      // ブリッジが密集しすぎない範囲（またはトレース/拡大中）で中間点ダイヤ印を表示
+      if ((trace && trace.activeBridges.has(bIdx)) || zoomScale >= 1.3 || b.bestWeight >= 0.16) {
+        const bx = 0.25 * cs.x + 0.5 * cx + 0.25 * ct.x;
+        const by = 0.25 * cs.y + 0.5 * cy + 0.25 * ct.y;
+        const dsz = 3.2 * invScale;
+        const dia = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+        dia.setAttribute("points", `${bx},${by-dsz} ${bx+dsz},${by} ${bx},${by+dsz} ${bx-dsz},${by}`);
+        dia.setAttribute("fill", "#f59e0b");
+        dia.setAttribute("opacity", op.toFixed(2));
+        edgeG.appendChild(dia);
+      }
     });
-    html += `</tr>`;
+  }
+  vpG.appendChild(edgeG);
+
+  // 4-C. ノード描画 ＋ LOD（Zoom段階別ラベル）＋ 簡易重なり回避
+  const nodeG = document.createElementNS("http://www.w3.org/2000/svg", "g");
+  const placedLabels = [];
+  const sortedDraw = drawNodes.slice().sort((a, b) => {
+    const pa = (a.node.id === selectedId ? 100 : 0) + (a.isGhost ? -10 : a.node.out_deg);
+    const pb = (b.node.id === selectedId ? 100 : 0) + (b.isGhost ? -10 : b.node.out_deg);
+    return pb - pa;
   });
-  html += `</tbody></table>`;
-  $("#matrixHost").innerHTML = html;
-  $$("#matrixHost td.cell").forEach((td) => {
-    td.addEventListener("click", () => selectNode(td.getAttribute("data-id")));
-    td.addEventListener("mousemove", (ev) => {
-      const n = NODE_BY_ID[td.getAttribute("data-id")];
-      const dim = td.cellIndex;
-      const dimName = vocab[dim - 1];
-      const evid = [];
-      n.l2.forEach((e) => {
-        if (e.levels[dimName] !== undefined) {
-          evid.push(`パス${e.pass} 水準${e.levels[dimName]}（${LEVEL_LABEL[String(e.levels[dimName])]}）: ${e.evidence[dimName] || "（証拠欄なし）"}`);
+
+  sortedDraw.forEach(({ node: n, isGhost }) => {
+    const pt = coords[n.id];
+    const x = pt.x, y = pt.y;
+    let op = isGhost ? 0.65 : 1.0;
+    const isThisFocus = (focusMode === "steppe" && isSteppeReg(n.region)) ||
+                        (focusMode === "norse" && isNorseReg(n.region)) ||
+                        (focusMode === "pie" && (isSteppeReg(n.region) || isNorseReg(n.region) || isIIReg(n.region))) || (focusMode === "l2" && n.cat_tag.startsWith("layer2_"));
+    if (trace && !trace.activeNodes.has(n.id)) op = 0.12;
+    else if (focusMode !== "none" && !trace && !focusNodes.has(n.id) && !isThisFocus) op = 0.13;
+    if (qLower && !matchedIds.has(n.id)) op = 0.13;
+
+    const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    g.setAttribute("transform", `translate(${x.toFixed(2)}, ${y.toFixed(2)})`);
+    g.setAttribute("opacity", op.toFixed(2));
+    g.style.cursor = "pointer";
+
+    const rBase = isGhost ? 3.2 : (3.6 + Math.sqrt(n.out_deg) * 1.75);
+    const r = rBase * invScale;
+    const stroke = n.id === selectedId ? "#facc15" : (isGhost ? "#94a3b8" : (n.cat_tag === "layer2_dom" ? "#5eead4" : (n.cat_tag === "layer2_ext" ? "#c4b5fd" : (n.best_p < 0.05 ? "#f8fafc" : "#1e293b"))));
+    const sw = (n.id === selectedId ? 2.4 : (n.best_p < 0.05 ? 1.35 : 0.75)) * invScale;
+
+    let shape;
+    if (n.cat_tag === "added_steppe") {
+      shape = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+      shape.setAttribute("x", -r); shape.setAttribute("y", -r); shape.setAttribute("width", r * 2); shape.setAttribute("height", r * 2); shape.setAttribute("rx", 1.5 * invScale);
+    } else if (n.cat_tag === "added_norse") {
+      shape = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+      const h = r * 1.35;
+      shape.setAttribute("points", `0,${-h} ${h*0.95},${h*0.85} ${-h*0.95},${h*0.85}`);
+    } else if (n.cat_tag === "layer2_dom" || n.cat_tag === "layer2_ext") {
+      shape = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+      const d = r * 1.15;
+      shape.setAttribute("x", -d); shape.setAttribute("y", -d); shape.setAttribute("width", d*2); shape.setAttribute("height", d*2);
+      if (n.cat_tag === "layer2_dom") shape.setAttribute("transform", "rotate(45)");
+    } else if (n.cat_tag === "added_v16" || n.cat_tag === "added_v15") {
+      shape = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+      const d = r * 1.45, d2 = r * 0.58;
+      shape.setAttribute("points", `0,${-d} ${d2},${-d2} ${d},0 ${d2},${d2} 0,${d} ${-d2},${d2} ${-d},0 ${-d2},${-d2}`);
+    } else if (n.cat_tag.startsWith("added_")) {
+      shape = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+      const d = r * 1.25;
+      shape.setAttribute("points", `0,${-d} ${d},0 0,${d} ${-d},0`);
+    } else {
+      shape = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+      shape.setAttribute("r", r);
+    }
+    shape.setAttribute("fill", isGhost ? "#1e293b" : n.color);
+    shape.setAttribute("stroke", isGhost ? n.color : stroke);
+    shape.setAttribute("stroke-width", sw.toFixed(2));
+    if (isGhost) shape.setAttribute("stroke-dasharray", `${(2.5*invScale).toFixed(1)},${(2.0*invScale).toFixed(1)}`);
+    g.appendChild(shape);
+
+    // LOD 判定
+    const isPriority = n.id === selectedId || n.out_deg >= 3 || n.cat_tag.startsWith("layer2_") || n.cat_tag === "added_v16" || (trace && trace.activeNodes.has(n.id)) || (qLower && matchedIds.has(n.id));
+    const showId = (dynamicZoom && zoomScale >= 1.35) || isPriority || isGhost;
+    const showTitle = dynamicZoom && zoomScale >= 2.15 && !isGhost;
+
+    if (showId && op > 0.45) {
+      const txtStr = showTitle ? `${n.id} ${n.short_name}` : n.id;
+      const fs = (n.id === selectedId ? 9.4 : (showTitle ? 7.4 : 7.3)) * invScale;
+      const lw = txtStr.length * fs * (showTitle ? 0.72 : 0.60);
+      const lh = fs * 1.08;
+      // 右・左・上・下の複数候補配置を試して衝突を極小化
+      const cands = [
+        { dx: r + 2.5 * invScale, dy: 2.4 * invScale, anchor: "start", boxX: x + r + 2.5 * invScale, boxY: y - lh * 0.6 },
+        { dx: -(r + 2.5 * invScale), dy: 2.4 * invScale, anchor: "end", boxX: x - r - 2.5 * invScale - lw, boxY: y - lh * 0.6 },
+        { dx: 0, dy: -(r + 2.8 * invScale), anchor: "middle", boxX: x - lw * 0.5, boxY: y - r - 2.8 * invScale - lh },
+        { dx: 0, dy: r + lh * 0.9, anchor: "middle", boxX: x - lw * 0.5, boxY: y + r },
+      ];
+      let chosen = null;
+      for (let ci = 0; ci < cands.length; ci++) {
+        const c = cands[ci];
+        let hit = false;
+        for (let k = 0; k < placedLabels.length; k++) {
+          const b = placedLabels[k];
+          if (c.boxX < b.x2 && (c.boxX + lw) > b.x1 && c.boxY < b.y2 && (c.boxY + lh) > b.y1) { hit = true; break; }
         }
-      });
-      tooltip.innerHTML = `<div class="t-title">${esc(n.id)} / ${esc(dimName)}</div>${evid.map(esc).join("<br>")}`;
+        if (!hit) { chosen = c; break; }
+      }
+      if (!chosen && isPriority) chosen = cands[0];
+      if (chosen) {
+        placedLabels.push({ x1: chosen.boxX, y1: chosen.boxY, x2: chosen.boxX + lw, y2: chosen.boxY + lh });
+        const lbl = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        lbl.setAttribute("x", chosen.dx.toFixed(2));
+        lbl.setAttribute("y", chosen.dy.toFixed(2));
+        lbl.setAttribute("text-anchor", chosen.anchor);
+        lbl.setAttribute("font-size", fs.toFixed(2));
+        lbl.setAttribute("font-weight", (n.id === selectedId || n.cat_tag !== "existing") ? "700" : "500");
+        lbl.setAttribute("fill", isGhost ? "#94a3b8" : (n.cat_tag === "added_steppe" ? "#fde68a" : (n.cat_tag === "added_norse" ? "#c7d2fe" : "#e2e8f0")));
+        lbl.textContent = txtStr;
+        g.appendChild(lbl);
+      }
+    }
+
+    g.addEventListener("mouseenter", (ev) => {
+      if (isDragging) return;
+      const tStr = n.t_eff < 0 ? ("前" + Math.abs(n.t_eff) + "年") : (n.t_eff + " CE");
+      const gTag = isGhost ? `<span style="color:#fbbf24;">[👻 中継ゴースト]</span> ` : "";
+      tooltip.innerHTML = `${gTag}<strong>${escHtml(n.id)}: ${escHtml(n.name)}</strong><br>系統/層: ${escHtml(n.region)} (${tStr})<br>先行被説明率: <b>${n.explained_pct}%</b> (p=${n.best_p}, Z=${n.best_z})<br>入次数: ${n.in_deg} / 出次数: ${n.out_deg}${n.gap ? '<br><span style="color:#f87171;">⚠ 乖離台帳（ADR 0003・詳細はインスペクタ）</span>' : ''}${(n.l2 && n.l2.length) ? '<br><span style="color:#a5b4fc;">🗳 L2評定 ' + n.l2.length + '件（詳細はインスペクタ）</span>' : ''}`;
       tooltip.style.display = "block";
-      tooltip.style.left = (ev.clientX + 14) + "px";
-      tooltip.style.top = (ev.clientY + 14) + "px";
+      const box = document.getElementById("canvas-wrap").getBoundingClientRect();
+      tooltip.style.left = Math.min(box.width - 350, ev.clientX - box.left + 14) + "px";
+      tooltip.style.top = Math.min(box.height - 110, ev.clientY - box.top + 14) + "px";
     });
-    td.addEventListener("mouseleave", hideTooltip);
+    g.addEventListener("mouseleave", () => { tooltip.style.display = "none"; });
+    g.addEventListener("click", (ev) => {
+      if (dragMoved) return;
+      if (ev && ev.stopPropagation) ev.stopPropagation();
+      selectedId = (selectedId === n.id) ? null : n.id;
+      showDetail(selectedId ? n : null, topoInfo);
+      render();
+    });
+    nodeG.appendChild(g);
   });
-}
+  vpG.appendChild(nodeG);
+  svg.appendChild(vpG);
+  applyViewportTransform();
 
-/* ---------------- 台帳テーブル ---------------- */
-const LEDGER_COLS = [
-  ["id", "ID", "str"], ["name", "名称", "str"], ["region", "地域", "str"],
-  ["kind", "種", "str"], ["t_eff", "t_eff", "num"],
-  ["provenance", "表示出所", "str"],
-  ["exp_display", "表示被説明率", "num"], ["exp_replay", "L1再生", "num"],
-  ["gap_l1", "乖離", "num"],
-  ["v16_expl", "v16被説明", "num"], ["v16_in", "v16 in", "num"], ["v16_out", "v16 out", "num"],
-  ["p_in", "主解析 in", "num"], ["p_out", "主解析 out", "num"],
-  ["r_in", "参考 in", "num"], ["r_out", "参考 out", "num"]
-];
-let ledgerSort = { key: "id", dir: 1 };
-function ledgerValue(n, key) {
-  switch (key) {
-    case "gap_l1": return n.gap ? n.gap.gap_l1 : null;
-    case "v16_expl": return n.v16 ? n.v16.explained_frac : null;
-    case "v16_in": return n.v16 ? n.v16.in_deg : null;
-    case "v16_out": return n.v16 ? n.v16.out_deg : null;
-    case "p_in": return degIn(n.id, "primary");
-    case "p_out": return degOut(n.id, "primary");
-    case "r_in": return degIn(n.id, "reference");
-    case "r_out": return degOut(n.id, "reference");
-    default: return n[key];
+  // ステータスバナー更新
+  const banner = document.getElementById("status-banner");
+  if (banner) {
+    let modeNote = "";
+    if (hasHiddenSectors) {
+      if (hiddenPathMode === "bridge") modeNote = ` | 🌉間接ブリッジ縮約: <b>${bridgeShown}本</b>`;
+      else if (hiddenPathMode === "ghost") modeNote = ` | 👻中継ゴースト残置: <b>${ghostNodes.size}件</b>`;
+      else modeNote = ` | ✂厳密直接のみ (⚠隠れた間接接続: <b>${hiddenIndirectCount}本</b>)`;
+    }
+    banner.innerHTML = `表示セクター: <b>${visibleSectors.size}/${DATA.lanes.length}</b> (${visNodes.size}ノード) | 直接エッジ: <b>${directCountShown}本</b>${modeNote}`;
   }
 }
-const degCache = { primary: {}, reference: {} };
-["primary", "reference"].forEach((layer) => {
-  DATA.edges[layer].forEach((e) => {
-    degCache[layer][e.t] = (degCache[layer][e.t] || 0) + 1;
-    degCache[layer][e.s] = degCache[layer][e.s] || 0;
-  });
-});
-function degIn(id, layer) { return degCache[layer][id] || 0; }
-function degOut(id, layer) {
-  let c = 0;
-  DATA.edges[layer].forEach((e) => { if (e.s === id) c++; });
-  return c;
-}
-function renderLedger() {
-  const rows = NODES.slice().sort((a, b) => {
-    const va = ledgerValue(a, ledgerSort.key), vb = ledgerValue(b, ledgerSort.key);
-    if (va === null || va === undefined) return 1;
-    if (vb === null || vb === undefined) return -1;
-    if (typeof va === "number" && typeof vb === "number") return (va - vb) * ledgerSort.dir;
-    return String(va).localeCompare(String(vb), "ja") * ledgerSort.dir;
-  });
-  let html = `<table class="data"><thead><tr>`;
-  LEDGER_COLS.forEach(([key, label]) => {
-    html += `<th data-key="${key}">${esc(label)}${ledgerSort.key === key ? (ledgerSort.dir > 0 ? " ▲" : " ▼") : ""}</th>`;
-  });
-  html += `</tr></thead><tbody>`;
-  rows.forEach((n) => {
-    html += `<tr data-id="${esc(n.id)}" class="${n.id === state.sel ? "sel" : ""}">`;
-    LEDGER_COLS.forEach(([key, , type]) => {
-      const v = ledgerValue(n, key);
-      const shown = v === null || v === undefined ? "—" :
-        (type === "num" ? (Number.isInteger(v) ? String(v) : Number(v).toFixed(4)) : String(v));
-      html += `<td class="${type === "num" ? "num" : ""}">${esc(shown)}</td>`;
-    });
-    html += `</tr>`;
-  });
-  html += `</tbody></table>`;
-  $("#ledgerHost").innerHTML = html;
-  $$("#ledgerHost th").forEach((th) => {
-    th.addEventListener("click", () => {
-      const key = th.getAttribute("data-key");
-      if (ledgerSort.key === key) ledgerSort.dir *= -1;
-      else ledgerSort = { key, dir: 1 };
-      renderLedger();
-    });
-  });
-  $$("#ledgerHost tbody tr").forEach((tr) => {
-    tr.addEventListener("click", () => selectNode(tr.getAttribute("data-id")));
-  });
+
+// ---------------------------------------------------------------------------
+// 5. 右インスペクタ & セクターコントロールパネル
+// ---------------------------------------------------------------------------
+function motifBadges(str) {
+  if (!str) return "<span style='color:#64748b;'>なし</span>";
+  return str.split(",").filter(Boolean).map(m => `<span class="motif-tag">${escHtml(m)}: ${escHtml(DATA.motif_desc[m] || m)}</span>`).join("");
 }
 
-/* ---------------- ヘッダー統計・注記 ---------------- */
-function renderChips() {
-  const m = DATA.meta.counts;
-  const lp = DATA.meta.layers.primary, lr = DATA.meta.layers.reference;
-  $("#statChips").innerHTML = `
-    <span class="chip">ノード <b>${m.nodes}</b></span>
-    <span class="chip">地域 <b>${m.regions}</b></span>
-    <span class="chip">L1主解析 辺 <b>${lp.edges}</b></span>
-    <span class="chip">L1参考 辺 <b>${lr.edges}</b></span>
-    <span class="chip warn">乖離台帳 <b>${m.gap_nodes}</b> 話</span>
-    <span class="chip">L2評定 <b>${m.l2_annotation_records}</b> 件</span>
-    <span class="chip">L1再評定 <b>${m.l1_audit_records}</b> 件</span>`;
+// ---------------------------------------------------------------------------
+// v18 追記: 表示監査（ADR 0003）・第2層評定（証拠つき）・L1 再評定カード
+// ---------------------------------------------------------------------------
+const V18_LEVEL_LABEL = { "0": "不在", "1": "痕跡・言及のみ", "2": "明確に存在", "3": "中心的・定義的" };
+const v18Pct = (v) => (v === null || v === undefined) ? "—" : (v * 100).toFixed(2) + "%";
+
+function v18GapBadge(n) {
+  return n.gap ? '<span class="badge" style="background:#7f1d1d;color:#fecaca;border:1px solid #f87171;">⚠ 乖離台帳 (ADR 0003)</span>' : '';
 }
 
-function renderNotes() {
-  const m = DATA.meta;
-  const c = m.counts;
-  const pureL2Missing = (m.expected_embedded.edges || 0) - c.frozen_v16_in_deg_sum;
-  const srcRows = m.sources.map((s) => `<li><code>${esc(s.path)}</code> — ${esc(s.role)}</li>`).join("");
-  $("#notesBody").innerHTML = `
-    <h3>この HTML の目的</h3>
-    <div>リポジトリの最新の凍結データから、古事記神話とユーラシア神話の対応グラフネットワーク
-    （ノード・エッジ・層・出所・乖離）を人間が確認するための自己完結ビューです。
-    エッジは v18 決定論的剥離エンジン（<code>src/engine.py</code>）で凍結 75 次元行列から再構築しています。</div>
-    <h3>データ出所（すべて Git 追跡済み）</h3>
-    <ul>${srcRows}</ul>
-    <h3>再構築したエッジ</h3>
-    <ul>
-      <li>L1主解析（<code>engine.primary</code> 校正済み類似度 z）: <b>${m.layers.primary.edges}</b> 本、
-        重み範囲 ${fmtNum(m.layers.primary.weight_min, 2)}〜${fmtNum(m.layers.primary.weight_max, 2)}、
-        有向被説明率はノードごとに確認可能。</li>
-      <li>L1参考（<code>engine.reference_v17_compatible</code> コサイン）: <b>${m.layers.reference.edges}</b> 本、
-        凍結 v16 の in_deg 合計 ${c.frozen_v16_in_deg_sum} 本と比較すると
-        ${m.layers.reference.in_deg_mismatch_vs_v16} ノードで入次数が一致しません。
-        v17 の手書き変換ペア（TRANS_PAIRS）はリポジトリに追跡されていないため、参考再構築は v16 本来の辺集合と同一ではありません。</li>
-    </ul>
-    <h3>既知の制約（確認時の注意）</h3>
-    <ul>
-      <li>v17 埋め込みグラフ（期待値 ${m.expected_embedded.nodes} ノード / ${m.expected_embedded.edges} エッジ）のうち、
-        純 L2 接続辺（${pureL2Missing} 本相当 = ${m.expected_embedded.edges} − v16凍結 ${c.frozen_v16_in_deg_sum}）は
-        リポジトリに追跡されていないため本 HTML には現れません。アンカーノード（LP01-LP16）の第 2 層接続も同様です。</li>
-      <li>ADR 0003 に従い、凍結 HTML の表示値は改変せず台帳表示します。表示被説明率と表示 L1 辺からの再計算が
-        閾値 ${m.display_policy.gap_threshold} を超えて異なる ${c.gap_nodes} 話（期待 ${c.gap_expected}）は赤いリングと「乖離」列で識別できます。</li>
-      <li>第 2 層 R01-R15 の語彙ラベルは v17 パッケージ側の定義であり、リポジトリには次元 ID と水準のみ追跡されています
-        （${esc(m.display_policy.note || "")}）。</li>
-    </ul>
-    <h3>推奨する確認手順</h3>
-    <ul>
-      <li>時系列レーンで 19 地域の年代配置とエッジの流れを概観 → 地図で地理配置を確認。</li>
-      <li>ノードをクリックし、表示出所・凍結 v16 統計・モチーフ・L2 評定（証拠つき）・接続エッジを個別確認。</li>
-      <li>台帳タブで 297 件を列ソートし、乖離・次数・被説明率の全件を機械的に突き合わせる。</li>
-      <li>L2行列タブで古事記 37 話・アンカー 16 件の評定水準と証拠をマトリクスで確認する。</li>
-    </ul>
-    <h3>再生成</h3>
-    <div><code>make interactive</code> または <code>python3 src/build_interactive_html.py</code>（要 numpy / pandas）。
-    生成物 <code>docs/interactive/graph_network_atlas.html</code> は決定論的で、同入力なら常に同一です。</div>`;
+function v18AnnotationCard(title, entries) {
+  if (!entries || !entries.length) return "";
+  const rows = entries.map(e => {
+    const lv = Object.keys(e.levels).sort().map(k =>
+      `<span class="motif-tag"><b>${escHtml(k)}</b> 水準${e.levels[k]}（${escHtml(V18_LEVEL_LABEL[String(e.levels[k])] || "")}）`
+      + `<span style="color:#64748b;"> ${escHtml(DATA.motif_desc[k] || k)}</span></span>`).join("");
+    const ev = Object.keys(e.evidence).sort().map(k =>
+      `<div style="margin-top:3px;">◆ <b>${escHtml(k)}</b>: ${escHtml(e.evidence[k])}</div>`).join("");
+    const note = e.notes ? `<div style="color:#94a3b8;margin-top:2px;">（注）${escHtml(e.notes)}</div>` : "";
+    return `<div class="edge-row" style="cursor:default;"><span class="badge b-other">パス ${escHtml(e.pass)}</span>`
+      + ` <span style="color:#94a3b8;">${escHtml(e.annotator)} / ${escHtml(e.coded_at)} / ${escHtml(e.file)}</span>`
+      + `<div>${lv}</div>${ev}${note}</div>`;
+  }).join("");
+  return `<div class="card"><h2>${title}</h2>${rows}</div>`;
 }
 
-/* ---------------- タブ・入力の結線 ---------------- */
-function setTab(tab) {
-  state.tab = tab;
-  $$("#tabs .tab").forEach((b) => b.classList.toggle("active", b.getAttribute("data-tab") === tab));
-  const stageTabs = ["map", "timeline", "force"];
-  $("#stageWrap").classList.toggle("hidden", !stageTabs.includes(tab));
-  $("#viewMatrix").classList.toggle("active", tab === "matrix");
-  $("#viewLedger").classList.toggle("active", tab === "ledger");
-  stopForce();
-  if (tab === "force") startForce();
-  else render();
-  if (tab === "matrix") renderMatrix();
-  if (tab === "ledger") renderLedger();
-}
-$$("#tabs .tab").forEach((b) => {
-  b.addEventListener("click", () => setTab(b.getAttribute("data-tab")));
-});
-
-$("#layerPrimary").addEventListener("change", (e) => {
-  state.layers.primary = e.target.checked; render();
-});
-$("#layerReference").addEventListener("change", (e) => {
-  state.layers.reference = e.target.checked; render();
-});
-$("#minZ").addEventListener("input", (e) => {
-  state.minZ = Number(e.target.value) / 10;
-  $("#minZLabel").textContent = "z≥" + state.minZ.toFixed(1);
-  render();
-});
-$("#minCos").addEventListener("input", (e) => {
-  state.minCos = Number(e.target.value) / 100;
-  $("#minCosLabel").textContent = "cos≥" + state.minCos.toFixed(2);
-  render();
-});
-$$(".stepChk").forEach((chk) => {
-  chk.addEventListener("change", () => {
-    state.steps = new Set($$(".stepChk").filter((c) => c.checked).map((c) => c.value));
-    render();
-  });
-});
-$("#kindEurasia").addEventListener("change", (e) => toggleKind("eurasia", e.target.checked));
-$("#kindKojiki").addEventListener("change", (e) => toggleKind("kojiki", e.target.checked));
-$("#kindAnchor").addEventListener("change", (e) => toggleKind("anchor", e.target.checked));
-function toggleKind(kind, on) {
-  if (on) state.kinds.add(kind); else state.kinds.delete(kind);
-  render();
-}
-$("#gapOnly").addEventListener("change", (e) => {
-  state.gapOnly = e.target.checked; render();
-});
-$("#searchBox").addEventListener("input", (e) => {
-  state.search = e.target.value.trim();
-  render();
-});
-$("#searchBox").addEventListener("keydown", (e) => {
-  if (e.key === "Enter" && state.search) {
-    const hit = NODES.find(nodeVisible);
-    if (hit) selectNode(hit.id);
+function v18Cards(n) {
+  let audit = "";
+  const provLbl = { "v16.L1": "v16.L1（第1層表示）", "decomp.total_final": "decomp.total_final（3層合成表示）", "pureL2_dom": "pureL2_dom（第2層支配表示）" }[n.provenance] || escHtml(n.provenance || "—");
+  if (n.gap) {
+    audit = `<div class="card"><h2>📊 表示監査（ADR 0003）乖離台帳</h2>
+      <p>表示被説明率 <b>${n.explained_pct}%</b>（出所: ${provLbl}）／ 表示 L1 辺からの再計算 <b>${v18Pct(n.exp_replay)}</b></p>
+      <p style="margin-top:4px;"><span class="badge" style="background:#7f1d1d;color:#fecaca;border:1px solid #f87171;">gap_l1 ${n.gap.gap_l1}</span>
+      <span class="motif-tag">v16 L1: ${v18Pct(n.gap.v16_l1_pct)}</span>
+      <span class="motif-tag">3層分解 l1_only: ${v18Pct(n.gap.decomp_l1_only_pct)}</span>
+      <span class="motif-tag">l2_ext 増分: ${v18Pct(n.gap.decomp_l2_ext_gain_pct)}</span>
+      <span class="motif-tag">l2_dom 増分: ${v18Pct(n.gap.decomp_l2_dom_gain_pct)}</span>
+      <span class="motif-tag">total_final: ${v18Pct(n.gap.decomp_total_final_pct)}</span></p>
+      <p style="margin-top:4px;color:#94a3b8;">${escHtml(n.gap.display_note)}</p></div>`;
+  } else {
+    audit = `<div class="card"><h2>📊 表示監査（ADR 0003）</h2>
+      <p>表示被説明率 <b>${n.explained_pct}%</b>（出所: ${provLbl}）／ 表示 L1 辺からの再計算 <b>${v18Pct(n.exp_replay)}</b> <span class="badge b-shr">乖離なし</span></p></div>`;
   }
-});
-$("#btnReset").addEventListener("click", () => {
-  state.view = { tx: 0, ty: 0, k: 1 };
-  applyView();
-  state.search = "";
-  $("#searchBox").value = "";
-  state.gapOnly = false;
-  $("#gapOnly").checked = false;
-  state.minZ = 0; state.minCos = 0;
-  $("#minZ").value = 0; $("#minCos").value = 0;
-  $("#minZLabel").textContent = "z≥0.0";
-  $("#minCosLabel").textContent = "cos≥0.00";
+  return audit
+    + v18AnnotationCard("🗳 第2層 評定 L2_R01-R15（証拠つき・v18）", n.l2)
+    + v18AnnotationCard("🔬 L1 信頼性 再評定（独立監査・v18）", n.l1audit);
+}
+
+function getCatBadge(cat) {
+  if (cat === "added_steppe") return '<span class="badge b-stp">ステップ・ウラル追加</span>';
+  if (cat === "layer2_dom") return '<span class="badge" style="background:#0f766e;color:#ccfbf1;border:1px solid #5eead4;">★ 第2層:列島考古律令</span>';
+  if (cat === "layer2_ext") return '<span class="badge" style="background:#5b21b6;color:#ede9fe;border:1px solid #c4b5fd;">★ 第2層:大陸儀礼物質</span>';
+  if (cat === "added_v16") return '<span class="badge" style="background:#9f1239;color:#ffe4e6;">v16 叙事詩仏典</span>';
+  if (cat === "added_v15") return '<span class="badge" style="background:#7f1d1d;color:#fecaca;">v15 東亜検証</span>';
+  if (cat === "added_norse") return '<span class="badge b-nc">v13 北欧ケルト新規</span>';
+  if (cat.startsWith("added_")) return '<span class="badge b-other">v9-v12 増補</span>';
+  return '';
+}
+
+function showDetail(n, topoInfoOpt) {
+  if (!n) { detailPanel.innerHTML = ""; return; }
+  const topoInfo = topoInfoOpt || computeSectorVisibilityAndBridges();
+  const inc = DATA.edges.filter(e => e.target === n.id);
+  const out = DATA.edges.filter(e => e.source === n.id);
+  const tStr = n.t_eff < 0 ? ("紀元前" + Math.abs(n.t_eff) + "年") : ("西暦" + n.t_eff + "年");
+  const sigBadge = n.best_p < 0.05 ? '<span class="badge b-sig">有意接続 p&lt;0.05</span>' : '';
+
+  const relBridgesIn = topoInfo.bridges.filter(b => b.target === n.id);
+  const relBridgesOut = topoInfo.bridges.filter(b => b.source === n.id);
+  let brgHtml = "";
+  if (relBridgesIn.length || relBridgesOut.length) {
+    const rowsIn = relBridgesIn.map(b => `<div class="edge-row" onclick="window.__selectNode('${b.source}')"><span class="badge b-brg">🌉間接由来</span> <b>${escHtml(b.source)}</b> (${escHtml(nodeById[b.source].short_name)}) ⇢ 当ノード<br><span style="color:#fde68a;">経由 (${b.paths.length}ルート): ${escHtml(b.paths[0].via.map(v=>v+'('+shortLaneName(nodeById[v].region)+')').join(' → '))}</span></div>`).join("");
+    const rowsOut = relBridgesOut.map(b => `<div class="edge-row" onclick="window.__selectNode('${b.target}')"><span class="badge b-brg">🌉間接派生</span> 当ノード ⇢ <b>${escHtml(b.target)}</b> (${escHtml(nodeById[b.target].short_name)})<br><span style="color:#fde68a;">経由 (${b.paths.length}ルート): ${escHtml(b.paths[0].via.map(v=>v+'('+shortLaneName(nodeById[v].region)+')').join(' → '))}</span></div>`).join("");
+    brgHtml = `<div class="card"><h2>🌉 非表示セクター経由 間接ブリッジ (${relBridgesIn.length + relBridgesOut.length}本)</h2>${rowsIn}${rowsOut}</div>`;
+  }
+
+  let incHtml = inc.length ? inc.map(e => `
+    <div class="edge-row" onclick="window.__selectNode('${e.source}')">
+      <span class="badge ${e.type === 'directed_transmission' ? 'b-dir' : 'b-shr'}">${e.type === 'directed_transmission' ? '時差→' : '祖型↔'}</span>
+      <b>${escHtml(e.source)}</b> (${escHtml(e.source_region)}) | Δt=${e.dt}年, 重み=${e.weight}, 距離=${e.dist_km}km<br>
+      <span style="color:#94a3b8;">共有: ${escHtml(e.shared)} | 変換: ${escHtml(e.transforms)}</span>
+    </div>`).join("") : "<p style='color:#64748b;'>上流親エッジなし（初期独立・祖型層）</p>";
+
+  let outHtml = out.length ? out.map(e => `
+    <div class="edge-row" onclick="window.__selectNode('${e.target}')">
+      <span class="badge ${e.type === 'directed_transmission' ? 'b-dir' : 'b-shr'}">${e.type === 'directed_transmission' ? '時差→' : '祖型↔'}</span>
+      → <b>${escHtml(e.target)}</b> (${escHtml(e.target_region)}) | Δt=${e.dt}年, 重み=${e.weight}, 距離=${e.dist_km}km
+    </div>`).join("") : "<p style='color:#64748b;'>下流派生エッジなし（終端・受容層）</p>";
+
+  detailPanel.innerHTML = `
+    <div class="card">
+      <h2>${escHtml(n.id)} | ${escHtml(n.name)}</h2>
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:4px;">
+        <div>${getCatBadge(n.cat_tag)}${sigBadge}${v18GapBadge(n)}</div>
+        <button onclick="window.__focusNode('${n.id}')" style="font-size:10.5px;padding:2px 7px;">🔍 動的拡大(240%)</button>
+      </div>
+      <p style="margin-top:5px;"><b>層位/時期:</b> ${escHtml(n.region)} (${tStr})</p>
+      <p><b>被説明率:</b> ${n.explained_pct}% (p=${n.best_p}, Z=${n.best_z})</p>
+    </div>
+    ${v18Cards(n)}
+    ${brgHtml}
+    <div class="card"><h2>先行由来モチーフ（剥離・継承層）</h2><div>${motifBadges(n.inherited_motifs)}</div></div>
+    <div class="card"><h2>固有残余モチーフ（時代・地域独自層）</h2><div>${motifBadges(n.residual_motifs)}</div></div>
+    <div class="card"><h2>上流親エッジ (${inc.length}本)</h2>${incHtml}</div>
+    <div class="card"><h2>下流派生エッジ (${out.length}本)</h2>${outHtml}</div>
+  `;
+}
+
+function renderSectorGrid() {
+  const grid = document.getElementById("sector-grid");
+  const btn = document.getElementById("btn-sectors");
+  if (btn) btn.textContent = `🎛 セクター選択 (${visibleSectors.size}/${DATA.lanes.length})`;
+  if (!grid) return;
+  grid.innerHTML = DATA.lanes.map((lane, idx) => {
+    const on = visibleSectors.has(lane);
+    const cnt = DATA.nodes.filter(n => n.region === lane).length;
+    return `<label class="sec-chk ${on ? 'on' : ''}" onclick="window.__toggleSector(${idx}, event)">
+      <input type="checkbox" ${on ? 'checked' : ''}>
+      <span class="sec-dot" style="background:${DATA.lane_colors[lane]};"></span>
+      <span>${escHtml(shortLaneName(lane))}</span>
+      <span class="sec-cnt">${cnt}</span>
+    </label>`;
+  }).join("");
+}
+
+window.__toggleSector = (idx, ev) => {
+  if (ev && ev.stopPropagation) ev.stopPropagation();
+  if (ev && ev.preventDefault) ev.preventDefault();
+  const lane = DATA.lanes[idx];
+  if (visibleSectors.has(lane)) visibleSectors.delete(lane);
+  else visibleSectors.add(lane);
+  renderSectorGrid();
   render();
+};
+
+window.__setHiddenMode = (m) => {
+  hiddenPathMode = m;
+  ["bridge", "ghost", "strict"].forEach(k => {
+    const el = document.getElementById("hm-opt-" + k);
+    if (el) el.classList.toggle("selected", k === m);
+  });
+  if (selectedId && nodeById[selectedId]) showDetail(nodeById[selectedId]);
+  render();
+};
+
+window.__applyPreset = (preset) => {
+  if (preset === "all") {
+    visibleSectors = new Set(DATA.lanes);
+  } else if (preset === "none") {
+    visibleSectors = new Set();
+  } else if (preset === "meso_ii_jp") {
+    visibleSectors = new Set(DATA.lanes.filter(l => l.startsWith("メソポタミア") || isIIReg(l) || l === "古事記（日本）"));
+  } else if (preset === "ie_steppe_norse") {
+    visibleSectors = new Set(DATA.lanes.filter(l => isIIReg(l) || isSteppeReg(l) || isNorseReg(l)));
+  } else if (preset === "v17_dual_layer_royalty") {
+    visibleSectors = new Set(["メソポタミア（OB～MB）", "メソポタミア（NA以降）", "インド（ヴェーダ・ウパニシャッド）", "インド（仏教・ジャータカ・仏伝）", "ステップ・ウラル（スキタイ・中央亜・フィンウゴル）", "シベリア・アイヌ・北アジア", "中国・華南", "朝鮮・満洲", "列島前史・律令考古", "古事記（日本）"]);
+  } else if (preset === "east_asia_jp") {
+    visibleSectors = new Set(["シベリア・アイヌ・北アジア", "中国・華南", "東南アジア・台湾", "朝鮮・満洲", "古事記（日本）"]);
+  } else if (preset === "ii_steppe") {
+    visibleSectors = new Set(DATA.lanes.filter(l => isIIReg(l) || isSteppeReg(l)));
+  }
+  renderSectorGrid();
+  if (selectedId && nodeById[selectedId]) showDetail(nodeById[selectedId]);
+  render();
+};
+
+// ---------------------------------------------------------------------------
+// 6. カタログ一覧ビュー
+// ---------------------------------------------------------------------------
+function initCatalogControls() {
+  const chipsDiv = document.getElementById("cat-chips");
+  const regSel = document.getElementById("cat-region-sel");
+  const stpCnt = DATA.nodes.filter(n => isSteppeReg(n.region)).length;
+  const ncCnt = DATA.nodes.filter(n => isNorseReg(n.region)).length;
+  const iiCnt = DATA.nodes.filter(n => isIIReg(n.region)).length;
+
+  const chipOpts = [
+    { key: "ALL", label: `すべて (${DATA.nodes.length})` },
+    { key: "ステップ・ウラル（スキタイ・中央亜・フィンウゴル）", label: `🐎 ステップ・ウラル (${stpCnt})` },
+    { key: "北欧・ケルト", label: `🛡️ 北欧・ケルト (${ncCnt})` },
+    { key: "INDO_IRAN_ALL", label: `🕉️ イラン・インド全4層 (${iiCnt})` },
+  ];
+  DATA.lanes.forEach(l => {
+    if (isSteppeReg(l) || isNorseReg(l)) return;
+    const cnt = DATA.nodes.filter(n => n.region === l).length;
+    chipOpts.push({ key: l, label: `${shortLaneName(l)} (${cnt})` });
+  });
+
+  chipsDiv.innerHTML = chipOpts.map(c =>
+    `<span class="chip ${catRegion === c.key ? 'active' : ''}" onclick="window.__setCatRegion('${c.key}')">${escHtml(c.label)}</span>`
+  ).join("");
+  regSel.innerHTML = chipOpts.map(c => `<option value="${escHtml(c.key)}">${escHtml(c.label)}</option>`).join("");
+  regSel.value = catRegion;
+}
+
+function renderCatalog() {
+  const tbody = document.getElementById("cat-tbody");
+  const countEl = document.getElementById("cat-count");
+  const q = catSearch.trim().toLowerCase();
+
+  let list = DATA.nodes.filter(n => {
+    if (catRegion === "INDO_IRAN_ALL" && !isIIReg(n.region)) return false;
+    else if (!["ALL", "INDO_IRAN_ALL"].includes(catRegion) && n.region !== catRegion) return false;
+    if (catTag === "sig" && !(n.best_p < 0.05)) return false;
+    else if (catTag !== "all" && catTag !== "sig" && n.cat_tag !== catTag) return false;
+    if (q) {
+      const txt = (n.id + " " + n.name + " " + n.region + " " + n.inherited_motifs + " " + n.residual_motifs).toLowerCase();
+      if (!txt.includes(q)) return false;
+    }
+    return true;
+  });
+
+  list.sort((a, b) => {
+    if (catSort === "time_asc") return (a.t_eff - b.t_eff) || a.id.localeCompare(b.id);
+    if (catSort === "id_asc") return a.id.localeCompare(b.id);
+    if (catSort === "out_desc") return (b.out_deg - a.out_deg) || (b.explained_pct - a.explained_pct);
+    if (catSort === "exp_desc") return (b.explained_pct - a.explained_pct) || (a.best_p - b.best_p);
+    if (catSort === "p_asc") return (a.best_p - b.best_p) || (b.best_z - a.best_z);
+    return 0;
+  });
+
+  countEl.textContent = `表示中: ${list.length} / ${DATA.nodes.length}件`;
+  tbody.innerHTML = list.map(n => {
+    const tStr = n.t_eff < 0 ? ("前" + Math.abs(n.t_eff) + "年") : (n.t_eff + " CE");
+    const tagLbl = n.cat_tag === "added_steppe" ? '<span class="badge b-stp">ステップ・ウラル</span>' :
+                   (n.cat_tag === "layer2_dom" ? '<span class="badge" style="background:#0f766e;color:#ccfbf1;">列島考古律令</span>' :
+                   (n.cat_tag === "layer2_ext" ? '<span class="badge" style="background:#5b21b6;color:#ede9fe;">大陸儀礼物質</span>' :
+                   (n.cat_tag === "added_v16" ? '<span class="badge" style="background:#9f1239;color:#ffe4e6;">v16拡張</span>' :
+                   (n.cat_tag === "added_v15" ? '<span class="badge" style="background:#7f1d1d;color:#fecaca;">v15検証</span>' :
+                   (n.cat_tag === "added_norse" ? '<span class="badge b-nc">北欧ケルト新規</span>' :
+                   (n.cat_tag.startsWith("added_") ? '<span class="badge b-other">v9-v12増補</span>' :
+                   (n.cat_tag === "kojiki" ? '<span class="badge" style="background:#831843;color:#fbcfe8;">古事記</span>' : '<span style="color:#64748b;font-size:10px;">既存</span>')))))));
+    const pHtml = n.best_p < 0.05 ? `<b style="color:#fbbf24;">${n.best_p}</b>` : `${n.best_p}`;
+    const inh = n.inherited_motifs ? `<span style="color:#93c5fd;">継: ${escHtml(n.inherited_motifs)}</span>` : "";
+    const res = n.residual_motifs ? `<span style="color:#6ee7b7;">残: ${escHtml(n.residual_motifs)}</span>` : "";
+    const motifs = [inh, res].filter(Boolean).join("<br>") || "<span style='color:#64748b;'>—</span>";
+    return `<tr onclick="window.__jumpFromList('${n.id}')">
+      <td><b>${escHtml(n.id)}</b></td>
+      <td><span class="lane-pill" style="background:${n.color};">${escHtml(n.region)}</span></td>
+      <td style="white-space:nowrap;">${tStr}</td>
+      <td>${escHtml(n.name)}</td>
+      <td>${tagLbl}</td>
+      <td>${n.explained_pct}%</td>
+      <td>${pHtml}</td>
+      <td style="white-space:nowrap;">${n.in_deg} / <b>${n.out_deg}</b></td>
+      <td style="font-size:10.3px;">${motifs}</td>
+    </tr>`;
+  }).join("");
+}
+
+function switchTab(tab) {
+  activeTab = tab;
+  const isGraph = (tab === "graph");
+  document.getElementById("tab-graph").classList.toggle("active", isGraph);
+  document.getElementById("tab-catalog").classList.toggle("active", !isGraph);
+  graphView.style.display = isGraph ? "flex" : "none";
+  graphControls.style.display = isGraph ? "flex" : "none";
+  catalogView.style.display = isGraph ? "none" : "flex";
+  if (!isGraph) renderCatalog();
+}
+
+window.__selectNode = (id) => {
+  const n = nodeById[id];
+  if (!n) return;
+  if (!visibleSectors.has(n.region)) {
+    visibleSectors.add(n.region);
+    renderSectorGrid();
+  }
+  selectedId = id;
+  showDetail(n);
+  render();
+};
+window.__focusNode = (id) => {
+  const n = nodeById[id];
+  if (!n) return;
+  if (!visibleSectors.has(n.region)) {
+    visibleSectors.add(n.region);
+    renderSectorGrid();
+  }
+  selectedId = id;
+  showDetail(n);
+  centerOnNode(n, 2.4);
+};
+window.__setCatRegion = (reg) => { catRegion = reg; initCatalogControls(); renderCatalog(); };
+window.__jumpFromList = (id) => {
+  switchTab("graph");
+  const n = nodeById[id];
+  if (n && !visibleSectors.has(n.region)) {
+    visibleSectors.add(n.region);
+    renderSectorGrid();
+  }
+  selectedId = id;
+  showDetail(n);
+  centerOnNode(n, 2.25);
+};
+
+document.getElementById("tab-graph").onclick = () => switchTab("graph");
+document.getElementById("tab-catalog").onclick = () => switchTab("catalog");
+
+const drawer = document.getElementById("sector-drawer");
+const btnSectors = document.getElementById("btn-sectors");
+btnSectors.onclick = () => {
+  const isOpen = drawer.classList.toggle("open");
+  btnSectors.classList.toggle("open", isOpen);
+};
+document.getElementById("btn-close-drawer").onclick = () => {
+  drawer.classList.remove("open");
+  btnSectors.classList.remove("open");
+};
+
+document.getElementById("btn-zoom-in").onclick = () => zoomAt(1.32, W * 0.5, H * 0.5);
+document.getElementById("btn-zoom-out").onclick = () => zoomAt(1 / 1.32, W * 0.5, H * 0.5);
+document.getElementById("btn-zoom-reset").onclick = () => { resetZoom(); render(); };
+
+document.getElementById("chk-dyn-zoom").onchange = (ev) => {
+  dynamicZoom = ev.target.checked;
+  lastLayoutScale = zoomScale;
+  render();
+};
+
+svg.addEventListener("wheel", (ev) => {
+  if (ev.preventDefault) ev.preventDefault();
+  const pt = clientToSvg(ev.clientX, ev.clientY);
+  zoomAt(ev.deltaY < 0 ? 1.16 : (1 / 1.16), pt.x, pt.y);
+}, { passive: false });
+
+svg.addEventListener("mousedown", (ev) => {
+  if (ev.button !== undefined && ev.button !== 0) return;
+  isDragging = true; dragMoved = false;
+  dragStartClientX = ev.clientX; dragStartClientY = ev.clientY;
+  dragStartPanX = panX; dragStartPanY = panY;
+  svg.classList.add("dragging");
 });
 
-/* 地域フィルタ */
-function renderRegionMenu() {
-  const host = $("#regionMenu");
-  let html = `<div class="row" style="gap:8px;">
-    <button id="regAll">全選択</button><button id="regNone">全解除</button></div>`;
-  REGIONS.forEach((reg) => {
-    const cnt = NODES.filter((n) => n.region === reg).length;
-    html += `<div class="row">
-      <span class="sw" style="background:${REGION_COLOR[reg]}"></span>
-      <label><input type="checkbox" class="regChk" value="${esc(reg)}" checked> ${esc(reg)}（${cnt}）</label>
-    </div>`;
-  });
-  host.innerHTML = html;
-  $("#regAll").addEventListener("click", () => {
-    state.regions = new Set(REGIONS);
-    $$(".regChk").forEach((c) => { c.checked = true; });
-    updateRegionSummary(); render();
-  });
-  $("#regNone").addEventListener("click", () => {
-    state.regions = new Set();
-    $$(".regChk").forEach((c) => { c.checked = false; });
-    updateRegionSummary(); render();
-  });
-  $$(".regChk").forEach((chk) => {
-    chk.addEventListener("change", () => {
-      if (chk.checked) state.regions.add(chk.value);
-      else state.regions.delete(chk.value);
-      updateRegionSummary(); render();
-    });
-  });
-}
-function updateRegionSummary() {
-  const n = state.regions.size;
-  $("#regionSummary").textContent = n === REGIONS.length ? "地域フィルタ" : `地域 ${n}/${REGIONS.length}`;
-}
-
-/* 注記オーバーレイ */
-$("#btnNotes").addEventListener("click", () => {
-  renderNotes();
-  $("#overlay").classList.add("open");
-});
-$("#btnCloseNotes").addEventListener("click", () => $("#overlay").classList.remove("open"));
-$("#overlay").addEventListener("click", (ev) => {
-  if (ev.target === $("#overlay")) $("#overlay").classList.remove("open");
+svg.addEventListener("mousemove", (ev) => {
+  if (!isDragging) return;
+  const dxClient = ev.clientX - dragStartClientX, dyClient = ev.clientY - dragStartClientY;
+  if (Math.hypot(dxClient, dyClient) > 4) dragMoved = true;
+  const rect = svg.getBoundingClientRect();
+  const scaleFit = (rect && rect.width > 0 && rect.height > 0) ? Math.min(rect.width / W, rect.height / H) : 1.0;
+  panX = dragStartPanX + dxClient / scaleFit;
+  panY = dragStartPanY + dyClient / scaleFit;
+  applyViewportTransform();
 });
 
-function updateStatus() {
-  const shown = NODES.filter(nodeVisible).length;
-  const l1 = DATA.edges.primary.filter((e) => edgeVisible(e, "primary")).length;
-  const l2 = DATA.edges.reference.filter((e) => edgeVisible(e, "reference")).length;
-  $("#statusText").textContent =
-    `表示中: ノード ${shown}/${NODES.length} / L1主解析 ${l1} 辺 / L1参考 ${l2} 辺` +
-    (state.sel ? ` / 選択: ${state.sel}` : "");
-}
+svg.addEventListener("mouseup", () => { isDragging = false; svg.classList.remove("dragging"); setTimeout(() => { dragMoved = false; }, 10); });
+svg.addEventListener("mouseleave", () => { isDragging = false; svg.classList.remove("dragging"); });
 
-/* ---------------- 初期化 ---------------- */
-renderChips();
-renderRegionMenu();
-applyView();
-setTab("map");
+document.getElementById("btn-swim").onclick = () => { mode = "swim"; document.getElementById("btn-swim").classList.add("active"); document.getElementById("btn-geo").classList.remove("active"); resetZoom(); render(); };
+document.getElementById("btn-geo").onclick = () => { mode = "geo"; document.getElementById("btn-geo").classList.add("active"); document.getElementById("btn-swim").classList.remove("active"); resetZoom(); render(); };
+
+function setFocus(newMode) {
+  focusMode = (focusMode === newMode) ? "none" : newMode;
+  document.getElementById("btn-steppe").classList.toggle("active", focusMode === "steppe");
+  document.getElementById("btn-norse").classList.toggle("active", focusMode === "norse");
+  document.getElementById("btn-pie").classList.toggle("active", focusMode === "pie");
+  const bl2 = document.getElementById("btn-v17layer2"); if (bl2) bl2.classList.toggle("active", focusMode === "l2");
+  render();
+}
+document.getElementById("btn-steppe").onclick = () => setFocus("steppe");
+document.getElementById("btn-norse").onclick = () => setFocus("norse");
+document.getElementById("btn-pie").onclick = () => setFocus("pie");
+const _bl2 = document.getElementById("btn-v17layer2"); if (_bl2) _bl2.onclick = () => setFocus("l2");
+
+document.getElementById("sel-edge").onchange = (ev) => { edgeFilter = ev.target.value; if (selectedId && nodeById[selectedId]) showDetail(nodeById[selectedId]); render(); };
+document.getElementById("txt-search").oninput = (ev) => { searchQuery = ev.target.value; render(); };
+document.getElementById("btn-reset").onclick = () => {
+  selectedId = null; searchQuery = ""; focusMode = "none";
+  visibleSectors = new Set(DATA.lanes);
+  hiddenPathMode = "bridge";
+  dynamicZoom = true;
+  document.getElementById("chk-dyn-zoom").checked = true;
+  document.getElementById("txt-search").value = "";
+  document.getElementById("btn-steppe").classList.remove("active");
+  document.getElementById("btn-norse").classList.remove("active");
+  document.getElementById("btn-pie").classList.remove("active");
+  const _bl2r = document.getElementById("btn-v17layer2"); if (_bl2r) _bl2r.classList.remove("active");
+  ["bridge","ghost","strict"].forEach(k => document.getElementById("hm-opt-"+k).classList.toggle("selected", k==="bridge"));
+  detailPanel.innerHTML = "";
+  renderSectorGrid();
+  resetZoom();
+  render();
+};
+
+document.getElementById("cat-region-sel").onchange = (ev) => { catRegion = ev.target.value; initCatalogControls(); renderCatalog(); };
+document.getElementById("cat-tag-sel").onchange = (ev) => { catTag = ev.target.value; renderCatalog(); };
+document.getElementById("cat-sort-sel").onchange = (ev) => { catSort = ev.target.value; renderCatalog(); };
+document.getElementById("cat-search").oninput = (ev) => { catSearch = ev.target.value; renderCatalog(); };
+
+// テスト・外部確認用フック
+window.__v14Debug = {
+  getState: () => ({ zoomScale, dynamicZoom, hiddenPathMode, visibleCount: visibleSectors.size }),
+  inspectLayout: () => {
+    const t = computeSectorVisibilityAndBridges();
+    const l = computeDynamicLayout(t);
+    return { topo: { vis: t.visNodes.size, ghost: t.ghostNodes.size, bridges: t.bridges.length }, layout: { lanes: l.laneLayout.length, draw: l.drawNodes.length, invScale: l.invScale, expand: l.expand, coords: l.coords } };
+  },
+  inspectBridges: () => computeSectorVisibilityAndBridges().bridges,
+};
+
+initCatalogControls();
+renderSectorGrid();
+render();
 </script>
 </body>
 </html>
