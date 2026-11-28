@@ -666,3 +666,86 @@ make OUTDIR=runs/w2 run       # ワーカー 2（同時に走らせてよい）
 make outdir                   # 現在の出力先を表示
 make probe                    # 並行安全性を実測（6 検査）
 ```
+
+---
+
+## 15. 実装（続き）: 生成物の鮮度検査とマージ前ゲート（枝 #13）
+
+§13.4 の優先度 3〜4 を実装した。**整合性検査**（`docs/registry.md` 枝 #13
+`GEN-ARTIFACT-FRESHNESS`）。
+
+### 15.1 生成物の鮮度（`src/check_generated.py`）
+
+`derived/` の生成物は git 管理下にある。手で直すとコードと中身が食い違ったまま緑になる。
+`AIselfMySelf` の `--check-map` と同じ規律を 3 層で機械化した。
+
+| 層 | 何を見るか | 検出できる事故 |
+| ---: | :--- | :--- |
+| 1 | `derived/generated_manifest.json` の sha256 と一致するか | **手で編集された**生成物 |
+| 1b | 生成コードの sha256 も記録し、変わっていないか | **コードを変えて再生成し忘れた** |
+| 2 | 生成関数を実行し直し、値が一致するか（`--full`） | 同一内容の意味的なずれ |
+| 3 | 生成物自身の `manual_edits` に理由があるか | 承認済みの逸脱を通す（理由が無ければ通さない） |
+
+**実測（3 経路とも実際に踏んだ）**
+
+```
+# 1) 値を手で改ざん（overall.replayable = 999）
+[NG] derived/display_reproducibility.json: 内容がマニフェストと違う
+     → exit 1（--full でも同じ）
+
+# 2) 生成コードだけ変えて再生成し忘れ（コメント 1 行の追加）
+[NG] derived/display_reproducibility.json: 生成コード src/display_reproducibility.py が変わっている
+     → exit 1
+
+# 3) 生成物に manual_edits で理由を書く
+[declared] ... 手編集の申告あり（テスト用の申告）
+     → exit 0
+```
+
+### 15.2 マージ前ゲート（`src/merge_gate.py` / `make gate`）
+
+PR の CI は head SHA を検査する。**main とマージした結果は検査しない**（§12.2）。
+`git merge --no-commit` で取り込み、ゲートを回し、**必ず `git merge --abort` で戻す**。
+
+```
+$ make gate
+[info] origin/main より 4 コミット遅れている
+[OK]  src/check_prereg.py: [ok] 20261128-path-connectivity-followup.md ...
+[OK]  src/check_registry.py: [OK] registry 要件・Holm しきい値・置換回数は整合しています
+[OK]  src/validate.py: [OK] legacy_v17_l2.jsonl: 46 レコード, エラー 0, 警告 0
+[OK]  src/audit_no_hardcode.py: なし。...
+[OK]  -m unittest discover -s tests: Ran 78 tests in 2.455s OK
+[OK]  src/verify_numbers.py: [OK] 文書数値: 違反 0 件 ...
+[OK]  src/check_generated.py: [OK] 生成物の鮮度: 違反 0 件 / 検査 1 件
+
+[OK] origin/main（4 コミット）を取り込んだ状態で全ゲート通過
+```
+
+失敗したときは**詳細を出して exit 1**、ツリーは元に戻る（`git status` が空、`MERGE_HEAD` が無いことを実測）。
+競合したときは**解決せずに exit 2** で止める（未知の競合を黙って解くと追記専用の台帳を壊す側に倒れるため。
+`AIselfMySelf` の `.arena/resolve_merge.py` が既知の競合だけを機械解決するのとは、ここが違う）。
+
+**実測**: ローカルの文書の古事記ノード数を 1 つ多い値に改ざんした状態で `make gate` を実行すると、
+`verify_numbers` と `unittest` の両方が落ち、詳細を出したうえでツリーは clean に戻った。
+
+### 15.3 実装中に踏んだ罠（3 つとも記録）
+
+1. **unittest の `Ran N tests` は stderr に出る。** stdout だけを見ていると要約が
+   「テストが意図的に出した `[UNAVAILABLE]`」になり、**通過しているのに失敗に見える**。
+   `stdout + stderr` を結合して探すよう直した（回帰テスト `test_ran_line_is_read_from_stderr`）。
+2. **`Ran N tests` の直後は空行で、その次が `OK`。** 1 行後を読むと空文字になる。
+3. **`TARGETS` の差し替えは同一プロセスでしか効かない。** subprocess でテストを書くと
+   「改ざんしたのに緑」になる。`CG.main()` を直接呼ぶ形に直した。
+
+### 15.4 CI への追加
+
+`verify.yml` に `python src/check_generated.py --full` を追加した。生成物を手で直した PR は
+**CI で落ちる**。`--full` は生成関数を再実行するので、値のずれも見る。
+
+### 15.5 残る限界
+
+* 対象は `derived/display_reproducibility.json` の 1 件から始めた。`derived/v17_html_embedded_data.json` は
+  **v17 原本 HTML（`vendor/`）から抽出したもの**で、この環境では再生成できない。`vendor/` が
+  無い環境では `--full` の対象にできないため、`TARGETS` には**再生成可能なものだけ**を入れる方針にした。
+* `merge_gate` は `origin/main` を取ってくるので、**ネットワークが要る**。オフラインでは exit 2。
+* `merge_gate` は `make run`（重い）を含まない。必要なら `make gate && make run` と 2 段で回す。
