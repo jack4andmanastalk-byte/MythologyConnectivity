@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import ast
 import json
+import re
 import sys
 import unittest
 from pathlib import Path
@@ -157,8 +158,12 @@ class DocNumberGateTests(unittest.TestCase):
             for line in path.read_text(encoding="utf-8").splitlines()
             if marker in line
         )
-        # 免除は「凍結済み過去レポートの引用」に限る。増えたら規約違反として気付けるようにする。
-        self.assertLessEqual(hits, 8)
+        # 免除は「凍結済み過去レポートの引用」と「実験で注入した誤値の引用」に限る。
+        # 予算を超えたら、規約違反か単なる増加かを人が判断する（黙って緩めない）。
+        budget = CFG["doc_checks"].get("exemption_budget", 8)
+        self.assertLessEqual(hits, budget,
+                             "免除行が予算を超えた。引用か規約違反かを確認し、"
+                             "正当なら config の exemption_budget を上げて記録する。")
 
     def test_network_check_counter_expands_loops(self) -> None:
         src = (ROOT / "src/verify_network.py").read_text(encoding="utf-8")
@@ -175,6 +180,35 @@ class DocNumberGateTests(unittest.TestCase):
         measured, graph = numbers.measured_values()
         self.assertEqual(measured["kojiki-node-count"], 37)
         self.assertEqual((graph["nodes"], graph["edges"]), (297, 597))
+
+    def test_total_count_claim_is_caught_even_with_common_words(self) -> None:
+        """行全体を免除する語彙リストに戻ると、このテストが落ちる（実際に起きたバグ）。"""
+        rule = next(r for r in CFG["doc_checks"]["rules"]
+                    if r["id"] == "kojiki-node-count")
+        self.assertNotIn("対象", rule["context_allow"])
+        self.assertNotIn("うち", rule["context_allow"])
+        # 総数の主張は拾い、部分集合の記述は拾わない
+        pattern = rule["patterns"][0]
+        self.assertTrue(re.search(pattern, "ユーラシア神話群 297 ノード（古事記 40 話＋比較地域）"))
+        self.assertFalse(re.search(pattern, "古事記 30 話への流入エッジは 58 本"))
+        self.assertFalse(re.search(pattern, "二重評定対象の古事記 13 話（195 セル）"))
+
+    def test_injected_wrong_total_is_rejected(self) -> None:
+        """文書を改ざんしたらゲートが落ちること（ゲートが空回りしていないことの確認）。"""
+        import subprocess
+        target = ROOT / "docs/peer_review_summary_ja.md"
+        original = target.read_text(encoding="utf-8")
+        needle = "古事記 37 話＋比較地域・時代群"
+        if needle not in original:
+            self.skipTest("対象の文が変わっている")
+        try:
+            target.write_text(original.replace(needle, "古事記 40 話＋比較地域・時代群"),
+                              encoding="utf-8")
+            run = subprocess.run([sys.executable, str(ROOT / "src/verify_numbers.py")],
+                                 capture_output=True, text=True)
+            self.assertEqual(run.returncode, 1, run.stdout)
+        finally:
+            target.write_text(original, encoding="utf-8")
 
     def test_gate_reports_zero_violations(self) -> None:
         self.assertGreaterEqual(len(CFG["doc_checks"]["rules"]), 4)

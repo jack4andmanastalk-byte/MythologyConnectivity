@@ -261,18 +261,16 @@
         "source": "data/frozen/nodes_297.csv:kind==kojiki",
         "value": 37,
         "patterns": [
-          "古事記\\s*(\\d+)\\s*話"
+          "古事記\\s*(\\d+)\\s*話(?!\\s*[のにをへ（(])"
         ],
         "context_allow": [
           "評価可能",
           "プロファイル",
           "with_profile",
           "evaluable",
-          "profiled",
-          "うち",
-          "のうち",
-          "対象"
-        ]
+          "profiled"
+        ],
+        "note": "部分集合は「古事記 N 話の/に/を/へ/(」の形で書く。総数は「古事記 37 話」と裸で書く。"
       },
       {
         "id": "network-check-count",
@@ -315,6 +313,8 @@
         "context_allow": []
       }
     ],
-    "violation_snippet_chars": 160
+    "violation_snippet_chars": 160,
+    "exemption_budget": 10,
+    "exemption_budget_note": "凍結レポートの当時値の引用（7 行）＋ 2026-11-28 の並列性実験で注入した誤値の引用（3 行）。新規に増やすときは理由をここに書く。"
   }
 }
