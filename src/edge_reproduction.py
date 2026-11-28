@@ -31,6 +31,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
+import analysis_io as IO  # noqa: E402  出力先の解決・原子的書き込み
+
 import numpy as np   # noqa: E402
 import pandas as pd  # noqa: E402
 
@@ -40,7 +42,7 @@ TOL = CFG["network"]["tolerances"]
 PRIMARY_TOL = float(TOL[PC["primary_tolerance_key"]])
 SENS_TOL = float(PC["sensitivity_tolerance"])
 L2_PREFIX = PC["l2_source_prefix"]
-OUT = ROOT / "outputs"
+OUT = IO.output_dir()
 EMBEDDED = ROOT / "derived/v17_html_embedded_data.json"
 L1_MATRIX = ROOT / "data/frozen/l1_75d_legacy_matrix.csv"
 NODES = ROOT / "data/frozen/nodes_297.csv"
@@ -187,9 +189,8 @@ def main() -> int:
 
     OUT.mkdir(exist_ok=True)
     csv_name, json_name = PC["outputs"][0], PC["outputs"][1]
-    pd.DataFrame(rows).to_csv(OUT / csv_name, index=False)
-    (OUT / json_name).write_text(json.dumps(summary, ensure_ascii=False, indent=2) + "\n",
-                                 encoding="utf-8")
+    IO.write_dataframe_atomic(pd.DataFrame(rows), OUT / csv_name, index=False)
+    IO.write_json_atomic(OUT / json_name, summary)
 
     c = summary["classes"]
     print(f"エッジ再現性: 全 {summary['total_edges']} 本 / "

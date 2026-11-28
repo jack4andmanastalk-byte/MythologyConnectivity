@@ -22,6 +22,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
+
+import analysis_io as IO  # noqa: E402  出力先の解決・原子的書き込み
 DEPENDENCY_ERROR = None
 RUNTIME_IMPORT_ERROR = None
 try:
@@ -60,7 +62,7 @@ D16: Path | None = None
 TOL = NET["tolerances"]
 EXP = NET["expected"]
 PR = NET["pass_rate"]
-OUT = ROOT / "outputs"
+OUT = IO.output_dir()
 STATUS_PATH = OUT / "network_verification_status.json"
 UNVERIFIED_SCOPE = [
     "検証器の A-F 全セクション（HTML/CSV 同一性、構造、層構成、数値再現、統計、表示台帳）",
@@ -726,7 +728,7 @@ def section_f(d, G, extra):
                          n_shared=len([x for x in str(r.shared).split(",") if x and x != "-"]),
                          shared_missing=",".join(missing)))
     ea = pd.DataFrame(rows)
-    ea.to_csv(OUT / "network_edge_audit.csv", index=False)
+    IO.write_dataframe_atomic(ea, OUT / "network_edge_audit.csv", index=False)
     add("F", "F1", "エッジ全件台帳の行数", f"{len(ea)} 行（source/target/層/step/dt/距離/型/重み/共有モチーフ）",
         "info", "outputs/network_edge_audit.csv")
     for cid, col, nm in [("F2", "dt_ok", "dt > 0"), ("F3", "type_ok", "型の規則"),
@@ -764,7 +766,7 @@ def section_f(d, G, extra):
             explained_src_l2=float(dm.loc[n.id, "explained_frac"]) if n.id in dm.index else None,
         ))
     na = pd.DataFrame(nrows)
-    na.to_csv(OUT / "network_node_audit.csv", index=False)
+    IO.write_dataframe_atomic(na, OUT / "network_node_audit.csv", index=False)
     add("F", "F7", "ノード全件台帳の行数", f"{len(na)} 行（次数・表示値・再計算値・出所）", "info",
         "outputs/network_node_audit.csv")
     add("F", "F8", "次数が記録と一致しないノード", f"{int((~na.deg_ok).sum())} 件",
@@ -884,7 +886,7 @@ def write_report(checks, extra, stats, facts):
       "画面に描かれているエッジからは導けない。図を読む際には"
       "「エッジ＝v16 L1＋純 L2 の重ね合わせ」「ノード数値＝3 層分解または v16 単層」という"
       "出所の違いを明記する必要がある。\n")
-    (OUT / "network_verification.md").write_text("\n".join(L), encoding="utf-8")
+    IO.write_text_atomic(OUT / "network_verification.md", "\n".join(L))
 
 
 def main():
@@ -1033,11 +1035,11 @@ def _run_available_checks():
     stats["H"] = set(zip(G["edges"].source, G["edges"].target))
     stats["e90"] = set(zip(d["e90"].source, d["e90"].target))
     write_report(CHECKS, extra, stats, facts)
-    (OUT / "network_checks.json").write_text(json.dumps(
+    IO.write_json_atomic(
+        OUT / "network_checks.json",
         dict(checks=CHECKS,
              worst=['%s: replay %.3f vs recorded %.3f' % (t, a_, b_) for t, a_, b_ in extra["worst"]],
-             kojiki_gap=[dict(id=t, replay=round(a_, 4), displayed=round(b_, 4)) for t, a_, b_ in extra["d5"]]),
-        ensure_ascii=False, indent=2), encoding="utf-8")
+             kojiki_gap=[dict(id=t, replay=round(a_, 4), displayed=round(b_, 4)) for t, a_, b_ in extra["d5"]]))
     cnt = collections.Counter(c["status"] for c in CHECKS)
     print(f"checks={len(CHECKS)} ok={cnt['ok']} warn={cnt['warn']} ng={cnt['ng']} info={cnt['info']}")
     for c in CHECKS:

@@ -51,7 +51,7 @@ python3 src/run_all.py        # 検証 → 定数監査 → 全解析 → ネッ
 | `docs/v18_method_and_results.md` | 方法と結果の本文（日本語・§11 v18.1 追補含む） |
 | `docs/peer_review_summary_ja.md` | 査読用サマリ（日本語 2 ページ要約、`verify_doc.py` 照合済み） |
 | `docs/peer_review_summary_en.md` | 査読用サマリ（英語要約、`verify_doc.py` 照合済み） |
-| `docs/registry.md` | 事前登録台帳（全 11 枝・Holm 補正・結果一覧） |
+| `docs/registry.md` | 事前登録台帳（全 12 枝・Holm 補正・結果一覧） |
 | `docs/adr/` | 設計判断記録（ADR 0001〜0003） |
 | `docs/github_main_protection_manual_ja.md` | GitHubで`main`に必須CIチェックを設定する簡易手順 |
 
@@ -122,3 +122,19 @@ make network  # 埋め込みグラフ全件の検証だけを再実行
 
 同一環境で 2 回実行したとき、`results.json`（時刻・実行時間を除く）と
 `matrix_l2_v18_passA.csv` は完全に一致します（乱数はすべてシード固定）。
+
+## 並列実行（GitSwarm 型）
+
+出力先は既定で `outputs/`。**同じ出力先への二重起動は拒否されます**（黙って上書きしません）。
+並列に走らせるときは、ワーカーごとに出力先を分けてください。
+
+```sh
+make run                      # 単独
+make OUTDIR=runs/w1 run &     # ワーカー 1
+make OUTDIR=runs/w2 run &     # ワーカー 2（同時に走らせてよい）
+make probe                    # 並行安全性の実測（6 検査）
+```
+
+* 実装は `src/analysis_io.py`（出力先の解決・原子的書き込み・`flock`）。
+* 経緯と実測は `docs/path_connectivity_validity_review_20261128_ja.md` §11〜§14。
+* 限界: ロックは同一ファイルシステム内でのみ有効です。別クローン間では効きません。

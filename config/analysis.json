@@ -316,5 +316,19 @@
     "violation_snippet_chars": 160,
     "exemption_budget": 10,
     "exemption_budget_note": "凍結レポートの当時値の引用（7 行）＋ 2026-11-28 の並列性実験で注入した誤値の引用（3 行）。新規に増やすときは理由をここに書く。"
+  },
+  "outputs": {
+    "dir": "outputs",
+    "lock": ".lock",
+    "env_var": "ANALYSIS_OUTPUT_DIR",
+    "note": "出力先を分けるとワーカーごとに独立して走れる。`make OUTDIR=runs/w1 run` が環境変数を設定する。"
+  },
+  "concurrency_probe": {
+    "duration_seconds": 4.0,
+    "csv_rows": 40000,
+    "json_repeats": 300,
+    "note": "src/concurrency_probe.py が実測する。しきい値はここに置き、コードには書かない。",
+    "json_payload_fields": 4000,
+    "char_per_field": 200
   }
 }

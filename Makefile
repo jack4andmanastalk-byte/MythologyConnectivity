@@ -1,8 +1,13 @@
 PY ?= python3
+# 出力先。並列に走らせるときは `make OUTDIR=runs/w1 run` のように分ける（既定は outputs/）。
+OUTDIR ?=
+ifneq ($(OUTDIR),)
+export ANALYSIS_OUTPUT_DIR := $(OUTDIR)
+endif
 
-.PHONY: all prereg registry validate audit test sim run network doc determ interactive work-status clean edges pathdep repro numbers
+.PHONY: all prereg registry validate audit test sim run network doc determ interactive work-status clean edges pathdep repro numbers probe outdir
 
-all: prereg registry validate audit test sim run doc numbers    ## 事前登録 → 登録簿 → 検証 → 監査 → 回帰テスト → 運用シミュレーション → 全解析 → 文書照合 → 数値ゲート
+all: prereg registry validate audit test sim run doc numbers probe    ## 事前登録 → 登録簿 → 検証 → 監査 → 回帰テスト → 運用シミュレーション → 全解析 → 文書照合 → 数値ゲート → 並行安全性
 
 prereg:                            ## 事前登録が結果より先に固定されたか（git 履歴）
 	$(PY) src/check_prereg.py
@@ -36,6 +41,12 @@ repro:                             ## 表示被説明率の再計算可否台帳
 
 numbers:                           ## 文書中の総数表現の統一ゲート（枝 #11）
 	$(PY) src/verify_numbers.py
+
+probe:                             ## 出力の並行安全性を実測する（枝 #12）
+	$(PY) src/concurrency_probe.py
+
+outdir:                            ## 現在の出力先を表示する
+	@$(PY) -c "import sys; sys.path.insert(0,'src'); import analysis_io as IO; print(IO.output_dir())" 
 
 network:                           ## 埋め込みグラフ 297 ノード / 597 エッジの全件検証
 	$(PY) src/verify_network.py

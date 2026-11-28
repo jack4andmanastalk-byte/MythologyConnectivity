@@ -28,11 +28,14 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "src"))
+
+import analysis_io as IO  # noqa: E402  出力先の解決・原子的書き込み
 CFG = json.loads((ROOT / "config/analysis.json").read_text(encoding="utf-8"))
 PC = CFG["path_connectivity"]
 WEST = set(PC["west_regions"])
 RATIO = float(PC["ancestor_loss_ratio"])
-OUT = ROOT / "outputs"
+OUT = IO.output_dir()
 EMBEDDED = ROOT / "derived/v17_html_embedded_data.json"
 
 
@@ -195,12 +198,13 @@ def main() -> int:
     OUT.mkdir(exist_ok=True)
     csv_name, json_name = PC["outputs"][2], PC["outputs"][3]
     import pandas as pd
-    pd.DataFrame(rows).sort_values(
+    ordered = pd.DataFrame(rows).sort_values(
         by=["n_kojiki_disconnected", "n_kojiki_west_ancestor_lost", "n_kojiki_ancestors_shrunk"],
-        ascending=False).to_csv(OUT / csv_name, index=False)
-    pd.DataFrame(bridge_rows).to_csv(OUT / "path_dependency_bridges.csv", index=False)
-    (OUT / json_name).write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n",
-                                 encoding="utf-8")
+        ascending=False)
+    IO.write_dataframe_atomic(ordered, OUT / csv_name, index=False)
+    IO.write_dataframe_atomic(pd.DataFrame(bridge_rows), OUT / "path_dependency_bridges.csv",
+                              index=False)
+    IO.write_json_atomic(OUT / json_name, result)
 
     a = result["ablation"]
     print(f"中継依存: 候補 {a['candidates']} ノード / 除去で何かが壊れる {a['n_nodes_with_any_effect']} 件")

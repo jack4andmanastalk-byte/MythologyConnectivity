@@ -16,13 +16,16 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "src"))
+
+import analysis_io as IO  # noqa: E402
 
 CFG = json.loads((ROOT / "config/analysis.json").read_text(encoding="utf-8"))
 DP = CFG["display_policy"]
 AUDIT = ROOT / DP["derived_audit_path"]
 NODES = ROOT / "data/frozen/nodes_297.csv"
 JSON_OUT = ROOT / DP["reproducibility_json"]
-CSV_OUT = ROOT / DP["reproducibility_csv"]
+CSV_OUT = IO.output_dir() / Path(DP["reproducibility_csv"]).name
 THRESHOLD = float(DP["gap_threshold"])
 
 PROVENANCE_LABEL = {
@@ -85,9 +88,9 @@ def main() -> int:
               "値の誤りではない。表示は 3 系統の混成（ADR 0003）。"),
     )
 
-    JSON_OUT.write_text(json.dumps(outp, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    IO.write_json_atomic(JSON_OUT, outp)
     CSV_OUT.parent.mkdir(exist_ok=True)
-    df.to_csv(CSV_OUT, index=False)
+    IO.write_dataframe_atomic(df, CSV_OUT, index=False)
 
     o = outp["overall"]
     print(f"表示再計算可否: {o['nodes']} ノード / 再計算可 {o['replayable']} / 不可 {o['not_replayable']} / "

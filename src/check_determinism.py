@@ -9,7 +9,10 @@ import hashlib, json, subprocess, sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-OUT = ROOT / "outputs"
+sys.path.insert(0, str(ROOT / "src"))
+
+import analysis_io as IO  # noqa: E402  出力先の解決・原子的書き込み
+OUT = IO.output_dir()
 VOLATILE = ("generated_at", "runtime_sec")
 SKIP = ("manifest.sha256",)          # 他ファイルのハッシュなので上位で決まる
 STAMP_PREFIX = "生成:"               # レポート冒頭の生成時刻行は結果ではない

@@ -27,6 +27,9 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "src"))
+
+import analysis_io as IO  # noqa: E402
 CFG = json.loads((ROOT / "config/analysis.json").read_text(encoding="utf-8"))
 DC = CFG["doc_checks"]
 MARKER = DC["exempt_marker"]
@@ -122,13 +125,11 @@ def main() -> int:
               f"ノード {graph['nodes']} / エッジ {graph['edges']})"
               f" / 免除行 {exempt} / 部分集合として許容 {allowed_hits}")
 
-    report = ROOT / "outputs/doc_number_checks.json"
-    report.parent.mkdir(exist_ok=True)
-    report.write_text(json.dumps(dict(
+    report = IO.output_dir() / "doc_number_checks.json"
+    IO.write_json_atomic(report, dict(
         schema="doc-number-checks/1", measured=measured, graph=graph, checked=checked,
         exemption_lines=exempt, subset_allowed=allowed_hits, violations=violations,
-        rules=[r["id"] for r in rules],
-    ), ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        rules=[r["id"] for r in rules]))
     return 1 if violations else 0
 
 
