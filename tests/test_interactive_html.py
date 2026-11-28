@@ -286,15 +286,39 @@ class TestTradeRoutes(unittest.TestCase):
         self.assertEqual(len(ids), len(set(ids)), "ルート ID の重複")
 
     def test_known_routes_present(self):
-        """依頼で挙げられた交易路（ラピスラズリ・琥珀・アマルナ・海路・横断路・シルクロード）が収録されている。"""
+        """依頼で挙げられた交易路（ラピスラズリ・琥珀・アマルナ・海路・横断路・シルクロード・殷商）が収録されている。"""
         ids = {r["id"] for r in self.tr["routes"]}
-        for rid in ("lapis", "amber", "amarna", "silk", "sea", "trans_india"):
+        for rid in ("lapis", "amber", "amarna", "silk", "sea", "trans_india", "shang_steppe"):
             self.assertIn(rid, ids)
         names = " ".join(r["name"] for r in self.tr["routes"])
         self.assertIn("ラピスラズリ", names)
         self.assertIn("琥珀", names)
         self.assertIn("海路", names)
         self.assertIn("横断路", names)
+        self.assertIn("殷", names)
+
+    def test_mesopotamia_in_silk_and_sea(self):
+        """シルクロードと南回りインド海路はメソポタミアを含む（要望の必須要件）。"""
+        by_id = {r["id"]: r for r in self.tr["routes"]}
+        for rid in ("silk", "sea"):
+            chain = by_id[rid]["chain"]
+            self.assertTrue(
+                any(l.startswith("メソポタミア") for l in chain),
+                f"{rid}: メソポタミア未収録 {chain}")
+
+    def test_shang_route_covers_central_asia(self):
+        """殷商時代の交易路は中央アジア（ステップ・イラン）⇔中国を馬・玉・青銅で結ぶ。"""
+        by_id = {r["id"]: r for r in self.tr["routes"]}
+        r = by_id["shang_steppe"]
+        self.assertIn("中国・華南", r["chain"])
+        self.assertTrue(any("ステップ" in l for l in r["chain"]))
+        self.assertTrue(any("イラン" in l for l in r["chain"]))
+        self.assertIn("shang", {e["id"] for e in self.tr["eras"]})
+        joined = r["name"] + " " + " ".join(r["commodities"]) + " " + r["evidence"]
+        for word in ("馬", "玉", "青銅"):
+            self.assertIn(word, joined)
+        self.assertLessEqual(r["t_from"], -1200)
+        self.assertGreaterEqual(r["t_to"], -1100)
 
     def test_render_layer_and_controls(self):
         """描画レイヤー・トグル・時代セレクト・凡例がテンプレートと生成物に存在する。"""
