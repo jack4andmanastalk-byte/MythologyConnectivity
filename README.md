@@ -51,7 +51,7 @@ python3 src/run_all.py        # 検証 → 定数監査 → 全解析 → ネッ
 | `docs/v18_method_and_results.md` | 方法と結果の本文（日本語・§11 v18.1 追補含む） |
 | `docs/peer_review_summary_ja.md` | 査読用サマリ（日本語 2 ページ要約、`verify_doc.py` 照合済み） |
 | `docs/peer_review_summary_en.md` | 査読用サマリ（英語要約、`verify_doc.py` 照合済み） |
-| `docs/registry.md` | 事前登録台帳（全 7 枝・Holm 補正・結果一覧） |
+| `docs/registry.md` | 事前登録台帳（全 11 枝・Holm 補正・結果一覧） |
 | `docs/adr/` | 設計判断記録（ADR 0001〜0003） |
 | `docs/github_main_protection_manual_ja.md` | GitHubで`main`に必須CIチェックを設定する簡易手順 |
 

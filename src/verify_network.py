@@ -659,7 +659,7 @@ def section_e(d):
                               sub.kind.eq("kojiki").values, sub.kind.eq("eurasia").values,
                               n_perm=inj["n_perm"], seed=inj["seed"])
         out[lbl] = ins
-        add("E", f"E-{lbl}", f"古事記 {int(sub.kind.eq('kojiki').sum())} 話をターゲットにした順列検定",
+        add("E", f"E-{lbl}", f"古事記 {int(sub.kind.eq('kojiki').sum())} ノードをターゲットにした順列検定",
             f"実測 {ins['observed']:.3f} / 帰無 {ins['null_mean']:.3f}±{ins['null_sd']:.3f} / "
             f"p={ins['p_value']:.3f} / d={ins['effect_d']:.2f} / エッジ {ins['n_edges']}",
             "info")

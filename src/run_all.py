@@ -386,6 +386,15 @@ def main():
                             l1_audit_vs_frozen=agree_L1, **agree_extra)
     (OUT / "results.json").write_text(json.dumps(res, ensure_ascii=False, indent=2), encoding="utf-8")
     make_report(res)
+    # 枝 #8–#11 の派生物（edge_reproduction / path_dependency / display_reproducibility）
+    for script in ("edge_reproduction.py", "path_dependency.py", "display_reproducibility.py"):
+        r = subprocess.run([sys.executable, str(ROOT / "src" / script)],
+                           capture_output=True, text=True)
+        print(("[OK] " if r.returncode == 0 else "[NG] ") + script + ": " +
+              ((r.stdout.strip().splitlines() or [""])[0]))
+    vn = subprocess.run([sys.executable, str(ROOT / "src/verify_numbers.py")],
+                        capture_output=True, text=True)
+    print(vn.stdout.strip())
     vd = subprocess.run([sys.executable, str(ROOT / "src/verify_doc.py")],
                         capture_output=True, text=True)
     doc_ok = (vd.returncode == 0)
@@ -394,6 +403,8 @@ def main():
                                      vd_lines[0] if vd_lines else "")
     (OUT / "results.json").write_text(json.dumps(res, ensure_ascii=False, indent=2), encoding="utf-8")
     print(("文書照合 OK: " if doc_ok else "文書照合 NG: ") + res["meta"]["doc_check"])
+    print(("数値ゲート OK: " if vn.returncode == 0 else "数値ゲート NG: ") +
+          (vn.stdout.strip().splitlines() or [""])[0])
     if not doc_ok:
         if vd.stdout.strip():
             print(vd.stdout.strip())
@@ -404,7 +415,7 @@ def main():
     (OUT / "manifest.sha256").write_text("\n".join(man) + "\n", encoding="utf-8")
     print(json.dumps(res["decision"], ensure_ascii=False, indent=2))
     print("done:", OUT)
-    if not doc_ok or net_status.get("status") == "failed":
+    if not doc_ok or not vn.returncode == 0 or net_status.get("status") == "failed":
         raise SystemExit(1)
 
 
