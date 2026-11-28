@@ -95,6 +95,43 @@ def check_doc_declarations(md_text: str, n_branches: int, thr: float, need_perm:
     return errs
 
 
+def check_structure(rows: list[dict]) -> list[str]:
+    """番号が 1 から連番で、枝 ID が重複せず、日付が単調であることを検査する（枝 #14）。
+
+    登録簿は「枝を追加する」だけで育つ。番号の飛び・重複・ID の使い回しは、
+    追記の事故（行の取り違え・マージでの重複）の兆候なので機械で止める。
+    """
+    errs: list[str] = []
+    numbers = [r.get("#", "") for r in rows]
+    if not all(re.fullmatch(r"\d+", n) for n in numbers):
+        bad = [n for n in numbers if not re.fullmatch(r"\d+", n)]
+        return [f"番号が整数でない行がある: {bad[:5]}"]
+    nums = [int(n) for n in numbers]
+    if nums != list(range(1, len(nums) + 1)):
+        expected = list(range(1, len(nums) + 1))
+        diff = [(i, a, b) for i, (a, b) in enumerate(zip(nums, expected)) if a != b]
+        errs.append(f"番号が 1..{len(nums)} の連番になっていない（最初のずれ: {diff[:3]}）")
+
+    seen: dict[str, int] = {}
+    for r in rows:
+        branch_id = r.get("枝 ID", "")
+        if branch_id in seen:
+            errs.append(f"枝 ID {branch_id!r} が重複している（行 {seen[branch_id]} と {r.get('#')}）")
+        else:
+            seen[branch_id] = int(r["#"])
+
+    dates = [r.get("日付", "") for r in rows]
+    if all(re.fullmatch(r"\d{4}-\d{2}-\d{2}", d) for d in dates):
+        if dates != sorted(dates):
+            bad = [(nums[i], dates[i], dates[i + 1])
+                   for i in range(len(dates) - 1) if dates[i] > dates[i + 1]]
+            errs.append(f"日付が昇順でない（後から登録した枝ほど日付が古い）: {bad[:3]}")
+    else:
+        bad = [r.get("#") for r in rows if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", r.get("日付", ""))]
+        errs.append(f"日付が YYYY-MM-DD でない行: {bad[:5]}")
+    return errs
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="登録簿の Holm しきい値と n_perm 要件を検証する")
     ap.add_argument("--registry", type=Path, default=ROOT / "docs/registry.md")
@@ -121,6 +158,7 @@ def main(argv: list[str] | None = None) -> int:
 
     thr, need_perm = compute_holm_requirements(n_branches, alpha)
     errors = check_doc_declarations(md_text, n_branches, thr, need_perm)
+    errors += check_structure(rows)
 
     if n_perm < need_perm:
         if args.update_config:

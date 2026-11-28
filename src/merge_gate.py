@@ -2,7 +2,7 @@
 """
 merge_gate.py -- `origin/main` を取り込んだ状態でゲートを回す（マージ前の再検証）。
 
-背景（`docs/path_connectivity_validity_review_20261128_ja.md` §12.3・§13.4 #4）:
+背景（`docs/path_connectivity_validity_review_20261128_ja.md` §12.3・§13.4 #4・§16）:
   PR の CI は head SHA を検査する。main とマージした結果は検査しない。
   「両方 green でも統合すると壊れる」意味的競合は、**main を取り込んだ状態で
   ゲートを回して初めて**見つかる。
@@ -13,7 +13,8 @@ merge_gate.py -- `origin/main` を取り込んだ状態でゲートを回す（�
   1. 作業ツリーが汚れていたら中止する（`--allow-dirty` で強行できるが推奨しない）
   2. `git fetch origin main`
   3. `git merge --no-commit --no-ff origin/main`（取り込むだけでコミットしない）
-  4. `make prereg registry validate audit test numbers generated` を実行
+  4. `make prereg registry validate audit test numbers generated` と
+     `append_only.py --base origin/main`（枝 #14）を実行
   5. `git merge --abort` で必ず元に戻す（成功・失敗どちらでも）
 
   `AIselfMySelf` の `.arena/resolve_merge.py` が既知の競合だけを機械解決するのに対し、
@@ -45,6 +46,7 @@ GATES = [
     ["python3", "-m", "unittest", "discover", "-s", "tests"],
     ["python3", "src/verify_numbers.py"],
     ["python3", "src/check_generated.py"],
+    ["python3", "src/append_only.py", "--base", "origin/main"],
 ]
 
 

@@ -51,7 +51,7 @@ python3 src/run_all.py        # 検証 → 定数監査 → 全解析 → ネッ
 | `docs/v18_method_and_results.md` | 方法と結果の本文（日本語・§11 v18.1 追補含む） |
 | `docs/peer_review_summary_ja.md` | 査読用サマリ（日本語 2 ページ要約、`verify_doc.py` 照合済み） |
 | `docs/peer_review_summary_en.md` | 査読用サマリ（英語要約、`verify_doc.py` 照合済み） |
-| `docs/registry.md` | 事前登録台帳（全 13 枝・Holm 補正・結果一覧） |
+| `docs/registry.md` | 事前登録台帳（全 14 枝・Holm 補正・結果一覧） |
 | `docs/adr/` | 設計判断記録（ADR 0001〜0003） |
 | `docs/github_main_protection_manual_ja.md` | GitHubで`main`に必須CIチェックを設定する簡易手順 |
 
@@ -154,3 +154,21 @@ make generated  # 追跡下の生成物が今のコードと一致するか（--
 * 生成物（`derived/`）を手で編集すると `make generated` と CI が落ちます。
   正当な手編集は生成物の `manual_edits` に理由を書くと通ります（理由が無ければ通りません）。
 * 経緯と実測は同 §15。
+
+### 書き換えの防止（`make invariant`）
+
+登録簿 `docs/registry.md` は「結果を見る前に枝を登録し、結果が出たら追記する」運用です。
+**事前登録セル**（枝 ID・仮説・主エンドポイントなど）は登録後に変えられず、
+**結果セル**（結果・p・効果量・判定）は `pending` から 1 回だけ前進できます。
+凍結データ `data/frozen/` は内容が変われません。
+
+```sh
+make invariant           # 基底 origin/main との比較（PR 相当）
+make invariant-history   # 全履歴を走査
+make new-id ARGS="--count 3"   # 衝突しない ID（JSON と Markdown の全シャードと照合）
+make rules-live          # ruleset（コードで直せない設定）を実測と突合
+```
+
+* `make invariant` は**行のバイト不変ではありません**。列名で対応づけ、上の 2 層で見ます。
+  バイトで見ると正しい運用（結果の追記・列の追加）が落ちるためです（§16.1 に実測）。
+* 経緯と罠（`ls-tree` の glob・`ls-files` のインデックス読み）は同 §16。
