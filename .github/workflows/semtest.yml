@@ -7,13 +7,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with: { fetch-depth: 0 }
-      - name: report
+      - name: report-as-failure
         run: |
+          {
           echo "GITHUB_SHA=$GITHUB_SHA"
-          echo "checked-out=$(git rev-parse HEAD)"
-          echo "HEAD^1=$(git rev-parse HEAD^1 2>/dev/null || echo none)"
-          echo "HEAD^2=$(git rev-parse HEAD^2 2>/dev/null || echo none)"
-          echo "parents=$(git rev-list --parents -n1 HEAD)"
-          echo "origin/main=$(git rev-parse origin/main 2>/dev/null || echo none)"
-          echo "branch=$(git rev-parse --abbrev-ref HEAD)"
-          echo "subject=$(git log -1 --pretty=%s)"
+          echo "CHECKED_OUT=$(git rev-parse HEAD)"
+          echo "PARENTS=$(git rev-list --parents -n1 HEAD | cut -d' ' -f2-)"
+          echo "SUBJECT=$(git log -1 --pretty=%s)"
+          echo "ORIGIN_MAIN=$(git rev-parse origin/main 2>/dev/null || echo none)"
+          } > /tmp/facts.txt
+          exit 1
