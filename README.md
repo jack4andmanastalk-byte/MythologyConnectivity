@@ -40,8 +40,9 @@ python3 src/run_all.py        # 検証 → 定数監査 → 全解析 → ネッ
 | `src/run_all.py` | 上記を順に実行し、結果・レポート・マニフェストを生成 |
 | `src/build_interactive_html.py` | v17 原本デザインに最新データを統合して確認用 HTML を再生成（`make interactive`／`--extract` で原本 DATA 抽出） |
 | `src/interactive_atlas.template.html.tmpl` | 上記 HTML のテンプレート（v17 原本 UI シェル＋v18 追記部） |
+| `src/extract_world_map.mjs` | Natural Earth 1:110m（world-atlas / パブリックドメイン）から地理モード背景地図 `derived/world_land.json` を生成（開発時のみ） |
 | `docs/interactive/graph_network_atlas.html` | グラフネットワーク人間確認用インタラクティブ HTML（生成物・追跡対象の例外） |
-| `docs/interactive_graph_html_ja.md` | 同 HTML のデザイン系のデザイン系譜・データ出所・検証・再生成手順 |
+| `docs/interactive_graph_html_ja.md` | 同 HTML のデザイン系譜・データ出所・検証・再生成手順 |
 | `annotations/` | 評定データ（pass A / pass B / 中立操作定義 pass C / アンカー / L1 監査 / v17 legacy 変換） |
 | `data/frozen/` | 凍結入力（297 ノード、v16 75D 行列、L1 75D 行列） |
 | `derived/` | 凍結 HTML 297 ノード出所・21 話乖離台帳（`html_embedded_v17_audit.json`） |
@@ -72,7 +73,9 @@ make work-status                  # 作業キューの担当・lease・依存状
 
 `docs/interactive/graph_network_atlas.html` は、**v17 インタラクティブ HTML（原本デザイン）**に
 リポジトリの最新データ（表示監査・乖離台帳・第 2 層評定・L1 再評定）を追記統合した
-人間確認用ビューです（スイムレーン／地理座標／セクター選択／収録済神話リスト／インスペクタ）。
+人間確認用ビューです（スイムレーン／地理座標（**世界地図背景つき**・Natural Earth
+パブリックドメインの陸域・国境を埋め込み SVG で表示）／セクター選択／収録済神話リスト／
+インスペクタ）。外部参照ゼロ＝オフライン `file://` のまま動作します。
 
 ```bash
 make interactive   # docs/interactive/graph_network_atlas.html を再生成（標準ライブラリのみ）

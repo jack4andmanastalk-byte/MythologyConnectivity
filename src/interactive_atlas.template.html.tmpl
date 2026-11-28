@@ -110,6 +110,9 @@
     <label class="toggle-lbl" title="ズーム拡大時に密集ノードを動的に広げ、文字肥大化を抑制してタイトルを展開します">
       <input type="checkbox" id="chk-dyn-zoom" checked> ズーム動的展開
     </label>
+    <label class="toggle-lbl" title="地理座標モードに世界地図（Natural Earth・パブリックドメイン）を背景表示します">
+      <input type="checkbox" id="chk-map-bg" checked> 🗺 地図背景
+    </label>
     <button id="btn-steppe" class="steppe-btn">🐎 草原⇔印イ</button>
     <button id="btn-norse" class="norse-btn">🛡️ 北欧←印イ(PIE)</button>
     <button id="btn-pie" class="pie-btn">🌐 印欧比較</button>
@@ -238,6 +241,7 @@
   <div class="legend-item" style="color:#818cf8;">━━ 印イ→北欧(PIE)</div>
   <div class="legend-item" style="color:#f59e0b;">┈◆┈ 非表示セクター経由 間接ブリッジ</div>
   <div class="legend-item" style="color:#f87171;">⚠ 乖離台帳(ADR 0003)・第2層評定・L1再評定 → インスペクタに v18 追記カード</div>
+  <div class="legend-item">🗺 地図背景: Natural Earth 1:110m（パブリックドメイン・HTML埋め込み・通信なし）</div>
 </div>
 
 <script>
@@ -257,6 +261,7 @@ let searchQuery = "";
 let selectedId = null;
 
 let dynamicZoom = true;
+let showMapBg = true;
 let visibleSectors = new Set(DATA.lanes);
 let hiddenPathMode = "bridge"; // "bridge" | "ghost" | "strict"
 
@@ -304,6 +309,21 @@ function xWarp(t) {
   if (t < 400)   return 7.7 + (t / 400.0) * 1.4;
   if (t < 800)   return 9.1 + ((t - 400) / 400.0) * 1.3;
   return 10.4 + ((t - 800) / 800.0) * 0.9;
+}
+
+// 地理座標モード: メルカトル投影（derived/world_land.json の projection と同一 = 地図とノードが必ず一致）
+const GEO = DATA.world_land ? DATA.world_land.projection : null;
+function mercYdeg(lat) {
+  const la = Math.max(-85, Math.min(85, lat));
+  return (180 / Math.PI) * Math.log(Math.tan(Math.PI / 4 + la * Math.PI / 360));
+}
+function geoX(lon) {
+  if (GEO) return GEO.x0 + (lon - GEO.lon_min) * GEO.k;
+  return PAD.l * 0.36 + ((lon + 25) / 205.0) * (W - PAD.l * 0.44 - 26);
+}
+function geoY(lat) {
+  if (GEO) return GEO.y_top + (GEO.merc_top_deg - mercYdeg(lat)) * GEO.k;
+  return H - PAD.b - ((lat + 22) / 96.0) * (H - PAD.t - PAD.b);
 }
 
 // ---------------------------------------------------------------------------
@@ -548,8 +568,8 @@ function computeDynamicLayout(topoInfo) {
       y = Math.max(lg.y0 + 4.5, Math.min(lg.y0 + lg.h - 4.5, y));
       coords[node.id] = { x, y, lg, isGhost, baseX: x, baseY: y };
     } else {
-      let gx = PAD.l * 0.36 + ((node.lon + 25) / 205.0) * (W - PAD.l * 0.44 - 26);
-      let gy = H - PAD.b - ((node.lat + 22) / 96.0) * (H - PAD.t - PAD.b);
+      let gx = geoX(node.lon);
+      let gy = geoY(node.lat);
       coords[node.id] = { x: gx, y: gy, lg: null, isGhost, baseX: gx, baseY: gy };
     }
   });
@@ -788,17 +808,40 @@ function render() {
       bgG.appendChild(lbl);
     });
   } else {
+    // 世界地図背景（Natural Earth 1:110m・パブリックドメイン / 埋め込み SVG パス・通信なし）
+    if (showMapBg && DATA.world_land) {
+      const landG = document.createElementNS("http://www.w3.org/2000/svg", "g");
+      landG.setAttribute("id", "land-g");
+      (DATA.world_land.land || []).forEach(d => {
+        const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        p.setAttribute("d", d);
+        p.setAttribute("fill", "#152238");
+        p.setAttribute("stroke", "#3b557e");
+        p.setAttribute("stroke-width", "0.8");
+        p.setAttribute("stroke-linejoin", "round");
+        landG.appendChild(p);
+      });
+      (DATA.world_land.borders || []).forEach(d => {
+        const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        p.setAttribute("d", d);
+        p.setAttribute("fill", "none");
+        p.setAttribute("stroke", "#243652");
+        p.setAttribute("stroke-width", "0.5");
+        landG.appendChild(p);
+      });
+      bgG.appendChild(landG);
+    }
     [0, 30, 60, 90, 120, 150].forEach(lon => {
-      const gx = PAD.l * 0.36 + ((lon + 25) / 205.0) * (W - PAD.l * 0.44 - 26);
+      const gx = geoX(lon);
       const ln = document.createElementNS("http://www.w3.org/2000/svg", "line");
       ln.setAttribute("x1", gx); ln.setAttribute("x2", gx); ln.setAttribute("y1", PAD.t); ln.setAttribute("y2", H - PAD.b);
       ln.setAttribute("stroke", "#1e293b"); ln.setAttribute("stroke-dasharray", "3,4");
       bgG.appendChild(ln);
     });
     [-15, 0, 20, 40, 60].forEach(lat => {
-      const gy = H - PAD.b - ((lat + 22) / 96.0) * (H - PAD.t - PAD.b);
+      const gy = geoY(lat);
       const ln = document.createElementNS("http://www.w3.org/2000/svg", "line");
-      ln.setAttribute("x1", PAD.l * 0.36); ln.setAttribute("x2", W - 26); ln.setAttribute("y1", gy); ln.setAttribute("y2", gy);
+      ln.setAttribute("x1", geoX(-25)); ln.setAttribute("x2", W - 26); ln.setAttribute("y1", gy); ln.setAttribute("y2", gy);
       ln.setAttribute("stroke", "#1e293b"); ln.setAttribute("stroke-dasharray", "3,4");
       bgG.appendChild(ln);
     });
@@ -1407,6 +1450,11 @@ document.getElementById("chk-dyn-zoom").onchange = (ev) => {
   render();
 };
 
+document.getElementById("chk-map-bg").onchange = (ev) => {
+  showMapBg = ev.target.checked;
+  render();
+};
+
 svg.addEventListener("wheel", (ev) => {
   if (ev.preventDefault) ev.preventDefault();
   const pt = clientToSvg(ev.clientX, ev.clientY);
@@ -1458,7 +1506,9 @@ document.getElementById("btn-reset").onclick = () => {
   visibleSectors = new Set(DATA.lanes);
   hiddenPathMode = "bridge";
   dynamicZoom = true;
+  showMapBg = true;
   document.getElementById("chk-dyn-zoom").checked = true;
+  document.getElementById("chk-map-bg").checked = true;
   document.getElementById("txt-search").value = "";
   document.getElementById("btn-steppe").classList.remove("active");
   document.getElementById("btn-norse").classList.remove("active");

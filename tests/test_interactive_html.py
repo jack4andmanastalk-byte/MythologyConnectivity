@@ -160,5 +160,94 @@ class TestInteractiveHtml(unittest.TestCase):
         self.assertNotIn("__DATA_JSON__", self.text)
 
 
+class TestWorldMapBackground(unittest.TestCase):
+    """地理座標モードの世界地図背景（Natural Earth 埋め込み・通信なし）の検査。"""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.text = HTML_PATH.read_text(encoding="utf-8")
+        cls.data = load_embedded_data(cls.text)
+        cls.wl = cls.data.get("world_land") or {}
+
+    @staticmethod
+    def _subpath_points(d):
+        for sub in d.split("M"):
+            sub = sub.strip().rstrip("Z")
+            if not sub:
+                continue
+            pts = []
+            for tok in re.findall(r"[-\d.]+,[-\d.]+", sub):
+                xs, ys = tok.split(",")
+                pts.append((float(xs), float(ys)))
+            if pts:
+                yield pts
+
+    def test_world_land_embedded(self):
+        """Natural Earth 1:110m 陸域・国境が埋め込まれ、出典とライセンスが明記されている。"""
+        self.assertTrue(self.wl, "world_land が埋め込まれていること")
+        land = self.wl.get("land") or []
+        borders = self.wl.get("borders") or []
+        self.assertGreaterEqual(len(land), 50)
+        self.assertGreaterEqual(len(borders), 100)
+        self.assertIn("Natural Earth", self.wl.get("source", ""))
+        self.assertIn("public domain", self.wl.get("license", "").lower())
+
+    def test_projection_matches_node_placement(self):
+        """地図の投影パラメータがノード配置 geoX/geoY と同一（＝ノードが地理に一致）。"""
+        proj = self.wl["projection"]
+        self.assertEqual(proj["w"], 1280)
+        self.assertEqual(proj["h"], 940)
+        # 既存 geoX 式: x = x0 + (lon+25)*k, k = (W - PAD.l*0.44 - 26)/205
+        expected_k = (1280 - 196 * 0.44 - 26) / 205
+        self.assertAlmostEqual(proj["k"], expected_k, places=4)
+        self.assertAlmostEqual(proj["x0"], 196 * 0.36, places=2)
+        self.assertEqual(proj["lon_min"], -25)
+        template = TEMPLATE_PATH.read_text(encoding="utf-8")
+        self.assertIn("GEO.x0 + (lon - GEO.lon_min) * GEO.k", template)
+        self.assertIn("GEO.y_top + (GEO.merc_top_deg - mercYdeg(lat)) * GEO.k", template)
+        self.assertIn("geoX(node.lon)", template)
+        self.assertIn("geoY(node.lat)", template)
+
+    def test_no_antimeridian_streaks(self):
+        """反経線またぎの水平ストリーク（長大セグメント）が残っていないこと。"""
+        for name in ("land", "borders"):
+            for d in self.wl[name]:
+                for pts in self._subpath_points(d):
+                    for (x0, _), (x1, _) in zip(pts, pts[1:]):
+                        self.assertLessEqual(abs(x1 - x0), 300, f"{name} に長い水平セグメント")
+                    for x, y in pts:
+                        self.assertTrue(-1200 < x < 2200 and -1200 < y < 2200)
+
+    def test_map_toggle_and_attribution(self):
+        """地図背景トグルと凡例出典表記が v17 UI に追加されている。"""
+        template = TEMPLATE_PATH.read_text(encoding="utf-8")
+        self.assertIn('id="chk-map-bg"', template)
+        self.assertIn('id="chk-map-bg"', self.text)
+        self.assertIn("Natural Earth", self.text)
+
+    def test_known_nodes_align_to_land(self):
+        """既知の内陸ノード（古事記・檀君神話）が最寄りの海岸線に近接している。"""
+        import math
+        proj = self.wl["projection"]
+
+        def merc_ydeg(lat):
+            la = max(-85.0, min(85.0, lat))
+            return (180 / math.pi) * math.log(math.tan(math.pi / 4 + la * math.pi / 360))
+
+        def geo_xy(lon, lat):
+            x = proj["x0"] + (lon - proj["lon_min"]) * proj["k"]
+            y = proj["y_top"] + (proj["merc_top_deg"] - merc_ydeg(lat)) * proj["k"]
+            return x, y
+
+        coast_pts = []
+        for d in self.wl["land"]:
+            for pts in self._subpath_points(d):
+                coast_pts.extend(pts)
+        for lon, lat in ((135.1, 35.0), (125.7, 39.0), (23.0, 38.3), (31.2, 29.9)):
+            x, y = geo_xy(lon, lat)
+            dist = min(math.hypot(px - x, py - y) for px, py in coast_pts)
+            self.assertLess(dist, 100, f"({lon},{lat}) が海岸線から遠すぎる: {dist:.0f}px")
+
+
 if __name__ == "__main__":
     unittest.main()
