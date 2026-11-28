@@ -126,14 +126,43 @@ class MergeGateSafetyTests(unittest.TestCase):
         else:
             self.assertEqual(MG.main(["--dry-run"]), 2)
 
-    def test_dry_run_does_not_merge(self) -> None:
+    def test_running_inside_a_merge_is_refused(self) -> None:
+        """`make gate` は自分自身の unittest の中で走る。
+
+        そのとき `.git/MERGE_HEAD` は**既に存在する**（外側のゲートが
+        `git merge --no-commit` しているため）。ここで何も考えずに
+        `MERGE_HEAD is None` を主張すると、外側のゲートが必ず落ちる。
+        正しい契約は「マージ進行中なら取り込まずに exit 2 で止まる」こと。
+        """
+        if not (ROOT / ".git" / "MERGE_HEAD").exists():
+            self.skipTest("マージ進行中ではない（単独実行）: 外側のゲートで検証される")
         before = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT,
                                 capture_output=True, text=True).stdout.strip()
-        MG.main(["--dry-run"])
+        head = MG.main(["--dry-run"])
         after = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT,
                                capture_output=True, text=True).stdout.strip()
-        self.assertEqual(before, after)
-        self.assertFalse((ROOT / ".git" / "MERGE_HEAD").exists())
+        self.assertEqual(head, 2, "マージ進行中は exit 2 で止まること")
+        self.assertEqual(before, after, "HEAD を動かさないこと")
+        self.assertTrue((ROOT / ".git" / "MERGE_HEAD").exists(),
+                        "外側のゲートの state を壊さないこと")
+
+    def test_merge_in_progress_guard_is_first(self) -> None:
+        """マージ進行中のガードが dirty 判定より先に効いていること。
+
+        `is_dirty()` をスタブして「clean」に見せても、ガードが先なら exit 2。
+        ここが逆順だと、外側のゲートの中では dirty 扱いで止まるのか
+        マージ進行で止まるのかが曖昧になる。
+        """
+        orig = MG.is_dirty
+        MG.is_dirty = lambda: False
+        try:
+            if (ROOT / ".git" / "MERGE_HEAD").exists():
+                self.assertEqual(MG.main(["--dry-run"]), 2)
+            else:
+                # マージ進行中でなければ、clean 扱いなので素通りする（0 か 3）
+                self.assertIn(MG.main(["--dry-run"]), (0, 3))
+        finally:
+            MG.is_dirty = orig
 
 
 if __name__ == "__main__":
