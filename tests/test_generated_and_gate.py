@@ -20,8 +20,19 @@ sys.path.insert(0, str(ROOT / "src"))
 import check_generated as CG  # noqa: E402
 import merge_gate as MG  # noqa: E402
 
+try:  # pragma: no cover - 環境依存
+    import pandas  # noqa: F401
+
+    _HAS_PANDAS = True
+except ModuleNotFoundError:  # make all はシステム python で走ることがある
+    _HAS_PANDAS = False
+
+_needs_pandas = unittest.skipUnless(
+    _HAS_PANDAS, "pandas が無い環境では --full の再生成を実行できない（make all の既定）")
+
 
 class ManifestTests(unittest.TestCase):
+    @_needs_pandas
     def test_manifest_exists_and_is_current(self) -> None:
         self.assertTrue(CG.MANIFEST.exists(), "derived/generated_manifest.json が無い")
         run = subprocess.run([sys.executable, str(ROOT / "src/check_generated.py")],
@@ -59,6 +70,7 @@ class DriftDetectionTests(unittest.TestCase):
         return subprocess.run([sys.executable, str(ROOT / "src/check_generated.py"), *args],
                               cwd=ROOT, capture_output=True, text=True)
 
+    @_needs_pandas
     def test_hand_edit_is_rejected(self) -> None:
         payload = json.loads(self.path.read_text(encoding="utf-8"))
         payload["overall"]["replayable"] = 999
@@ -75,6 +87,7 @@ class DriftDetectionTests(unittest.TestCase):
                              encoding="utf-8")
         self.assertEqual(self._run().returncode, 0, "申告があれば通すべき")
 
+    @_needs_pandas
     def test_regenerated_value_mismatch_is_caught_by_full(self) -> None:
         """生成物もコードも変わらないのに、再生成した値だけが違う場合を検出する。
 
