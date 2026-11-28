@@ -7,13 +7,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with: { fetch-depth: 0 }
-      - name: report-as-failure
+      - name: facts
         run: |
           {
-          echo "GITHUB_SHA=$GITHUB_SHA"
-          echo "CHECKED_OUT=$(git rev-parse HEAD)"
-          echo "PARENTS=$(git rev-list --parents -n1 HEAD | cut -d' ' -f2-)"
-          echo "SUBJECT=$(git log -1 --pretty=%s)"
-          echo "ORIGIN_MAIN=$(git rev-parse origin/main 2>/dev/null || echo none)"
-          } > /tmp/facts.txt
-          exit 1
+            echo "SHA=$GITHUB_SHA"
+            echo "HEAD=$(git rev-parse HEAD)"
+            echo "NPARENTS=$(git rev-list --parents -n1 HEAD | wc -w)"
+            echo "SUBJ=$(git log -1 --pretty=%s)"
+            echo "MAIN=$(git rev-parse origin/main 2>/dev/null || echo none)"
+            echo "BRANCH=$(git rev-parse --abbrev-ref HEAD)"
+          } | tee /tmp/facts.txt
+          echo "### facts" >> $GITHUB_STEP_SUMMARY
+          sed 's/^/    /' /tmp/facts.txt >> $GITHUB_STEP_SUMMARY
