@@ -35,6 +35,11 @@ jobs:
       - name: registry, scheduler, and network-status regression tests
         run: make test
 
+      # 3c) 追跡下の生成物が「今のコードから再生成した値」と一致するか
+      #     （derived/ を手で編集していないことの証拠。--full は生成関数を再実行）
+      - name: generated artifacts are current
+        run: python src/check_generated.py --full
+
       # 4) 運用シミュレーション（ADR 0002）と全解析。資材不足は成功と偽装せず明示状態にする。
       - name: run pipeline
         run: make run

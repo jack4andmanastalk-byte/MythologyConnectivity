@@ -51,7 +51,7 @@ python3 src/run_all.py        # 検証 → 定数監査 → 全解析 → ネッ
 | `docs/v18_method_and_results.md` | 方法と結果の本文（日本語・§11 v18.1 追補含む） |
 | `docs/peer_review_summary_ja.md` | 査読用サマリ（日本語 2 ページ要約、`verify_doc.py` 照合済み） |
 | `docs/peer_review_summary_en.md` | 査読用サマリ（英語要約、`verify_doc.py` 照合済み） |
-| `docs/registry.md` | 事前登録台帳（全 12 枝・Holm 補正・結果一覧） |
+| `docs/registry.md` | 事前登録台帳（全 13 枝・Holm 補正・結果一覧） |
 | `docs/adr/` | 設計判断記録（ADR 0001〜0003） |
 | `docs/github_main_protection_manual_ja.md` | GitHubで`main`に必須CIチェックを設定する簡易手順 |
 
@@ -133,8 +133,24 @@ make run                      # 単独
 make OUTDIR=runs/w1 run &     # ワーカー 1
 make OUTDIR=runs/w2 run &     # ワーカー 2（同時に走らせてよい）
 make probe                    # 並行安全性の実測（6 検査）
+make gate                     # マージ前: origin/main を取り込んで全ゲートを通す
 ```
 
 * 実装は `src/analysis_io.py`（出力先の解決・原子的書き込み・`flock`）。
-* 経緯と実測は `docs/path_connectivity_validity_review_20261128_ja.md` §11〜§14。
+* 経緯と実測は `docs/path_connectivity_validity_review_20261128_ja.md` §11〜§15。
 * 限界: ロックは同一ファイルシステム内でのみ有効です。別クローン間では効きません。
+
+### マージ前の再検証（`make gate`）
+
+CI は**ブランチ単独**を検査します。main とマージした**結果**は検査しません。
+`make gate` は `origin/main` を `git merge --no-commit` で取り込み、同じゲートを回して
+**必ず `git merge --abort` で元に戻します**（作業ツリーは変わりません）。
+
+```sh
+make gate       # 全ゲート通過なら exit 0、失敗 exit 1、競合 exit 2、origin/main と同じなら exit 3
+make generated  # 追跡下の生成物が今のコードと一致するか（--full は再生成して照合）
+```
+
+* 生成物（`derived/`）を手で編集すると `make generated` と CI が落ちます。
+  正当な手編集は生成物の `manual_edits` に理由を書くと通ります（理由が無ければ通りません）。
+* 経緯と実測は同 §15。
