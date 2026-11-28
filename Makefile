@@ -5,9 +5,9 @@ ifneq ($(OUTDIR),)
 export ANALYSIS_OUTPUT_DIR := $(OUTDIR)
 endif
 
-.PHONY: all prereg registry validate audit test sim run network doc determ interactive work-status clean edges pathdep repro numbers probe outdir
+.PHONY: all prereg registry validate audit test sim run network doc determ interactive work-status clean edges pathdep repro numbers probe outdir generated gate
 
-all: prereg registry validate audit test sim run doc numbers probe    ## 事前登録 → 登録簿 → 検証 → 監査 → 回帰テスト → 運用シミュレーション → 全解析 → 文書照合 → 数値ゲート → 並行安全性
+all: prereg registry validate audit test sim run doc numbers probe generated    ## 事前登録 → 登録簿 → 検証 → 監査 → 回帰テスト → 全解析 → 文書照合 → 数値ゲート → 並行安全性 → 生成物の鮮度
 
 prereg:                            ## 事前登録が結果より先に固定されたか（git 履歴）
 	$(PY) src/check_prereg.py
@@ -46,7 +46,13 @@ probe:                             ## 出力の並行安全性を実測する（
 	$(PY) src/concurrency_probe.py
 
 outdir:                            ## 現在の出力先を表示する
-	@$(PY) -c "import sys; sys.path.insert(0,'src'); import analysis_io as IO; print(IO.output_dir())" 
+	@$(PY) -c "import sys; sys.path.insert(0,'src'); import analysis_io as IO; print(IO.output_dir())"
+
+generated:                         ## 追跡下の生成物が今のコードと一致するか（枝 #13）
+	$(PY) src/check_generated.py
+
+gate:                              ## origin/main を取り込んだ状態でゲートを回す（マージ前）
+	$(PY) src/merge_gate.py
 
 network:                           ## 埋め込みグラフ 297 ノード / 597 エッジの全件検証
 	$(PY) src/verify_network.py
