@@ -26,6 +26,7 @@ ROOT = Path(__file__).resolve().parents[1]
 AUDIT_PATH = ROOT / "derived/html_embedded_v17_audit.json"
 NODES_PATH = ROOT / "data/frozen/nodes_297.csv"
 EMBEDDED_PATH = ROOT / "derived/v17_html_embedded_data.json"
+WORLD_LAND_PATH = ROOT / "derived/world_land.json"
 TEMPLATE_PATH = ROOT / "src/interactive_atlas.template.html.tmpl"
 OUT_PATH = ROOT / "docs/interactive/graph_network_atlas.html"
 ANNOTATION_DIR = ROOT / "annotations"
@@ -143,6 +144,10 @@ def build_mode() -> int:
         node["l1audit"] = l1_ann.get(nid, [])
 
     gap_count = sum(1 for n in payload["nodes"] if n.get("gap"))
+    world_land = None
+    if WORLD_LAND_PATH.exists():
+        world_land = json.loads(WORLD_LAND_PATH.read_text(encoding="utf-8"))
+    payload["world_land"] = world_land
     payload["v18meta"] = {
         "source_html_sha256": embedded.get("__source", {}).get("sha256", ""),
         "generator": "src/build_interactive_html.py",
@@ -161,6 +166,7 @@ def build_mode() -> int:
             "data/frozen/nodes_297.csv（ノード種別）",
             "derived/html_embedded_v17_audit.json（表示出所・乖離台帳 / ADR 0003）",
             "annotations/*.jsonl（第 2 層 R01-R15 評定・L1 再評定、証拠つき）",
+            "derived/world_land.json（Natural Earth 1:110m 陸域・国境 / パブリックドメイン）",
         ],
         "notes": [
             "表示値（explained_pct 等）は v17 原本どおり。ADR 0003 に従い改変せず、乖離は注記で示す。",
