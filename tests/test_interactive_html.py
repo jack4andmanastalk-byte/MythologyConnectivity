@@ -328,6 +328,31 @@ class TestTradeRoutes(unittest.TestCase):
         self.assertIn("🐫", self.text)
         self.assertIn("中継交易ルート", self.text)
 
+    def test_yayoi_routes_and_latest_dating(self):
+        """弥生時代の海路（最新推定年代）が収録され、2026年時点の年代研究に整合する。"""
+        eras = {e["id"]: e for e in self.tr["eras"]}
+        y = eras["yayoi"]
+        # 最新研究（高精度AMS炭素14年代）: 開始＝前10世紀頃、終期＝3世紀中頃
+        self.assertLessEqual(y["t_from"], -900, "弥生開始は前10世紀頃であること")
+        self.assertGreaterEqual(y["t_from"], -1100)
+        self.assertGreaterEqual(y["t_to"], 250, "弥生終期は3世紀中頃であること")
+        self.assertLessEqual(y["t_to"], 300)
+        self.assertIn("炭素14", self.tr.get("dating_note", "") + y["name"])
+        by_id = {r["id"]: r for r in self.tr["routes"]}
+        for rid in ("wa_korea", "wa_china", "ryukyu_seasia", "hokkaido_sea"):
+            self.assertIn(rid, by_id)
+            self.assertEqual(by_id[rid]["era"], "yayoi", rid)
+        self.assertIn("朝鮮・満洲", by_id["wa_korea"]["chain"])
+        self.assertIn("列島前史・律令考古", by_id["wa_korea"]["chain"])
+        self.assertEqual(
+            set(by_id["wa_china"]["chain"]),
+            {"中国・華南", "朝鮮・満洲", "列島前史・律令考古"})
+        self.assertIn("東南アジア・台湾", by_id["ryukyu_seasia"]["chain"])
+        self.assertIn("シベリア・アイヌ・北アジア", by_id["hokkaido_sea"]["chain"])
+        blob = json.dumps(by_id, ensure_ascii=False)
+        for word in ("対馬", "楽浪", "ゴホウラ", "続縄文", "黒曜石"):
+            self.assertIn(word, blob, word)
+
     def test_display_only_no_external_refs(self):
         """交易路データに通信を誘導する文字列（URL 等）が含まれない。"""
         blob = json.dumps(self.tr, ensure_ascii=False)
