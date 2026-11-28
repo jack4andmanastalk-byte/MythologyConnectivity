@@ -594,3 +594,75 @@ worker=W1 end_branch=featB   end_code=print("B")      ← 同じプロセスが�
   あちらは main が required check 未通過のマージを受け入れる状態が**文書化された既知の欠陥**として残っている。
 
 いずれも本レビューの範囲外。着手する場合は `docs/registry.md` に枝を追加してから行う。
+
+---
+
+## 14. 実装: 出力の分離・原子的書き込み・二重起動の拒否（枝 #12）
+
+§13.4 の優先度 1〜2 と §11.5・§12.5 の候補を実装した。**仮説検定ではなく整合性検査**
+（`docs/registry.md` 枝 #12 `NET-OUTPUT-ISOLATION`）。数値・判定規則は `config/analysis.json` に置き、
+コードには書いていない。
+
+### 14.1 実装したもの
+
+| # | 仕組み | 実装 | 効果 |
+| ---: | :--- | :--- | :--- |
+| 1 | **出力先の分離** | `src/analysis_io.output_dir()`。優先順は 環境変数 `ANALYSIS_OUTPUT_DIR` → `config.outputs.dir`（既定 `outputs`）。`make OUTDIR=runs/w1 run` が環境変数を設定する | ワーカーごとに独立した `outputs/` を持てる |
+| 2 | **原子的書き込み** | `write_text_atomic` / `write_json_atomic` / `write_dataframe_atomic`（`tempfile` + `os.replace` + `fsync`） | 読み手が壊れた中間状態を掴まない |
+| 3 | **二重起動の拒否** | `directory_lock()`（`flock` / `msvcrt`）。取れなければ `OutputLocked` を送出し、`exit 2` | 黙って上書きしない |
+| 4 | **全書き込みの置換** | `run_all` / `verify_network` / `edge_reproduction` / `path_dependency` / `display_reproducibility` / `sim_swarm_review` / `verify_numbers` / `audit_no_hardcode` | `outputs/` への非原子的書き込みが 0 件になった |
+
+### 14.2 実測（`src/concurrency_probe.py`、`make probe`）
+
+`§11` で測った破損を、実装後に同じ条件で測り直した。
+
+| 検査 | 実装前（§11） | 実装後（本節） |
+| :--- | :--- | :--- |
+| 読み手が壊れた JSON を掴む | **6810 回**（1 書き手＋3 読み手） | **0 回** |
+| 読み手が行数の足りない CSV を掴む | **958 エラー / 306 短行** | **0 エラー / 0 短行**（成功 251 回） |
+| 同一出力先の二重起動 | 両方走る（後勝ちで上書き） | **1 本だけ取得、他は `OutputLocked`** |
+| 出力先を分けた同時実行 | （手段が無かった） | **2 本とも成功**（`results.json` は時刻を除いて一致） |
+
+### 14.3 `make run` の実測
+
+```
+$ make run                      # 2 本目は 6 秒後に起動
+A=0   B=2
+OutputLocked: /home/user/MythologyConnectivity/outputs/.lock は別のプロセスが使用中である。
+              別ワーカーで走っていないなら ... 出力先を分ける（ANALYSIS_OUTPUT_DIR / make OUTDIR=...）
+
+$ OUTDIR=runs/w1 make run & OUTDIR=runs/w2 make run & wait
+w1=0  w2=0      # 両方成功、results.json は一致
+```
+
+### 14.4 実装中に見つけた罠（記録）
+
+* **コンテキストマネージャの一時オブジェクトは GC で flock を解放する。**
+  `IO.directory_lock(p).__enter__()` と書くと、戻り値がすぐ回収されてロックが外れる
+  （テストが落ちて判明した）。実運用は `with` 文なので影響しないが、
+  テストで同じ書き方をすると**ロックが効いていないのに緑になる**。回帰テストに
+  `test_other_process_is_locked_out` を入れて、この書き方の再発を止めた。
+* **`audit_no_hardcode.py` が新しいプローブの数値を検出した**（`4000`, `200`）。
+  設定へ移して解消。既存のゲートが新規コードにも効いていることの確認になった。
+
+### 14.5 残る限界
+
+* ロックは**同一出力先の中だけ**を守る。別クローンは別ファイルシステムなので効かない
+  （§13.1 の `AIselfMySelf` と同じ前提）。並列化するなら**出力先を分ける**のが本筋。
+* `outputs/` を分けても `vendor/`・`.venv/`・`data/frozen/` は共有のままである。
+  読み取り専用なので壊れないが、`.venv` の作り直しが走ると競合しうる。
+* `manifest.sha256` は「その時点のファイル」から作る。ロックで二重起動を止めたので
+  実運用では問題ないが、**ロックを迂回して別プロセスが書けば同じ問題が残る**。
+* 生成物の「意味的な競合」（§12.3）は、この実装では解決しない。`outputs/` は
+  git 管理外なので、そもそも意味的競合は起きない。**競合するのは `derived/` と `docs/`** であり、
+  そちらは ruleset（`strict_required_status_checks_policy: true`）が受け持つ。
+
+### 14.6 使い方
+
+```sh
+make run                      # 単独実行（二重起動は拒否される）
+make OUTDIR=runs/w1 run       # ワーカー 1
+make OUTDIR=runs/w2 run       # ワーカー 2（同時に走らせてよい）
+make outdir                   # 現在の出力先を表示
+make probe                    # 並行安全性を実測（6 検査）
+```

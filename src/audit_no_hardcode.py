@@ -14,8 +14,11 @@ import ast, io, json, re, sys, tokenize
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "src"))
+
+import analysis_io as IO  # noqa: E402  出力先の解決・原子的書き込み
 SRC = ROOT / "src"
-OUT = ROOT / "outputs"
+OUT = IO.output_dir()
 OUT.mkdir(exist_ok=True)
 
 # 許可するのは「構造上必要な定数」と「表示用の定数」のみ（数値として比較）
@@ -102,7 +105,7 @@ def main():
     else:
         rep.write("なし。解析上のしきい値・重み・件数はすべて `config/analysis.json` 由来、"
                   "または構造定数（0/1/2, 1e-12, 地球半径 6371.0 等）。\n")
-    (OUT / "audit_hardcode.md").write_text(rep.getvalue(), encoding="utf-8")
+    IO.write_text_atomic(OUT / "audit_hardcode.md", rep.getvalue())
     print(rep.getvalue())
     sys.exit(1 if viol else 0)
 

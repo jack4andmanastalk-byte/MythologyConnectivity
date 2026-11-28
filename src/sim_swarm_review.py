@@ -11,14 +11,17 @@ sim_swarm_review.py -- 多モデル並列レビュー（GitSwarm 型運用）の
 設定: config/analysis.json の swarm_sim（結果ではなく運用パラメータ）
 """
 from __future__ import annotations
-import json, math
+import json, math, sys
 from pathlib import Path
 
 import numpy as np
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "src"))
+
+import analysis_io as IO  # noqa: E402  出力先の解決・原子的書き込み
 CFG = json.loads((ROOT / "config/analysis.json").read_text(encoding="utf-8"))["swarm_sim"]
-OUT = ROOT / "outputs"
+OUT = IO.output_dir()
 OUT.mkdir(exist_ok=True)
 
 
@@ -91,7 +94,7 @@ def main():
     r2 = q2_selection()
     r3 = q3_herding()
     res = dict(config=CFG, bias_variance=r1, selection=r2, herding=r3)
-    (OUT / "swarm_sim.json").write_text(json.dumps(res, ensure_ascii=False, indent=2), encoding="utf-8")
+    IO.write_json_atomic(OUT / "swarm_sim.json", res)
 
     L = []
     a = L.append
@@ -141,7 +144,7 @@ def main():
       "さらに q が上がるほど、最初の誤りが終端まで残る確率が上がる。"
       "並列・独立に評定させ、突き合わせは最後に 1 回だけ行う必要がある。\n")
 
-    (OUT / "swarm_sim.md").write_text("\n".join(L), encoding="utf-8")
+    IO.write_text_atomic(OUT / "swarm_sim.md", "\n".join(L))
     print("\n".join(L))
 
 

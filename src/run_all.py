@@ -14,8 +14,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
+import analysis_io as IO  # noqa: E402  出力先の解決・原子的書き込み
+
 CFG = json.loads((ROOT / "config/analysis.json").read_text(encoding="utf-8"))
-OUT = ROOT / "outputs"
+OUT = IO.output_dir()
 OUT.mkdir(exist_ok=True)
 
 
@@ -54,10 +56,21 @@ def summarize(run, metric_is_z):
 
 
 def main():
+    """全解析。出力先は IO.output_dir()（`ANALYSIS_OUTPUT_DIR` / `make OUTDIR=`）で決まる。
+
+    同一出力先の二重起動は `IO.directory_lock` が拒否する。黙って上書きすると、
+    後から読む側が壊れた中間状態を掴む（レビュー §11 の実測）。並列に走らせたい
+    ときは `make OUTDIR=runs/w1 run` のように出力先を分けること。
+    """
+    with IO.directory_lock():
+        return _run()
+
+
+def _run():
     global np, pd, E, S
     t0 = time.time()
     net_status_path = OUT / "network_verification_status.json"
-    net_status_path.write_text(json.dumps({
+    IO.write_json_atomic(net_status_path, {
         "schema": "network-verification-status/1",
         "status": "running",
         "reason": "pipeline started; network verification has not run yet",
@@ -67,7 +80,7 @@ def main():
         "checks": None,
         "unverified_scope": ["network verification has not run yet"],
         "artifacts": [],
-    }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    })
     try:
         import numpy as np
         import pandas as pd
@@ -85,8 +98,7 @@ def main():
             "unverified_scope": ["全解析が依存不足で未実行", "v17 ネットワーク全件検証も未実行"],
             "artifacts": [],
         }
-        net_status_path.write_text(json.dumps(dependency_status, ensure_ascii=False, indent=2) + "\n",
-                                   encoding="utf-8")
+        IO.write_json_atomic(net_status_path, dependency_status)
         print("[UNAVAILABLE] " + dependency_status["reason"])
         raise SystemExit(2)
     except Exception as exc:
@@ -101,8 +113,7 @@ def main():
             "unverified_scope": ["全解析の初期化が失敗", "v17 ネットワーク全件検証も未実行"],
             "artifacts": [],
         }
-        net_status_path.write_text(json.dumps(import_status, ensure_ascii=False, indent=2) + "\n",
-                                   encoding="utf-8")
+        IO.write_json_atomic(net_status_path, import_status)
         print("[FAILED] " + import_status["reason"])
         raise SystemExit(1)
     import subprocess
@@ -132,8 +143,8 @@ def main():
 
     Mv18 = matrix_from(A + ANC, vocab, sub["id"])
     Mleg = matrix_from(LEG, vocab, sub["id"])
-    Mv18.to_csv(OUT / "matrix_l2_v18_passA.csv")
-    Mleg.to_csv(OUT / "matrix_l2_legacy_v17.csv")
+    IO.write_dataframe_atomic(Mv18, OUT / "matrix_l2_v18_passA.csv")
+    IO.write_dataframe_atomic(Mleg, OUT / "matrix_l2_legacy_v17.csv")
 
     coverage = dict(
         v18_targets_with_profile=int((Mv18[sub.is_target.values].sum(axis=1) > 0).sum()),
@@ -310,7 +321,7 @@ def main():
         c_map = {r["target"]: r for r in C_recs}
         AC = [c_map.get(r["target"], r) for r in A]
         Mv18_passC = matrix_from(AC + ANC, vocab, sub["id"])
-        Mv18_passC.to_csv(OUT / "matrix_l2_v18_passC_mix.csv")
+        IO.write_dataframe_atomic(Mv18_passC, OUT / "matrix_l2_v18_passC_mix.csv")
         run_c = E.run_with_null(sub, Mv18_passC.values, E.EngineConfig(**p_eng), tm, pm,
                                 n_perm=inj["n_perm"], seed=inj["seed"])
         res["layer2"]["v18_passC_calibrated"] = summarize(run_c, True)
@@ -339,7 +350,7 @@ def main():
                 "unverified_scope": ["network verification result could not be trusted"],
                 "artifacts": [],
             }
-            net_status_path.write_text(json.dumps(net_status, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+            IO.write_json_atomic(net_status_path, net_status)
         if net_status.get("status") == "unavailable":
             print("[UNVERIFIED] ネットワーク全件検証: " + str(net_status.get("reason", "理由不明")))
             print("  未検証範囲: " + " / ".join(net_status.get("unverified_scope", [])))
@@ -357,7 +368,7 @@ def main():
             "unverified_scope": ["network verification could not start or complete"],
             "artifacts": [],
         }
-        net_status_path.write_text(json.dumps(net_status, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        IO.write_json_atomic(net_status_path, net_status)
         print("[NETWORK FAILED] " + net_status["reason"])
 
     # 判定
@@ -384,7 +395,7 @@ def main():
     )
     res["agreement"] = dict(passA_vs_passB=agree_AB, passA_vs_legacy=agree_AL,
                             l1_audit_vs_frozen=agree_L1, **agree_extra)
-    (OUT / "results.json").write_text(json.dumps(res, ensure_ascii=False, indent=2), encoding="utf-8")
+    IO.write_json_atomic(OUT / "results.json", res)
     make_report(res)
     # 枝 #8–#11 の派生物（edge_reproduction / path_dependency / display_reproducibility）
     for script in ("edge_reproduction.py", "path_dependency.py", "display_reproducibility.py"):
@@ -401,7 +412,7 @@ def main():
     vd_lines = vd.stdout.strip().splitlines()
     res["meta"]["doc_check"] = next((line for line in vd_lines if line.startswith("照合項目")),
                                      vd_lines[0] if vd_lines else "")
-    (OUT / "results.json").write_text(json.dumps(res, ensure_ascii=False, indent=2), encoding="utf-8")
+    IO.write_json_atomic(OUT / "results.json", res)
     print(("文書照合 OK: " if doc_ok else "文書照合 NG: ") + res["meta"]["doc_check"])
     print(("数値ゲート OK: " if vn.returncode == 0 else "数値ゲート NG: ") +
           (vn.stdout.strip().splitlines() or [""])[0])
@@ -412,7 +423,7 @@ def main():
             print(vd.stderr.strip(), file=sys.stderr)
     man = [f"{sha256(p)}  {p.name}" for p in sorted(OUT.glob("*"))
            if p.is_file() and p.name != "manifest.sha256" and not p.name.startswith(".")]
-    (OUT / "manifest.sha256").write_text("\n".join(man) + "\n", encoding="utf-8")
+    IO.write_text_atomic(OUT / "manifest.sha256", "\n".join(man) + "\n")
     print(json.dumps(res["decision"], ensure_ascii=False, indent=2))
     print("done:", OUT)
     if not doc_ok or not vn.returncode == 0 or net_status.get("status") == "failed":
@@ -551,7 +562,7 @@ def make_report(res):
     for k, v in res["meta"]["inputs"].items():
         a(f"| `{k}` | `{v[:16]}` |")
     a("")
-    (OUT / "report.md").write_text("\n".join(L), encoding="utf-8")
+    IO.write_text_atomic(OUT / "report.md", "\n".join(L))
 
 
 if __name__ == "__main__":
